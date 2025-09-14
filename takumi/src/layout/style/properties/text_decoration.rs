@@ -34,8 +34,40 @@ pub enum TextDecorationLine {
 
 /// Represents a collection of text decoration lines.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
-#[ts(as = "Vec<TextDecorationLine>")]
+#[ts(as = "TextDecorationLinesValue")]
+#[serde(try_from = "TextDecorationLinesValue")]
 pub struct TextDecorationLines(pub SmallVec<[TextDecorationLine; 3]>);
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(untagged)]
+enum TextDecorationLinesValue {
+  #[ts(as = "Vec<TextDecorationLine>")]
+  Lines(SmallVec<[TextDecorationLine; 3]>),
+  Css(String),
+}
+
+impl TryFrom<TextDecorationLinesValue> for TextDecorationLines {
+  type Error = String;
+
+  fn try_from(value: TextDecorationLinesValue) -> Result<Self, Self::Error> {
+    match value {
+      TextDecorationLinesValue::Lines(lines) => Ok(TextDecorationLines(lines)),
+      TextDecorationLinesValue::Css(css) => {
+        let mut input = ParserInput::new(&css);
+        let mut parser = Parser::new(&mut input);
+
+        let mut lines = SmallVec::new();
+
+        while !parser.is_exhausted() {
+          let line = TextDecorationLine::from_css(&mut parser).map_err(|e| e.to_string())?;
+          lines.push(line);
+        }
+
+        Ok(TextDecorationLines(lines))
+      }
+    }
+  }
+}
 
 impl TextDecorationLines {
   /// Checks if the text decoration lines contain the specified line.

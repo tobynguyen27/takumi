@@ -3,4 +3,4 @@
 /**
  * Represents text decoration line options.
  */
-export type TextDecorationLine = "underline" | "line-through";
+export type TextDecorationLine = "underline" | "line-through" | "overline";
