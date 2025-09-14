@@ -3,7 +3,7 @@ use takumi::layout::{
   node::{ContainerNode, NodeKind, TextNode},
   style::{
     BackgroundImagesValue, BackgroundPositionsValue, BackgroundRepeatsValue, BackgroundSizesValue,
-    Color, FontWeight,
+    Color, FlexWrap, FontWeight, Gap,
     LengthUnit::{Em, Percentage, Px},
     LineHeight, StyleBuilder, TextAlign, TextOverflow, TextShadow, TextShadows, TextTransform,
   },
@@ -40,6 +40,40 @@ fn fixtures_text_typography_regular_24px() {
   run_style_width_test(
     text.into(),
     "tests/fixtures/text_typography_regular_24px.png",
+  );
+}
+
+#[test]
+fn fixtures_text_typography_variable_weight() {
+  let nodes = (400..=900)
+    .step_by(50)
+    .map(|weight| {
+      TextNode {
+        style: StyleBuilder::default()
+          .font_size(Px(48.0))
+          .font_weight(FontWeight::from(weight as f32))
+          .build()
+          .unwrap(),
+        text: weight.to_string(),
+      }
+      .into()
+    })
+    .collect::<Vec<_>>();
+
+  let container = ContainerNode {
+    style: StyleBuilder::default()
+      .background_color(Color([240, 240, 240, 255]))
+      .font_size(Px(24.0))
+      .gap(Gap(Px(0.0), Px(24.0)))
+      .flex_wrap(FlexWrap::Wrap)
+      .build()
+      .unwrap(),
+    children: Some(nodes),
+  };
+
+  run_style_width_test(
+    container.into(),
+    "tests/fixtures/text_typography_variable_weight.png",
   );
 }
 

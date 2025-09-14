@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use image::RgbaImage;
 use parley::{Glyph, GlyphRun, PositionedLayoutItem, StyleProperty};
-use swash::{Setting, tag_from_bytes};
 use taffy::{Layout, Point, Size};
 use zeno::{Command, Join, Mask, PathData, Placement, Stroke};
 
@@ -423,8 +422,6 @@ pub(crate) enum MaxHeight {
   Both(f32, u32),
 }
 
-const VARIABLE_FONT_WEIGHT_TAG: u32 = tag_from_bytes(b"wght");
-
 pub(crate) fn create_text_layout(
   text: &str,
   font_style: &SizedFontStyle,
@@ -447,15 +444,6 @@ pub(crate) fn create_text_layout(
     {
       builder.push_default(StyleProperty::FontVariations(parley::FontSettings::List(
         Cow::Borrowed(&font_variation_settings.0),
-      )));
-    } else {
-      let variable_font_setting = Setting {
-        tag: VARIABLE_FONT_WEIGHT_TAG,
-        value: font_weight.value(),
-      };
-
-      builder.push_default(StyleProperty::FontVariations(parley::FontSettings::List(
-        Cow::Borrowed(&[variable_font_setting]),
       )));
     }
 
