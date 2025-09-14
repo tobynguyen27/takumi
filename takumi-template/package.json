@@ -1,7 +1,7 @@
 {
   "name": "@takumi-rs/template",
   "type": "module",
-  "version": "0.30.2",
+  "version": "0.31.0",
   "author": {
     "email": "me@kane.tw",
     "name": "Kane Wang",
