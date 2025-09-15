@@ -80,7 +80,7 @@ define_style!(
   margin_right: Option<LengthUnit> = None => None,
   margin_bottom: Option<LengthUnit> = None => None,
   margin_left: Option<LengthUnit> = None => None,
-  inset: Sides<LengthUnit> = Sides::zero() => Sides::zero(),
+  inset: Sides<LengthUnit> = Sides::auto() => Sides::auto(),
   top: Option<LengthUnit> = None => None,
   right: Option<LengthUnit> = None => None,
   bottom: Option<LengthUnit> = None => None,

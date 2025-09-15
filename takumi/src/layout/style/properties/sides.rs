@@ -126,6 +126,11 @@ impl Sides<LengthUnit> {
   pub const fn zero() -> Self {
     Self([LengthUnit::zero(); 4])
   }
+
+  /// Creates a new autoable Sides with [LengthUnit::Auto].
+  pub const fn auto() -> Self {
+    Self([LengthUnit::Auto; 4])
+  }
 }
 
 #[cfg(test)]
