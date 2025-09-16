@@ -33,31 +33,33 @@ export default function FiveHundredStars() {
     >
       <img
         src={persistentImages[0]?.src}
-        alt="500 Stars"
+        alt="Logo"
         style={{
           width: "12rem",
           aspectRatio: 1,
           marginBottom: "2rem",
         }}
       />
-      <p
+      <span
         style={{
           color: "rgba(255, 255, 255, 0.85)",
           fontSize: "8rem",
           fontWeight: 800,
+          padding: "1rem 0",
         }}
       >
         500 Stars
-      </p>
-      <p
+      </span>
+      <span
         style={{
           color: "rgba(255, 255, 255, 0.75)",
           fontSize: "2rem",
           fontWeight: 600,
+          padding: "1rem 0",
         }}
       >
         Background noise will be in the next version of Takumi.
-      </p>
+      </span>
       <div
         style={{
           position: "absolute",
