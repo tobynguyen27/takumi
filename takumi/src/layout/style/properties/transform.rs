@@ -17,7 +17,7 @@ use crate::{
 const DEFAULT_SCALE: f32 = 1.0;
 
 /// Represents a single CSS transform operation
-#[derive(Debug, Clone, Deserialize, Serialize, Copy, TS)]
+#[derive(Debug, Clone, Deserialize, Serialize, Copy, TS, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum Transform {
   /// Translates an element along the X-axis and Y-axis by the specified lengths
@@ -152,48 +152,57 @@ impl<'i> FromCss<'i> for Transform {
     };
 
     match_ignore_ascii_case! {function,
-      "translate" => Ok(Transform::Translate(
-        parser.parse_nested_block(LengthUnit::from_css)?,
-        parser.parse_nested_block(LengthUnit::from_css)?,
-      )),
-      "translatex" => Ok(Transform::Translate(
-        parser.parse_nested_block(LengthUnit::from_css)?,
+      "translate" => parser.parse_nested_block(|input| {
+        let x = LengthUnit::from_css(input)?;
+        input.expect_comma()?;
+        let y = LengthUnit::from_css(input)?;
+
+        Ok(Transform::Translate(x, y))
+      }),
+      "translatex" => parser.parse_nested_block(|input| Ok(Transform::Translate(
+        LengthUnit::from_css(input)?,
         LengthUnit::zero(),
-      )),
-      "translatey" => Ok(Transform::Translate(
+      ))),
+      "translatey" => parser.parse_nested_block(|input| Ok(Transform::Translate(
         LengthUnit::zero(),
-        parser.parse_nested_block(LengthUnit::from_css)?,
-      )),
-      "scale" => Ok(Transform::Scale(
-        parser.parse_nested_block(parse_length_percentage)?,
-        parser.parse_nested_block(parse_length_percentage)?,
-      )),
-      "scalex" => Ok(Transform::Scale(
-        parser.parse_nested_block(parse_length_percentage)?,
+        LengthUnit::from_css(input)?,
+      ))),
+      "scale" => parser.parse_nested_block(|input| {
+        let x = parse_length_percentage(input)?;
+        input.expect_comma()?;
+        let y = parse_length_percentage(input)?;
+
+        Ok(Transform::Scale(x, y))
+      }),
+      "scalex" => parser.parse_nested_block(|input| Ok(Transform::Scale(
+        parse_length_percentage(input)?,
         DEFAULT_SCALE,
-      )),
-      "scaley" => Ok(Transform::Scale(
+      ))),
+      "scaley" => parser.parse_nested_block(|input| Ok(Transform::Scale(
         DEFAULT_SCALE,
-        parser.parse_nested_block(parse_length_percentage)?,
-      )),
-      "skew" => Ok(Transform::Skew(
-        parser.parse_nested_block(Angle::from_css)?,
-        parser.parse_nested_block(Angle::from_css)?,
-      )),
-      "skewx" => Ok(Transform::Skew(
-        parser.parse_nested_block(Angle::from_css)?,
+        parse_length_percentage(input)?,
+      ))),
+      "skew" => parser.parse_nested_block(|input| {
+        let x = Angle::from_css(input)?;
+        input.expect_comma()?;
+        let y = Angle::from_css(input)?;
+
+        Ok(Transform::Skew(x, y))
+      }),
+      "skewx" => parser.parse_nested_block(|input| Ok(Transform::Skew(
+        Angle::from_css(input)?,
         Angle::default(),
-      )),
-      "skewy" => Ok(Transform::Skew(
+      ))),
+      "skewy" => parser.parse_nested_block(|input| Ok(Transform::Skew(
         Angle::default(),
-        parser.parse_nested_block(Angle::from_css)?,
-      )),
-      "rotate" => Ok(Transform::Rotate(
-        parser.parse_nested_block(Angle::from_css)?,
-      )),
-      "matrix" => Ok(Transform::Matrix(
-        parser.parse_nested_block(Affine::from_css)?,
-      )),
+        Angle::from_css(input)?,
+      ))),
+      "rotate" => parser.parse_nested_block(|input| Ok(Transform::Rotate(
+        Angle::from_css(input)?,
+      ))),
+      "matrix" => parser.parse_nested_block(|input| Ok(Transform::Matrix(
+        Affine::from_css(input)?,
+      ))),
       _ => Err(location.new_basic_unexpected_token_error(token.clone()).into()),
     }
   }
@@ -450,5 +459,22 @@ impl DecomposedTransform {
         width: 1.0,
         height: 1.0,
       }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_transform_from_css() {
+    let mut input = ParserInput::new("translate(10px, 20px)");
+    let mut parser = Parser::new(&mut input);
+    let transform = Transform::from_css(&mut parser).unwrap();
+
+    assert_eq!(
+      transform,
+      Transform::Translate(LengthUnit::Px(10.0), LengthUnit::Px(20.0))
+    );
   }
 }
