@@ -365,6 +365,12 @@ impl<'a> From<&'a FontFamily> for FontStack<'a> {
   }
 }
 
+impl From<&str> for FontFamily {
+  fn from(family: &str) -> Self {
+    FontFamily(family.to_string())
+  }
+}
+
 /// Represents the grid auto flow with serde support
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, TS, Default, PartialEq)]
 #[serde(rename_all = "kebab-case")]

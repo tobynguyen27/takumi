@@ -120,4 +120,12 @@ pub struct GlobalContext {
 pub enum Error {
   /// Represents an error that occurs during image resolution.
   ImageResolveError(ImageResourceError),
+  /// Represents an error that occurs during IO operations.
+  IoError(std::io::Error),
+}
+
+impl From<std::io::Error> for Error {
+  fn from(error: std::io::Error) -> Self {
+    Error::IoError(error)
+  }
 }

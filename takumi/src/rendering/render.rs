@@ -1,16 +1,6 @@
-use std::{
-  io::{Seek, Write},
-  sync::mpsc::channel,
-};
+use std::sync::mpsc::channel;
 
-use image::{
-  ExtendedColorType, ImageEncoder, ImageFormat, RgbaImage,
-  codecs::{
-    jpeg::JpegEncoder,
-    png::{CompressionType, FilterType, PngEncoder},
-  },
-};
-use serde::{Deserialize, Serialize};
+use image::RgbaImage;
 use taffy::{AvailableSpace, NodeId, Point, TaffyTree, geometry::Size};
 
 use crate::{
@@ -29,84 +19,6 @@ use crate::rendering::RenderContext;
 struct NodeContext<'ctx, N: Node<N>> {
   context: RenderContext<'ctx>,
   node: N,
-}
-
-/// Output format for the rendered image.
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
-pub enum ImageOutputFormat {
-  /// WebP format, suitable for web images with good compression.
-  WebP,
-  /// AVIF format, even better compression than WebP, but requires more CPU time to encode.
-  #[cfg(feature = "avif")]
-  Avif,
-  /// PNG format, lossless and supports transparency.
-  Png,
-  /// JPEG format, lossy compression suitable for photographs.
-  Jpeg,
-}
-
-impl ImageOutputFormat {
-  /// Returns the MIME type for the image output format.
-  pub fn content_type(&self) -> &'static str {
-    match self {
-      ImageOutputFormat::WebP => "image/webp",
-      #[cfg(feature = "avif")]
-      ImageOutputFormat::Avif => "image/avif",
-      ImageOutputFormat::Png => "image/png",
-      ImageOutputFormat::Jpeg => "image/jpeg",
-    }
-  }
-}
-
-impl From<ImageOutputFormat> for ImageFormat {
-  fn from(format: ImageOutputFormat) -> Self {
-    match format {
-      ImageOutputFormat::WebP => Self::WebP,
-      #[cfg(feature = "avif")]
-      ImageOutputFormat::Avif => Self::Avif,
-      ImageOutputFormat::Png => Self::Png,
-      ImageOutputFormat::Jpeg => Self::Jpeg,
-    }
-  }
-}
-
-/// Writes the rendered image to the specified destination.
-pub fn write_image<T: Write + Seek>(
-  image: &RgbaImage,
-  destination: &mut T,
-  format: ImageOutputFormat,
-  jpeg_quality: Option<u8>,
-) -> Result<(), image::ImageError> {
-  match format {
-    ImageOutputFormat::Jpeg => {
-      // Strip alpha channel into a tightly packed RGB buffer
-      let raw = image.as_raw();
-      let mut rgb = Vec::with_capacity(raw.len() / 4 * 3);
-      for px in raw.chunks_exact(4) {
-        rgb.extend_from_slice(&px[..3]);
-      }
-
-      let encoder = JpegEncoder::new_with_quality(destination, jpeg_quality.unwrap_or(75));
-      encoder.write_image(&rgb, image.width(), image.height(), ExtendedColorType::Rgb8)?;
-    }
-    ImageOutputFormat::Png => {
-      let encoder =
-        PngEncoder::new_with_quality(destination, CompressionType::Fast, FilterType::Sub);
-
-      encoder.write_image(
-        image.as_raw(),
-        image.width(),
-        image.height(),
-        ExtendedColorType::Rgba8,
-      )?;
-    }
-    _ => {
-      image.write_to(destination, format.into())?;
-    }
-  }
-
-  Ok(())
 }
 
 /// Renders a node to an image.

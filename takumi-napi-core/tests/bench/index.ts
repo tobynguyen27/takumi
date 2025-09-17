@@ -209,6 +209,15 @@ const renderer = new Renderer();
 bench("createNode", createNode);
 
 summary(() => {
+  bench("createNode + renderAsync (raw)", async () => {
+    const node = await createNode();
+    return renderer.renderAsync(node, {
+      width: 1200,
+      height: 630,
+      format: "raw",
+    });
+  });
+
   bench("createNode + renderAsync (png)", async () => {
     const node = await createNode();
     return renderer.renderAsync(node, {
@@ -226,12 +235,12 @@ summary(() => {
     });
   });
 
-  bench("createNode + renderAsync (raw)", async () => {
+  bench("createNode + renderAsync (avif)", async () => {
     const node = await createNode();
     return renderer.renderAsync(node, {
       width: 1200,
       height: 630,
-      format: "raw",
+      format: "avif",
     });
   });
 });

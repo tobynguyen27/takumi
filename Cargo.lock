@@ -2221,6 +2221,7 @@ dependencies = [
  "cssparser",
  "derive_builder",
  "image",
+ "image-webp",
  "lru",
  "merge",
  "noise",

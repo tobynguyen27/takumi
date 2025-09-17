@@ -11,6 +11,7 @@ mod image_drawing;
 mod render;
 /// Text drawing functions
 mod text_drawing;
+mod write;
 
 pub(crate) use background_drawing::*;
 pub(crate) use canvas::*;
@@ -19,6 +20,7 @@ pub(crate) use debug_drawing::*;
 pub(crate) use image_drawing::*;
 pub use render::*;
 pub(crate) use text_drawing::*;
+pub use write::*;
 
 use crate::{
   GlobalContext,
