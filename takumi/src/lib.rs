@@ -122,10 +122,18 @@ pub enum Error {
   ImageResolveError(ImageResourceError),
   /// Represents an error that occurs during IO operations.
   IoError(std::io::Error),
+  /// Represents an error that occurs during PNG encoding.
+  PngError(png::EncodingError),
 }
 
 impl From<std::io::Error> for Error {
   fn from(error: std::io::Error) -> Self {
     Error::IoError(error)
+  }
+}
+
+impl From<png::EncodingError> for Error {
+  fn from(error: png::EncodingError) -> Self {
+    Error::PngError(error)
   }
 }

@@ -6,7 +6,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use takumi::{
   GlobalContext,
   layout::{Viewport, node::NodeKind},
-  rendering::{ImageOutputFormat, encode_animated_webp, render, write_image},
+  rendering::{ImageOutputFormat, encode_animated_png, encode_animated_webp, render, write_image},
   resources::image::ImageSource,
 };
 
@@ -98,4 +98,25 @@ pub fn run_webp_animation_test(
 
   let mut out = File::create(fixture_path).unwrap();
   encode_animated_webp(&frames, duration_ms, &mut out, blend, dispose, loop_count).unwrap();
+}
+
+#[allow(dead_code)]
+pub fn run_png_animation_test(
+  nodes: &[NodeKind],
+  duration_ms: u16,
+  fixture_path: &str,
+  loop_count: Option<u16>,
+) {
+  assert_ne!(nodes.len(), 0);
+
+  let context = create_test_context();
+  let viewport = create_test_viewport();
+
+  let frames: Vec<_> = nodes
+    .par_iter()
+    .map(|node| render(viewport, &context, node.clone()).unwrap())
+    .collect();
+
+  let mut out = File::create(fixture_path).unwrap();
+  encode_animated_png(&frames, duration_ms, &mut out, loop_count).unwrap();
 }

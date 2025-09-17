@@ -260,3 +260,32 @@ pub fn encode_animated_webp<W: Write>(
 
   Ok(())
 }
+
+/// Encode a sequence of RGBA frames into an animated PNG and write to `destination`.
+pub fn encode_animated_png<W: Write>(
+  frames: &[RgbaImage],
+  duration_ms: u16,
+  destination: &mut W,
+  loop_count: Option<u16>,
+) -> Result<(), crate::Error> {
+  assert_ne!(frames.len(), 0);
+
+  let mut encoder = png::Encoder::new(destination, frames[0].width(), frames[0].height());
+
+  encoder.set_color(png::ColorType::Rgba);
+  encoder.set_compression(png::Compression::Fastest);
+  encoder.set_animated(frames.len() as u32, loop_count.unwrap_or(0) as u32)?;
+
+  let per_frame_ms = duration_ms / frames.len() as u16;
+  encoder.set_frame_delay(per_frame_ms, 1000)?;
+
+  let mut writer = encoder.write_header()?;
+
+  for frame in frames {
+    writer.write_image_data(frame.as_raw())?;
+  }
+
+  writer.finish()?;
+
+  Ok(())
+}

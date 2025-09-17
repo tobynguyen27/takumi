@@ -2226,6 +2226,7 @@ dependencies = [
  "merge",
  "noise",
  "parley",
+ "png 0.18.0",
  "rayon",
  "resvg",
  "serde",

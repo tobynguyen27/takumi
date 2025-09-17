@@ -19,6 +19,7 @@ zeno = "0.3"
 lru = "0.16"
 derive_builder = "0.20"
 image-webp = "0.2"
+png = "0.18.0"
 
 [dependencies.smallvec]
 version = "1.15"

@@ -1,7 +1,7 @@
 use smallvec::smallvec;
 use std::f32::consts::PI;
 use takumi::layout::{
-  node::{ContainerNode, TextNode},
+  node::{ContainerNode, NodeKind, TextNode},
   style::{
     AlignItems, Color, FlexDirection, FontFamily, FontWeight, JustifyContent,
     LengthUnit::{Percentage, Px},
@@ -12,9 +12,10 @@ use takumi::layout::{
 mod test_utils;
 use test_utils::run_webp_animation_test;
 
-#[test]
-fn fixtures_animation_bouncing_text() {
-  let nodes = (0..45)
+use crate::test_utils::run_png_animation_test;
+
+fn create_bouncing_text_nodes() -> Vec<NodeKind> {
+  (0..45)
     .map(|frame| {
       // compute bounce progress and transforms
       let frames = 45u32;
@@ -61,14 +62,27 @@ fn fixtures_animation_bouncing_text() {
       }
       .into()
     })
-    .collect::<Vec<_>>();
+    .collect::<Vec<_>>()
+}
 
+#[test]
+fn fixtures_animation_bouncing_text_webp() {
   run_webp_animation_test(
-    &nodes,
+    &create_bouncing_text_nodes(),
     1500,
     "tests/fixtures/animation_bouncing_text.webp",
     true,
     false,
+    None,
+  );
+}
+
+#[test]
+fn fixtures_animation_bouncing_text_png() {
+  run_png_animation_test(
+    &create_bouncing_text_nodes(),
+    1500,
+    "tests/fixtures/animation_bouncing_text.png",
     None,
   );
 }
