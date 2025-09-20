@@ -11,8 +11,8 @@
     "url": "git+https://github.com/kane50613/takumi.git"
   },
   "peerDependencies": {
-    "@takumi-rs/core": "^0.29.2",
-    "@takumi-rs/helpers": "^0.29.2"
+    "@takumi-rs/core": "^0",
+    "@takumi-rs/helpers": "^0"
   },
   "devDependencies": {
     "@takumi-rs/core": "workspace:*",
