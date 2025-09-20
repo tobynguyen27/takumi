@@ -22,7 +22,7 @@ async function getFonts() {
 }
 
 const fonts = await getFonts();
-let renderer: Renderer;
+const renderer = new Renderer();
 
 const localImagePath = "../assets/images/yeecord.png";
 
@@ -55,12 +55,6 @@ const node = container({
 });
 
 describe("setup", () => {
-  test("new Renderer", () => {
-    renderer = new Renderer();
-
-    expect(renderer).toBeDefined();
-  });
-
   test("loadFont", () => {
     for (const font of fonts) renderer.loadFont(font);
   });
