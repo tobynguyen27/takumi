@@ -10,6 +10,10 @@ The design is mainly inspired by [satori](https://github.com/vercel/satori), but
 
 ## Why build a satori alternative?
 
+Takumi's focus is on how to rasterize images fast, while satori focuses on SVG output.
+
+I'm not saying you should just use Takumi everywhere, there are places where SVG output could be a better fit. Pick the right tool for the job.
+
 - All in one. No need to output SVG then have [resvg-js](https://github.com/thx/resvg-js) rendering it again to output PNG.
 - Minimal binary size targets to run everywhere. Node.js, web, embedded in Rust, pre-built http server.
 - Takes your existing JSX components and drops them in. It should just work.
@@ -18,6 +22,10 @@ The design is mainly inspired by [satori](https://github.com/vercel/satori), but
 - WOFF2 font format support. Trims your bundle size.
 - PNG, JPEG, WebP, AVIF output support.
 - Host Takumi as a standalone service for easier load balancing and scaling (coming soon).
+
+<Callout type="info">
+More discussion can be found in [this X thread by @shuding_](https://x.com/shuding_/status/1958853749004542445).
+</Callout>
 
 ## Start Here
 
