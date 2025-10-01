@@ -1,7 +1,6 @@
 import type {
   ComponentProps,
   CSSProperties,
-  JSX,
   ReactElement,
   ReactNode,
 } from "react";
@@ -169,14 +168,7 @@ async function processReactElement(element: ReactElementLike): Promise<Node[]> {
     return [createSvgElement(element)];
   }
 
-  const style = extractStyleFromProps(element.props) as PartialStyle;
-
-  if (typeof element.type === "string" && element.type in stylePresets) {
-    Object.assign(
-      style,
-      stylePresets[element.type as keyof JSX.IntrinsicElements],
-    );
-  }
+  const style = extractStyle(element) as PartialStyle;
 
   const textChildren = await tryCollectTextChildren(element);
   if (textChildren !== undefined) return [text(textChildren, style)];
@@ -198,7 +190,7 @@ function createImageElement(
     throw new Error("Image element must have a 'src' prop.");
   }
 
-  const style = extractStyleFromProps(element.props) as PartialStyle;
+  const style = extractStyle(element) as PartialStyle;
 
   return image({
     src: element.props.src,
@@ -207,7 +199,7 @@ function createImageElement(
 }
 
 function createSvgElement(element: ReactElement<ComponentProps<"svg">, "svg">) {
-  const style = extractStyleFromProps(element.props) as PartialStyle;
+  const style = extractStyle(element) as PartialStyle;
   const svg = serializeSvg(element);
 
   return image({
@@ -223,24 +215,37 @@ const webkitPropertiesMapping = {
   WebkitTextStrokeColor: "textStrokeColor",
 } satisfies Partial<Record<keyof CSSProperties, keyof PartialStyle>>;
 
-function extractStyleFromProps(props: unknown): PartialStyle {
-  if (typeof props !== "object" || props === null) return {};
+function extractStyle(element: ReactElementLike): PartialStyle {
+  const base = {};
+
+  if (typeof element.type === "string" && element.type in stylePresets) {
+    Object.assign(
+      base,
+      stylePresets[element.type as keyof typeof stylePresets],
+    );
+  }
 
   const style =
-    "style" in props && typeof props.style === "object" && props.style !== null
-      ? props.style
-      : {};
+    typeof element.props === "object" &&
+    element.props !== null &&
+    "style" in element.props &&
+    typeof element.props.style === "object" &&
+    element.props.style !== null
+      ? element.props.style
+      : undefined;
 
-  if (Object.keys(style).length > 0) {
+  if (style && Object.keys(style).length > 0) {
     for (const [from, to] of Object.entries(webkitPropertiesMapping)) {
       if (from in style) {
-        style[to as keyof typeof style] = style[from as keyof typeof style];
+        base[to as keyof typeof base] = style[from as keyof typeof style];
         delete style[from as keyof typeof style];
       }
     }
+
+    Object.assign(base, style);
   }
 
-  return style;
+  return base;
 }
 
 function collectChildren(element: ReactElementLike): Promise<Node[]> {

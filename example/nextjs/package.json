@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@takumi-rs/core": "file:../../takumi-napi-core",
+    "@takumi-rs/core": "workspace:*",
     "@takumi-rs/image-response": "workspace:*",
     "@takumi-rs/template": "workspace:*",
     "lucide-react": "^0.544.0",

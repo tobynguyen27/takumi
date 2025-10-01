@@ -40,14 +40,14 @@ export default function DocsTemplateV1({
         }}
       >
         {icon}
-        <p
+        <span
           style={{
             fontSize: 56,
             fontWeight: 600,
           }}
         >
           {site}
-        </p>
+        </span>
       </div>
       <p
         style={{
@@ -55,11 +55,13 @@ export default function DocsTemplateV1({
           fontSize: 84,
           textOverflow: "ellipsis",
           lineClamp: 2,
+          marginTop: "0.5em",
+          marginBottom: "0.5em",
         }}
       >
         {title}
       </p>
-      <p
+      <span
         style={{
           fontSize: 48,
           color: "rgba(240,240,240,0.8)",
@@ -69,7 +71,7 @@ export default function DocsTemplateV1({
         }}
       >
         {description}
-      </p>
+      </span>
     </div>
   );
 }

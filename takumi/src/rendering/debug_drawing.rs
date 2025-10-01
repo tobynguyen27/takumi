@@ -29,7 +29,7 @@ pub fn draw_debug_border(canvas: &Canvas, layout: Layout, transform: Affine) {
 
   draw_border(
     canvas,
-    Point { x, y },
+    layout.location,
     BorderProperties {
       width: Sides([1.0; 4]).into(),
       offset: Point::ZERO,

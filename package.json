@@ -16,10 +16,12 @@
     }
   },
   "scripts": {
-    "lint": "biome ci ."
+    "lint": "biome ci .",
+    "version": "changeset version"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
+    "@changesets/cli": "^2.29.7",
     "@takumi-rs/core": "workspace:*",
     "simple-git-hooks": "^2.13.1"
   },
