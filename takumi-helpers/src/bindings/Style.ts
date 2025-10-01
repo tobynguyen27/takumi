@@ -14,6 +14,7 @@ import type { CssOption } from "./CssOption";
 import type { CssValue } from "./CssValue";
 import type { Display } from "./Display";
 import type { FlexDirection } from "./FlexDirection";
+import type { FlexGrow } from "./FlexGrow";
 import type { FlexWrap } from "./FlexWrap";
 import type { FontFamily } from "./FontFamily";
 import type { FontFeatureSettings } from "./FontFeatureSettings";
@@ -89,8 +90,8 @@ export type Style = {
   maskPosition: CssValue<CssOption<BackgroundPositions>>;
   maskRepeat: CssValue<CssOption<BackgroundRepeats>>;
   gap: CssValue<Gap>;
-  flexGrow: CssValue<number>;
-  flexShrink: CssValue<number>;
+  flexGrow: CssValue<FlexGrow>;
+  flexShrink: CssValue<FlexGrow>;
   borderRadius: CssValue<Sides<LengthUnit>>;
   borderTopLeftRadius: CssValue<CssOption<LengthUnit>>;
   borderTopRightRadius: CssValue<CssOption<LengthUnit>>;
