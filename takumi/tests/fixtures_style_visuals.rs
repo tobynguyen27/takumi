@@ -1,3 +1,4 @@
+use serde_json::{from_value, json};
 use smallvec::smallvec;
 use takumi::layout::{
   node::{ContainerNode, ImageNode, TextNode},
@@ -322,5 +323,53 @@ fn test_style_border_radius_circle_avatar() {
   run_style_width_test(
     container.into(),
     "tests/fixtures/style_border_radius_circle_avatar.png",
+  );
+}
+
+#[test]
+fn test_style_border_width_on_image_node() {
+  let avatar = json!({
+    "type": "container",
+    "children": [
+      {
+        "type": "image",
+        "src": "assets/images/yeecord.png",
+        "style": {
+          "borderRadius": "100%",
+          "borderWidth": 2,
+          "borderStyle": "solid",
+          "borderColor": "#cacaca",
+          "width": 128,
+          "height": 128
+        }
+      }
+    ],
+    "style": {
+      "display": "flex",
+      "marginLeft": 52,
+      "marginTop": 38,
+      "marginRight": 52,
+      "flexDirection": "row",
+      "gap": 26,
+      "position": "relative",
+      "alignItems": "center"
+    }
+  });
+
+  let container = ContainerNode {
+    style: StyleBuilder::default()
+      .width(Percentage(100.0))
+      .height(Percentage(100.0))
+      .background_color(Color::white())
+      .justify_content(JustifyContent::Center)
+      .align_items(AlignItems::Center)
+      .build()
+      .unwrap(),
+    children: Some(vec![from_value(avatar).unwrap()]),
+  };
+
+  run_style_width_test(
+    container.into(),
+    "tests/fixtures/style_border_width_on_image_node.png",
   );
 }

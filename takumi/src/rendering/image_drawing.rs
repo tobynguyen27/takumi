@@ -229,13 +229,18 @@ pub fn draw_image(image: &ImageSource, context: &RenderContext, canvas: &Canvas,
     height: transform_offset_y,
   }) * context.transform;
 
+  // First inset the border by the border width to get the correct inner radius, THEN set the offset to zero.
+  // Since we already applied the border width to `transform_with_content_offset`, we have to avoid double-applying it.
+  let mut border = BorderProperties::from_context(context, &layout).inset_by_border_width();
+  border.offset = Point::zero();
+
   canvas.overlay_image(
     Arc::new(image.into_owned()),
     Point {
       x: (offset.x + layout.location.x) as i32,
       y: (offset.y + layout.location.y) as i32,
     },
-    BorderProperties::from_context(context, &layout).inset_by_border_width(),
+    border,
     transform_with_content_offset,
     context.style.image_rendering,
   );
