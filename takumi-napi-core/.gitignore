@@ -198,3 +198,4 @@ Cargo.lock
 *.wasm
 index.js
 index.d.ts
+artifacts
