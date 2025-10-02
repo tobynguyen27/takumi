@@ -37,11 +37,14 @@ describe("fromJsx", () => {
     } satisfies TextNode);
   });
 
-  test("returns empty container for null/undefined", async () => {
+  test("returns empty container for null/undefined/false", async () => {
     expect(await fromJsx(null)).toEqual({
       type: "container",
     } satisfies ContainerNode);
     expect(await fromJsx(undefined)).toEqual({
+      type: "container",
+    } satisfies ContainerNode);
+    expect(await fromJsx(false)).toEqual({
       type: "container",
     } satisfies ContainerNode);
   });

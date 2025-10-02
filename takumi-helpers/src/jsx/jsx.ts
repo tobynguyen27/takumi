@@ -43,7 +43,7 @@ export async function fromJsx(
 async function fromJsxInternal(
   element: ReactNode | ReactElementLike,
 ): Promise<Node[]> {
-  if (element === undefined || element === null) return [];
+  if (element === undefined || element === null || element === false) return [];
 
   // If element is a server component, wait for it to resolve first
   if (element instanceof Promise) return fromJsxInternal(await element);
