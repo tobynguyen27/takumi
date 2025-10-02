@@ -4,6 +4,6 @@
   "private": true,
   "scripts": {
     "version": "cargo set-version -p takumi $(jq -r '.version' package.json)",
-    "publish": "cargo publish"
+    "release": "cargo publish"
   }
 }

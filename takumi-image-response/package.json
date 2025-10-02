@@ -25,7 +25,7 @@
   },
   "scripts": {
     "build": "tsup-node src/index.ts --minify --dts --format esm,cjs --no-splitting",
-    "publish": "npm publish --provenance"
+    "release": "npm publish --provenance"
   },
   "files": [
     "dist",

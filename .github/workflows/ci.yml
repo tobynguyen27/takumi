@@ -509,6 +509,9 @@ jobs:
 
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
+        with:
+          stage: release
+          components: clippy,rustfmt
       
       - name: Download helpers artifact
         uses: actions/download-artifact@v5
@@ -545,11 +548,12 @@ jobs:
       - name: Create Release Pull Request or Publish
         uses: changesets/action@v1
         with:
-          version: bun run version
-          publish: bun run release
+          version: bun version
+          publish: bun release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
 
   deploy-docs:
     name: Deploy docs
