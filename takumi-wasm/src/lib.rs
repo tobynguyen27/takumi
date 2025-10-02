@@ -169,7 +169,7 @@ impl Renderer {
     height: u32,
     format: Option<ImageOutputFormat>,
     quality: Option<u8>,
-    draw_debug_border: Option<bool>,
+    #[wasm_bindgen(js_name = drawDebugBorder)] draw_debug_border: Option<bool>,
   ) -> Vec<u8> {
     let node: NodeKind = from_value(node.into()).unwrap();
 
@@ -207,7 +207,7 @@ impl Renderer {
     height: u32,
     format: Option<ImageOutputFormat>,
     quality: Option<u8>,
-    draw_debug_border: Option<bool>,
+    #[wasm_bindgen(js_name = drawDebugBorder)] draw_debug_border: Option<bool>,
   ) -> String {
     let buffer = self.render(node, width, height, format, quality, draw_debug_border);
     let format: takumi::rendering::ImageOutputFormat =
@@ -230,7 +230,7 @@ impl Renderer {
     width: u32,
     height: u32,
     format: Option<AnimationOutputFormat>,
-    draw_debug_border: Option<bool>,
+    #[wasm_bindgen(js_name = drawDebugBorder)] draw_debug_border: Option<bool>,
   ) -> Vec<u8> {
     let viewport = Viewport::new(width, height);
 

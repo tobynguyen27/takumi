@@ -23,7 +23,7 @@ use takumi::{
     Viewport,
     style::Style,
   },
-  rendering::render,
+  rendering::{render, RenderOptionsBuilder},
   GlobalContext,
 };
 
@@ -50,8 +50,16 @@ context.font_context.load_and_store(include_bytes!("../../assets/fonts/noto-sans
 // Create a viewport
 let viewport = Viewport::new(1200, 630);
 
+// Create render options
+let options = RenderOptionsBuilder::default()
+  .viewport(viewport)
+  .node(node)
+  .global(&context)
+  .build()
+  .unwrap();
+
 // Render the layout to an `RgbaImage`
-let image = render(viewport, &context, node).unwrap();
+let image = render(options).unwrap();
 ```
 
 ## Feature Flags
