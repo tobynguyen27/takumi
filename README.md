@@ -16,6 +16,7 @@ For newcomers, check out the [Getting Started](https://takumi.kane.tw/docs/getti
 - WOFF2 font format support. Trims your bundle size.
 - PNG, JPEG, WebP, AVIF output support.
 - Host Takumi as a standalone service for easier load balancing and scaling (coming soon).
+- WebP, APNG animation rendering support.
 
 ## Showcase
 
