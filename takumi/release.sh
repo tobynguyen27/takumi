@@ -7,7 +7,7 @@ VERSION=$(jq -r '.version' package.json)
 echo "Checking version: $VERSION"
 
 # Check if this version already exists on crates.io
-API_RESPONSE=$(curl -s -f https://crates.io/api/v1/crates/takumi/versions)
+API_RESPONSE=$(curl -s https://crates.io/api/v1/crates/takumi/versions)
 
 # Check if curl failed
 if [ $? -ne 0 ]; then
