@@ -32,10 +32,12 @@ pub struct Color(pub [u8; 4]);
 #[serde(try_from = "ColorInputValue")]
 #[ts(as = "ColorInputValue")]
 pub enum ColorInput {
-  /// A color value.
-  Value(Color),
+  #[serde(rename = "currentColor")]
   /// Inherit from the `color` value.
   CurrentColor,
+  /// A color value.
+  #[serde(untagged)]
+  Value(Color),
 }
 
 impl ColorInput {

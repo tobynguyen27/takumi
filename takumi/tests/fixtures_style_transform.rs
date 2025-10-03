@@ -189,6 +189,7 @@ fn test_style_transform_translate_and_scale() {
       .height(Px(200.0))
       .border_width(CssOption::some(Sides([Px(1.0); 4])))
       .color(ColorInput::Value(Color::white()))
+      .border_color(CssOption::some(ColorInput::Value(Color::black())))
       .build()
       .unwrap(),
     children: Some(vec![
