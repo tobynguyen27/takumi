@@ -137,14 +137,23 @@ describe("fromJsx", () => {
         {
           type: "text",
           text: "First",
+          style: {
+            display: "inline",
+          },
         },
         {
           type: "text",
           text: "Second",
+          style: {
+            display: "inline",
+          },
         },
         {
           type: "text",
           text: "Third",
+          style: {
+            display: "inline",
+          },
         },
       ],
     } satisfies ContainerNode);
@@ -205,6 +214,7 @@ describe("fromJsx", () => {
                   type: "text",
                   text: "bold",
                   style: {
+                    display: "inline",
                     fontWeight: "bold",
                   },
                 },
@@ -274,10 +284,12 @@ describe("fromJsx", () => {
                 {
                   type: "text",
                   text: "Item 1",
+                  style: stylePresets.span,
                 },
                 {
                   type: "text",
                   text: "Item 2",
+                  style: stylePresets.span,
                 },
               ],
             },
