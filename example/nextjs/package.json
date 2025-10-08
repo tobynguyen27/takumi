@@ -12,14 +12,14 @@
     "@takumi-rs/core": "workspace:*",
     "@takumi-rs/image-response": "workspace:*",
     "@takumi-rs/template": "workspace:*",
-    "lucide-react": "^0.544.0",
+    "lucide-react": "^0.545.0",
     "next": "15.5.4",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
     "typescript": "catalog:"
   }
 }

@@ -4,19 +4,24 @@
 
 Takumi is a **image rendering engine** written in Rust and **provide bindings for Node.js, WebAssembly**. Suitable for high-throughput image rendering workloads like Open Graph images, Twitter images, etc.
 
-For newcomers, check out the [Getting Started](https://takumi.kane.tw/docs/getting-started) documentation for installation and usage.
+For newcomers, check out the [Overview](https://takumi.kane.tw/docs) page for installation and usage.
 
 ## Why build a satori alternative?
 
 - All in one. No need to output SVG then have [resvg-js](https://github.com/thx/resvg-js) rendering it again to output PNG.
-- Minimal binary size targets to run everywhere. Node.js, web, embedded in Rust, pre-built http server.
-- Takes your existing JSX components and drops them in. It should just work.
+- Inline layout support (display `block` or `inline).
 - RTL support.
 - Variable fonts support.
-- WOFF2 font format support. Trims your bundle size.
+- WOFF2 font format support.
 - PNG, JPEG, WebP, AVIF output support.
-- Host Takumi as a standalone service for easier load balancing and scaling (coming soon).
 - WebP, APNG animation rendering support.
+
+## Goals
+
+- Takes your existing JSX components and drops them in. It should just work.
+- Minimal binary size targets to run everywhere.
+- Be the go-to library for image/animation rendering.
+- Have a great developer experience.
 
 ## Showcase
 
