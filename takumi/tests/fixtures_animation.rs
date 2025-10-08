@@ -31,32 +31,38 @@ fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
       let y_offset = -bounce * 140.0; // pixels up
 
       let node = ContainerNode {
-        style: StyleBuilder::default()
-          .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
-          .width(Percentage(100.0))
-          .height(Percentage(100.0))
-          .flex_direction(FlexDirection::Column)
-          .align_items(AlignItems::Center)
-          .justify_content(JustifyContent::Center)
-          .build()
-          .unwrap(),
+        style: Some(
+          StyleBuilder::default()
+            .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
+            .width(Percentage(100.0))
+            .height(Percentage(100.0))
+            .flex_direction(FlexDirection::Column)
+            .align_items(AlignItems::Center)
+            .justify_content(JustifyContent::Center)
+            .build()
+            .unwrap(),
+        ),
         children: Some(vec![
           ContainerNode {
-            style: StyleBuilder::default()
-              .transform(CssOption::some(Transforms(smallvec![
-                Transform::Translate(Px(0.0), Px(y_offset)),
-              ])))
-              .build()
-              .unwrap(),
+            style: Some(
+              StyleBuilder::default()
+                .transform(CssOption::some(Transforms(smallvec![
+                  Transform::Translate(Px(0.0), Px(y_offset)),
+                ])))
+                .build()
+                .unwrap(),
+            ),
             children: Some(vec![
               TextNode {
-                style: StyleBuilder::default()
-                  .font_size(CssOption::some(Px(56.0)))
-                  .font_family(CssOption::some(FontFamily::from("monospace")))
-                  .font_weight(FontWeight::from(700.0))
-                  .color(ColorInput::Value(Color([10, 10, 10, 255])))
-                  .build()
-                  .unwrap(),
+                style: Some(
+                  StyleBuilder::default()
+                    .font_size(CssOption::some(Px(56.0)))
+                    .font_family(CssOption::some(FontFamily::from("monospace")))
+                    .font_weight(FontWeight::from(700.0))
+                    .color(ColorInput::Value(Color([10, 10, 10, 255])))
+                    .build()
+                    .unwrap(),
+                ),
                 text: "Takumi Renders Animated image 🔥".to_string(),
               }
               .into(),

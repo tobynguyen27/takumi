@@ -10,17 +10,14 @@ use crate::{
     Viewport,
     node::Node,
     style::{Affine, InheritedStyle},
+    tree::NodeTree,
   },
-  rendering::{Canvas, create_blocking_canvas_loop, draw_debug_border},
+  rendering::{
+    Canvas, create_blocking_canvas_loop, draw_debug_border, inline_drawing::draw_inline_layout,
+  },
 };
 
 use crate::rendering::RenderContext;
-
-/// Stores the context and node for rendering.
-struct NodeContext<'ctx, N: Node<N>> {
-  context: RenderContext<'ctx>,
-  node: N,
-}
 
 #[derive(Clone, Builder)]
 /// Options for rendering a node. Construct using [`RenderOptionsBuilder`] to avoid breaking changes.
@@ -45,7 +42,9 @@ pub fn render<'g, N: Node<N>>(options: RenderOptions<'g, N>) -> Result<RgbaImage
 
   let render_context = (&options).into();
 
-  let root_node_id = insert_taffy_node(&mut taffy, options.node, &render_context);
+  let tree = NodeTree::from_node(&render_context, options.node);
+
+  let root_node_id = tree.insert_into_taffy(&mut taffy);
 
   let available_space = Size {
     width: AvailableSpace::Definite(render_context.viewport.width as f32),
@@ -57,8 +56,6 @@ pub fn render<'g, N: Node<N>>(options: RenderOptions<'g, N>) -> Result<RgbaImage
       root_node_id,
       available_space,
       |known_dimensions, available_space, _node_id, node_context, _style| {
-        let node = node_context.unwrap();
-
         if let Size {
           width: Some(width),
           height: Some(height),
@@ -67,9 +64,9 @@ pub fn render<'g, N: Node<N>>(options: RenderOptions<'g, N>) -> Result<RgbaImage
           return Size { width, height };
         }
 
-        node
-          .node
-          .measure(&node.context, available_space, known_dimensions)
+        node_context
+          .unwrap()
+          .measure(available_space, known_dimensions)
       },
     )
     .unwrap();
@@ -152,8 +149,8 @@ fn create_transform(style: &InheritedStyle, layout: &Layout, context: &RenderCon
   transform
 }
 
-fn render_node<Nodes: Node<Nodes>>(
-  taffy: &mut TaffyTree<NodeContext<Nodes>>,
+fn render_node<'g, Nodes: Node<Nodes>>(
+  taffy: &mut TaffyTree<NodeTree<'g, Nodes>>,
   node_id: NodeId,
   canvas: &Canvas,
   offset: Point<f32>,
@@ -171,9 +168,50 @@ fn render_node<Nodes: Node<Nodes>>(
 
   node_context.context.transform = transform;
 
-  node_context
-    .node
-    .draw_on_canvas(&node_context.context, canvas, layout);
+  // Draw the block node itself first
+  if let Some(node) = &node_context.node {
+    node.draw_on_canvas(&node_context.context, canvas, layout);
+  }
+
+  if node_context.should_construct_inline_layout() {
+    let (inline_layout, _, boxes) = node_context.create_inline_layout(layout.content_box_size());
+    let font_style = node_context
+      .context
+      .style
+      .to_sized_font_style(&node_context.context);
+
+    // Draw the inline layout without a callback first
+    let positioned_inline_boxes = draw_inline_layout(
+      &node_context.context,
+      canvas,
+      layout,
+      inline_layout,
+      &font_style,
+    );
+
+    // Then handle the inline boxes directly by zipping the node refs with their positioned boxes
+    for (node, inline_box) in boxes.iter().zip(positioned_inline_boxes.iter()) {
+      let mut render_context = node_context.context.clone();
+
+      render_context.transform = render_context.transform
+        * Affine::translation(Size {
+          width: inline_box.x,
+          height: inline_box.y,
+        });
+
+      node.draw_on_canvas(
+        &render_context,
+        canvas,
+        Layout {
+          size: Size {
+            width: inline_box.width,
+            height: inline_box.height,
+          },
+          ..Default::default()
+        },
+      );
+    }
+  }
 
   if node_context.context.draw_debug_border {
     draw_debug_border(canvas, layout, node_context.context.transform);
@@ -182,50 +220,4 @@ fn render_node<Nodes: Node<Nodes>>(
   for child_id in taffy.children(node_id).unwrap() {
     render_node(taffy, child_id, canvas, layout.location, transform);
   }
-}
-
-fn insert_taffy_node<'ctx, Nodes: Node<Nodes>>(
-  taffy: &mut TaffyTree<NodeContext<'ctx, Nodes>>,
-  mut node: Nodes,
-  parent_context: &RenderContext<'ctx>,
-) -> NodeId {
-  let children = node.take_children();
-  let node_style = node.get_style().inherit(&parent_context.style);
-
-  // First resolves the font size for this node from parent font size
-  let font_size = node_style
-    .font_size
-    .map(|font_size| font_size.resolve_to_px(parent_context, parent_context.font_size))
-    .unwrap_or(parent_context.font_size);
-
-  let current_color = node_style.color.resolve(parent_context.current_color);
-
-  // Overrides the font size placeholder to the resolved font size
-  let child_context = RenderContext {
-    style: node_style,
-    font_size,
-    current_color,
-    ..*parent_context
-  };
-
-  let node_id = taffy
-    .new_leaf_with_context(
-      child_context.style.to_taffy_style(&child_context),
-      NodeContext {
-        context: child_context.clone(),
-        node,
-      },
-    )
-    .unwrap();
-
-  if let Some(children) = children {
-    let children_ids = children
-      .into_iter()
-      .map(|child| insert_taffy_node(taffy, child, &child_context))
-      .collect::<Vec<_>>();
-
-    taffy.set_children(node_id, &children_ids).unwrap();
-  }
-
-  node_id
 }

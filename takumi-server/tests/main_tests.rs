@@ -28,11 +28,13 @@ async fn test_generate_image_handler_with_hmac_verify() {
   let app = create_app(create_state(Args::default(), GlobalContext::default()));
 
   let node: NodeKind = ContainerNode {
-    style: StyleBuilder::default()
-      .width(Px(100.0))
-      .height(Px(100.0))
-      .build()
-      .unwrap(),
+    style: Some(
+      StyleBuilder::default()
+        .width(Px(100.0))
+        .height(Px(100.0))
+        .build()
+        .unwrap(),
+    ),
     children: None,
   }
   .into();
@@ -52,6 +54,8 @@ async fn test_generate_image_handler_with_hmac_verify() {
   let uri = QueryString::dynamic()
     .with_value("payload", payload)
     .with_value("timestamp", timestamp)
+    .with_value("width", "1200")
+    .with_value("height", "630")
     .with_value("hash", hex::encode(hash));
 
   let request = Request::builder()

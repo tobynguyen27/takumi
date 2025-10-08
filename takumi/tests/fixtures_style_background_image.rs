@@ -12,12 +12,14 @@ use test_utils::run_style_width_test;
 
 fn create_container(background_images: BackgroundImagesValue) -> ContainerNode<NodeKind> {
   ContainerNode {
-    style: StyleBuilder::default()
-      .width(Percentage(100.0))
-      .height(Percentage(100.0))
-      .background_image(CssOption::some(background_images.try_into().unwrap()))
-      .build()
-      .unwrap(),
+    style: Some(
+      StyleBuilder::default()
+        .width(Percentage(100.0))
+        .height(Percentage(100.0))
+        .background_image(CssOption::some(background_images.try_into().unwrap()))
+        .build()
+        .unwrap(),
+    ),
     children: None,
   }
 }
@@ -29,17 +31,19 @@ fn create_container_with(
   background_repeat: Option<BackgroundRepeatsValue>,
 ) -> ContainerNode<NodeKind> {
   ContainerNode {
-    style: StyleBuilder::default()
-      .width(Percentage(100.0))
-      .height(Percentage(100.0))
-      .background_image(CssOption::some(background_images.try_into().unwrap()))
-      .background_size(CssOption(background_size.map(|v| v.try_into().unwrap())))
-      .background_position(CssOption(
-        background_position.map(|v| v.try_into().unwrap()),
-      ))
-      .background_repeat(CssOption(background_repeat.map(|v| v.try_into().unwrap())))
-      .build()
-      .unwrap(),
+    style: Some(
+      StyleBuilder::default()
+        .width(Percentage(100.0))
+        .height(Percentage(100.0))
+        .background_image(CssOption::some(background_images.try_into().unwrap()))
+        .background_size(CssOption(background_size.map(|v| v.try_into().unwrap())))
+        .background_position(CssOption(
+          background_position.map(|v| v.try_into().unwrap()),
+        ))
+        .background_repeat(CssOption(background_repeat.map(|v| v.try_into().unwrap())))
+        .build()
+        .unwrap(),
+    ),
     children: None,
   }
 }
@@ -244,10 +248,10 @@ fn test_background_image_grid_pattern() {
     Some(BackgroundRepeatsValue::Css("repeat, repeat".to_string())),
   );
 
-  container.style.background_color = ColorInput::Value(Color::white()).into();
+  container.style.as_mut().unwrap().background_color = ColorInput::Value(Color::white()).into();
 
   assert_eq!(
-    container.style.background_repeat,
+    container.style.as_ref().unwrap().background_repeat,
     CssOption::some(BackgroundRepeats(vec![
       BackgroundRepeat::repeat(),
       BackgroundRepeat::repeat()
@@ -280,7 +284,7 @@ fn test_background_image_noise_v1_with_gradient() {
     )),
   );
 
-  container.style.background_color = ColorInput::Value(Color::white()).into();
+  container.style.as_mut().unwrap().background_color = ColorInput::Value(Color::white()).into();
 
   run_style_width_test(
     container.into(),

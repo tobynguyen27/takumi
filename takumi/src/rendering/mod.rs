@@ -7,6 +7,7 @@ mod components;
 mod debug_drawing;
 /// Image drawing functions
 mod image_drawing;
+pub(crate) mod inline_drawing;
 /// Main image renderer and viewport management
 mod render;
 /// Text drawing functions

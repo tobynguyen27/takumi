@@ -137,14 +137,17 @@ describe("fromJsx", () => {
         {
           type: "text",
           text: "First",
+          style: stylePresets.span,
         },
         {
           type: "text",
           text: "Second",
+          style: stylePresets.span,
         },
         {
           type: "text",
           text: "Third",
+          style: stylePresets.span,
         },
       ],
     } satisfies ContainerNode);
@@ -157,6 +160,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "image",
       src: "https://example.com/image.jpg",
+      style: stylePresets.img,
     } satisfies ImageNode);
   });
 
@@ -204,9 +208,7 @@ describe("fromJsx", () => {
                 {
                   type: "text",
                   text: "bold",
-                  style: {
-                    fontWeight: "bold",
-                  },
+                  style: stylePresets.strong,
                 },
                 { type: "text", text: " text" },
               ],
@@ -274,16 +276,19 @@ describe("fromJsx", () => {
                 {
                   type: "text",
                   text: "Item 1",
+                  style: stylePresets.span,
                 },
                 {
                   type: "text",
                   text: "Item 2",
+                  style: stylePresets.span,
                 },
               ],
             },
             {
               type: "image",
               src: "https://example.com/logo.png",
+              style: stylePresets.img,
             },
           ],
         },
@@ -326,6 +331,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "image",
       src: renderToStaticMarkup(component),
+      style: stylePresets.svg,
     });
   });
 });

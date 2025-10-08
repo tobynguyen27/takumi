@@ -13,42 +13,50 @@ use test_utils::run_style_width_test;
 #[test]
 fn test_style_align_items() {
   let container = ContainerNode {
-    style: StyleBuilder::default()
-      .width(Percentage(100.0))
-      .height(Percentage(100.0))
-      .display(Display::Flex)
-      .align_items(AlignItems::Center)
-      .background_color(ColorInput::Value(Color([0, 0, 255, 255])))
-      .build()
-      .unwrap(),
+    style: Some(
+      StyleBuilder::default()
+        .width(Percentage(100.0))
+        .height(Percentage(100.0))
+        .display(Display::Flex)
+        .align_items(AlignItems::Center)
+        .background_color(ColorInput::Value(Color([0, 0, 255, 255])))
+        .build()
+        .unwrap(),
+    ),
     children: Some(vec![
       ContainerNode {
-        style: StyleBuilder::default()
-          .width(Px(50.0))
-          .height(Px(50.0))
-          .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-          .build()
-          .unwrap(),
+        style: Some(
+          StyleBuilder::default()
+            .width(Px(50.0))
+            .height(Px(50.0))
+            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+            .build()
+            .unwrap(),
+        ),
         children: None,
       }
       .into(),
       ContainerNode {
-        style: StyleBuilder::default()
-          .width(Px(50.0))
-          .height(Px(50.0))
-          .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-          .build()
-          .unwrap(),
+        style: Some(
+          StyleBuilder::default()
+            .width(Px(50.0))
+            .height(Px(50.0))
+            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+            .build()
+            .unwrap(),
+        ),
         children: None,
       }
       .into(),
       ContainerNode {
-        style: StyleBuilder::default()
-          .width(Px(50.0))
-          .height(Px(50.0))
-          .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
-          .build()
-          .unwrap(),
+        style: Some(
+          StyleBuilder::default()
+            .width(Px(50.0))
+            .height(Px(50.0))
+            .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
+            .build()
+            .unwrap(),
+        ),
         children: None,
       }
       .into(),
@@ -61,42 +69,50 @@ fn test_style_align_items() {
 #[test]
 fn test_style_justify_content() {
   let container = ContainerNode {
-    style: StyleBuilder::default()
-      .width(Percentage(100.0))
-      .height(Percentage(100.0))
-      .display(Display::Flex)
-      .justify_content(JustifyContent::Center)
-      .background_color(ColorInput::Value(Color([0, 0, 255, 255])))
-      .build()
-      .unwrap(),
+    style: Some(
+      StyleBuilder::default()
+        .width(Percentage(100.0))
+        .height(Percentage(100.0))
+        .display(Display::Flex)
+        .justify_content(JustifyContent::Center)
+        .background_color(ColorInput::Value(Color([0, 0, 255, 255])))
+        .build()
+        .unwrap(),
+    ),
     children: Some(vec![
       ContainerNode {
-        style: StyleBuilder::default()
-          .width(Px(50.0))
-          .height(Px(50.0))
-          .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-          .build()
-          .unwrap(),
+        style: Some(
+          StyleBuilder::default()
+            .width(Px(50.0))
+            .height(Px(50.0))
+            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+            .build()
+            .unwrap(),
+        ),
         children: None,
       }
       .into(),
       ContainerNode {
-        style: StyleBuilder::default()
-          .width(Px(50.0))
-          .height(Px(50.0))
-          .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-          .build()
-          .unwrap(),
+        style: Some(
+          StyleBuilder::default()
+            .width(Px(50.0))
+            .height(Px(50.0))
+            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+            .build()
+            .unwrap(),
+        ),
         children: None,
       }
       .into(),
       ContainerNode {
-        style: StyleBuilder::default()
-          .width(Px(50.0))
-          .height(Px(50.0))
-          .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
-          .build()
-          .unwrap(),
+        style: Some(
+          StyleBuilder::default()
+            .width(Px(50.0))
+            .height(Px(50.0))
+            .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
+            .build()
+            .unwrap(),
+        ),
         children: None,
       }
       .into(),

@@ -32,10 +32,10 @@ let mut node = NodeKind::Container(ContainerNode {
   children: Some(vec![
     NodeKind::Text(TextNode {
       text: "Hello, world!".to_string(),
-      style: Style::default(),
+      style: None, // Construct with `StyleBuilder`
     }),
   ]),
-  style: Style::default(),
+  style: None,
 });
 
 // Create a context for storing resources, font caches.

@@ -1,8 +1,3 @@
-//! Image node implementation for the takumi layout system.
-//!
-//! This module contains the ImageNode struct which is used to render
-//! image content with support for async loading and caching.
-
 use serde::{Deserialize, Serialize};
 use taffy::{AvailableSpace, Layout, Size};
 
@@ -10,20 +5,20 @@ use taffy::{AvailableSpace, Layout, Size};
 use crate::resources::image::ImageResult;
 use crate::{
   GlobalContext,
-  layout::{node::Node, style::Style},
+  layout::{
+    inline::InlineContentKind,
+    node::Node,
+    style::{InheritedStyle, Style},
+  },
   rendering::{Canvas, RenderContext, draw_image},
   resources::image::{ImageResourceError, ImageSource, is_svg},
 };
 
 /// A node that renders image content.
-///
-/// Image nodes display images loaded from URLs or file paths,
-/// with support for async loading and caching.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ImageNode {
   /// The styling properties for this image node
-  #[serde(default)]
-  pub style: Style,
+  pub style: Option<Style>,
   /// The source URL or path to the image
   pub src: String,
   /// The width of the image
@@ -33,8 +28,12 @@ pub struct ImageNode {
 }
 
 impl<Nodes: Node<Nodes>> Node<Nodes> for ImageNode {
-  fn get_style(&self) -> &Style {
-    &self.style
+  fn create_inherited_style(&mut self, parent_style: &InheritedStyle) -> InheritedStyle {
+    self.style.take().unwrap_or_default().inherit(parent_style)
+  }
+
+  fn inline_content(&self, _context: &RenderContext) -> Option<InlineContentKind> {
+    Some(InlineContentKind::Box)
   }
 
   fn measure(
@@ -72,10 +71,6 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for ImageNode {
     };
 
     draw_image(&image, context, canvas, layout);
-  }
-
-  fn has_draw_content(&self) -> bool {
-    true
   }
 }
 

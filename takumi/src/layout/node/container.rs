@@ -7,7 +7,10 @@ use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
 
-use crate::layout::{node::Node, style::Style};
+use crate::layout::{
+  node::Node,
+  style::{InheritedStyle, Style},
+};
 
 /// A container node that can hold child nodes.
 ///
@@ -16,18 +19,17 @@ use crate::layout::{node::Node, style::Style};
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ContainerNode<Nodes: Node<Nodes>> {
   /// The styling properties for this container
-  #[serde(default)]
-  pub style: Style,
+  pub style: Option<Style>,
   /// The child nodes contained within this container
   pub children: Option<Vec<Nodes>>,
 }
 
 impl<Nodes: Node<Nodes>> Node<Nodes> for ContainerNode<Nodes> {
-  fn take_children(&mut self) -> Option<Vec<Nodes>> {
-    self.children.take()
+  fn create_inherited_style(&mut self, parent_style: &InheritedStyle) -> InheritedStyle {
+    self.style.take().unwrap_or_default().inherit(parent_style)
   }
 
-  fn get_style(&self) -> &Style {
-    &self.style
+  fn take_children(&mut self) -> Option<Vec<Nodes>> {
+    self.children.take()
   }
 }

@@ -159,18 +159,9 @@ pub enum TextAlign {
   End,
 }
 
-impl From<TextAlign> for Alignment {
-  fn from(value: TextAlign) -> Self {
-    match value {
-      TextAlign::Left => Alignment::Left,
-      TextAlign::Right => Alignment::Right,
-      TextAlign::Center => Alignment::Middle,
-      TextAlign::Justify => Alignment::Justified,
-      TextAlign::End => Alignment::End,
-      TextAlign::Start => Alignment::Start,
-    }
-  }
-}
+impl_from_taffy_enum!(
+  TextAlign, Alignment, Left, Right, Center, Justify, Start, End
+);
 
 /// Defines the positioning method for an element.
 ///
@@ -278,9 +269,47 @@ pub enum Display {
   Flex,
   /// The element generates a grid container and its children follow the CSS Grid layout algorithm
   Grid,
+  /// The element generates an inline container and its children follow the inline layout algorithm
+  Inline,
+  /// The element creates a block container and its children follow the block layout algorithm
+  Block,
 }
 
-impl_from_taffy_enum!(Display, taffy::Display, Flex, Grid);
+impl Display {
+  /// Returns true if the display is inline.
+  pub fn is_inline(&self) -> bool {
+    *self == Display::Inline
+  }
+
+  /// Returns true if the display makes the children blockified (e.g., flex or grid).
+  pub fn should_blockify_children(&self) -> bool {
+    matches!(self, Display::Flex | Display::Grid)
+  }
+
+  /// Cast the display to block level.
+  pub fn as_blockified(self) -> Self {
+    match self {
+      Display::Inline => Display::Block,
+      _ => self,
+    }
+  }
+
+  /// Mutate the display to be block level.
+  pub fn blockify(&mut self) {
+    *self = self.as_blockified();
+  }
+}
+
+impl From<Display> for taffy::Display {
+  fn from(value: Display) -> Self {
+    match value {
+      Display::Flex => taffy::Display::Flex,
+      Display::Grid => taffy::Display::Grid,
+      Display::Block => taffy::Display::Block,
+      Display::Inline => unreachable!("Inline node should not be inserted into taffy context"),
+    }
+  }
+}
 
 /// Defines how flex items are aligned along the cross axis.
 ///
