@@ -1,5 +1,15 @@
 # @takumi-rs/helpers
 
+## 0.35.0
+
+### Minor Changes
+
+- 264fa71: add `inline` and `block` display value to text related tags preset
+
+### Patch Changes
+
+- 3d6745f: chore: fix typo on @takumi-rs/helpers readme
+
 ## 0.34.0
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @takumi-rs/core
 
+## 0.35.0
+
+### Patch Changes
+
+- 12a2d3f: fix `aspect-ratio`, `flex-grow` numberic value parsing
+
 ## 0.34.0
 
 ### Patch Changes

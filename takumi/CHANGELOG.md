@@ -1,5 +1,16 @@
 # takumi
 
+## 0.35.0
+
+### Minor Changes
+
+- 264fa71: implement inline layout
+- 264fa71: make all nodes' `style` field optional
+
+### Patch Changes
+
+- 12a2d3f: fix `aspect-ratio`, `flex-grow` numberic value parsing
+
 ## 0.34.0
 
 ### Minor Changes
