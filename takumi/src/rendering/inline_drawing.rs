@@ -1,6 +1,6 @@
 use image::RgbaImage;
-use parley::{GlyphRun, PositionedLayoutItem};
-use taffy::{Layout, Point};
+use parley::{GlyphRun, PositionedInlineBox, PositionedLayoutItem};
+use taffy::{Layout, Point, Size};
 
 use crate::{
   layout::{
@@ -102,61 +102,71 @@ pub(crate) fn draw_inline_layout(
   layout: Layout,
   inline_layout: InlineLayout,
   font_style: &SizedFontStyle,
-) {
+) -> Vec<PositionedInlineBox> {
   let content_box = layout.content_box_size();
 
   // If we have a mask image on the style, render it using the background tiling logic into a
   // temporary image and use that as the glyph fill.
-  let fill_image = if let Some(images) = &*context.style.mask_image {
-    let resolved_tiles = resolve_layers_tiles(
-      images,
-      context.style.mask_position.as_ref(),
-      context.style.mask_size.as_ref(),
-      context.style.mask_repeat.as_ref(),
-      context,
-      layout,
-    );
+  let fill_image = create_fill_image(context, layout, content_box);
 
-    if resolved_tiles.is_empty() {
-      return;
-    }
-
-    let mut composed = RgbaImage::new(content_box.width as u32, content_box.height as u32);
-
-    for (tile_image, xs, ys) in resolved_tiles {
-      for y in &ys {
-        for x in &xs {
-          overlay_image(
-            &mut composed,
-            &tile_image,
-            Point { x: *x, y: *y },
-            Default::default(),
-            Affine::identity(),
-            context.style.image_rendering,
-          )
-        }
-      }
-    }
-
-    Some(composed)
-  } else {
-    None
-  };
+  let mut positioned_inline_boxes = Vec::new();
 
   for line in inline_layout.lines() {
     for item in line.items() {
-      let PositionedLayoutItem::GlyphRun(glyph_run) = item else {
-        continue;
-      };
-
-      draw_glyph_run(
-        font_style,
-        &glyph_run,
-        canvas,
-        layout,
-        context,
-        fill_image.as_ref(),
-      );
+      match item {
+        PositionedLayoutItem::GlyphRun(glyph_run) => {
+          draw_glyph_run(
+            font_style,
+            &glyph_run,
+            canvas,
+            layout,
+            context,
+            fill_image.as_ref(),
+          );
+        }
+        PositionedLayoutItem::InlineBox(inline_box) => positioned_inline_boxes.push(inline_box),
+      }
     }
   }
+
+  positioned_inline_boxes
+}
+
+fn create_fill_image(
+  context: &RenderContext,
+  layout: Layout,
+  size: Size<f32>,
+) -> Option<RgbaImage> {
+  let images = context.style.mask_image.as_ref()?;
+  let resolved_tiles = resolve_layers_tiles(
+    images,
+    context.style.mask_position.as_ref(),
+    context.style.mask_size.as_ref(),
+    context.style.mask_repeat.as_ref(),
+    context,
+    layout,
+  );
+
+  if resolved_tiles.is_empty() {
+    return None;
+  }
+
+  let mut composed = RgbaImage::new(size.width as u32, size.height as u32);
+
+  for (tile_image, xs, ys) in resolved_tiles {
+    for y in &ys {
+      for x in &xs {
+        overlay_image(
+          &mut composed,
+          &tile_image,
+          Point { x: *x, y: *y },
+          Default::default(),
+          Affine::identity(),
+          context.style.image_rendering,
+        )
+      }
+    }
+  }
+
+  Some(composed)
 }

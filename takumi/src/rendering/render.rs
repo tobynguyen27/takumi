@@ -181,7 +181,7 @@ fn render_node<'g, Nodes: Node<Nodes>>(
       .to_sized_font_style(&node_context.context);
 
     // Draw the inline layout without a callback first
-    draw_inline_layout(
+    let positioned_inline_boxes = draw_inline_layout(
       &node_context.context,
       canvas,
       layout,
@@ -189,9 +189,27 @@ fn render_node<'g, Nodes: Node<Nodes>>(
       &font_style,
     );
 
-    // Then handle the inline boxes directly
-    for node in boxes.iter() {
-      node.draw_on_canvas(&node_context.context, canvas, layout);
+    // Then handle the inline boxes directly by zipping the node refs with their positioned boxes
+    for (node, inline_box) in boxes.iter().zip(positioned_inline_boxes.iter()) {
+      let mut render_context = node_context.context.clone();
+
+      render_context.transform = render_context.transform
+        * Affine::translation(Size {
+          width: inline_box.x,
+          height: inline_box.y,
+        });
+
+      node.draw_on_canvas(
+        &render_context,
+        canvas,
+        Layout {
+          size: Size {
+            width: inline_box.width,
+            height: inline_box.height,
+          },
+          ..Default::default()
+        },
+      );
     }
   }
 
