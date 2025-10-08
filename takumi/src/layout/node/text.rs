@@ -1,8 +1,3 @@
-//! Text node implementation for the takumi layout system.
-//!
-//! This module contains the TextNode struct which is used to render
-//! text content with configurable font properties and styling.
-
 use serde::{Deserialize, Serialize};
 use taffy::{AvailableSpace, Layout, Size};
 
@@ -10,7 +5,7 @@ use crate::{
   layout::{
     inline::{InlineBrush, InlineContentKind, break_lines, create_inline_constraint},
     node::Node,
-    style::{SizedFontStyle, Style, TextOverflow},
+    style::{InheritedStyle, SizedFontStyle, Style, TextOverflow},
   },
   rendering::{
     Canvas, MaxHeight, RenderContext, apply_text_transform, inline_drawing::draw_inline_layout,
@@ -31,8 +26,12 @@ pub struct TextNode {
 }
 
 impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
-  fn take_style(&mut self) -> Style {
-    self.style.take().unwrap_or_default()
+  fn create_inherited_style(&mut self, parent_style: &InheritedStyle) -> InheritedStyle {
+    self
+      .style
+      .take()
+      .map(|style| style.inherit(parent_style))
+      .unwrap_or_else(|| parent_style.clone())
   }
 
   fn inline_content(&self, context: &RenderContext) -> Option<InlineContentKind> {

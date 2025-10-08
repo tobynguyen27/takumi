@@ -11,7 +11,7 @@ use taffy::{AvailableSpace, Layout, Point, Size};
 use zeno::Mask;
 
 use crate::{
-  layout::{inline::InlineContentKind, style::Style},
+  layout::{inline::InlineContentKind, style::InheritedStyle},
   rendering::{
     BorderProperties, Canvas, RenderContext, SizedShadow, draw_background_layers, draw_border,
     resolve_layers_tiles,
@@ -28,9 +28,9 @@ macro_rules! impl_node_enum {
         }
       }
 
-      fn take_style(&mut self) -> $crate::layout::style::Style {
+      fn create_inherited_style(&mut self, parent: &$crate::layout::style::InheritedStyle) -> $crate::layout::style::InheritedStyle {
         match self {
-          $( $name::$variant(inner) => <_ as $crate::layout::node::Node<$name>>::take_style(inner), )*
+          $( $name::$variant(inner) => <_ as $crate::layout::node::Node<$name>>::create_inherited_style(inner, parent), )*
         }
       }
 
@@ -108,8 +108,8 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
     None
   }
 
-  /// Returns a owned Style instance.
-  fn take_style(&mut self) -> Style;
+  /// Create a [`InheritedStyle`] instance or clone the parent's.
+  fn create_inherited_style(&mut self, _parent: &InheritedStyle) -> InheritedStyle;
 
   /// Retrieve content for inline layout.
   fn inline_content(&self, _context: &RenderContext) -> Option<InlineContentKind> {

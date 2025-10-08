@@ -48,9 +48,10 @@ macro_rules! define_style {
       }
     }
 
+    /// A resolved set of style properties.
     #[derive(Clone, Debug)]
-    pub(crate) struct InheritedStyle {
-      $( pub $property: $type, )*
+    pub struct InheritedStyle {
+      $( pub(crate) $property: $type, )*
     }
 
     impl Default for InheritedStyle {
@@ -389,7 +390,7 @@ impl InheritedStyle {
     )
   }
 
-  pub fn to_sized_font_style(&'_ self, context: &RenderContext) -> SizedFontStyle<'_> {
+  pub(crate) fn to_sized_font_style(&'_ self, context: &RenderContext) -> SizedFontStyle<'_> {
     let line_height = self.line_height.into_parley(context);
 
     let resolved_stroke_width = self
@@ -432,7 +433,7 @@ impl InheritedStyle {
     }
   }
 
-  pub fn to_taffy_style(&self, context: &RenderContext) -> taffy::style::Style {
+  pub(crate) fn to_taffy_style(&self, context: &RenderContext) -> taffy::style::Style {
     // Convert grid templates and associated line names
     let (grid_template_columns, grid_template_column_names) =
       Self::convert_template_components(&self.grid_template_columns, context);
