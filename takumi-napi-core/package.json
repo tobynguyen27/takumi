@@ -22,7 +22,9 @@
   "devDependencies": {
     "@napi-rs/cli": "3.2.0",
     "@takumi-rs/helpers": "workspace:*",
+    "@takumi-rs/template": "workspace:*",
     "@types/bun": "catalog:",
+    "lucide-react": "^0.545.0",
     "mitata": "^1.0.34",
     "typescript": "catalog:"
   },
@@ -49,7 +51,7 @@
     "build:debug": "napi build",
     "prepublishOnly": "bun artifacts && cp artifacts/bindings-x86_64-unknown-linux-gnu/index.* . && napi prepublish -t npm --no-gh-release",
     "artifacts": "napi create-npm-dirs && napi artifacts && napi version",
-    "bench": "bun tests/bench/index.ts"
+    "bench": "bun tests/bench/index.tsx"
   },
   "type": "module",
   "types": "index.d.ts"
