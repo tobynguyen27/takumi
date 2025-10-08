@@ -48,8 +48,7 @@ pub(crate) fn create_inline_constraint(
   });
 
   let height_constraint = known_dimensions.height.or(match available_space.height {
-    AvailableSpace::MinContent => Some(0.0),
-    AvailableSpace::MaxContent => None,
+    AvailableSpace::MaxContent | AvailableSpace::MinContent => None,
     AvailableSpace::Definite(height) => Some(height),
   });
 
