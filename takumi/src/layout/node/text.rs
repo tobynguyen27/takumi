@@ -27,11 +27,7 @@ pub struct TextNode {
 
 impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
   fn create_inherited_style(&mut self, parent_style: &InheritedStyle) -> InheritedStyle {
-    self
-      .style
-      .take()
-      .map(|style| style.inherit(parent_style))
-      .unwrap_or_else(|| parent_style.clone())
+    self.style.take().unwrap_or_default().inherit(parent_style)
   }
 
   fn inline_content(&self, context: &RenderContext) -> Option<InlineContentKind> {
