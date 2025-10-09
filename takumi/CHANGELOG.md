@@ -1,5 +1,11 @@
 # takumi
 
+## 0.35.2
+
+### Patch Changes
+
+- cac5444: remove glyph cache
+
 ## 0.35.1
 
 ## 0.35.0
