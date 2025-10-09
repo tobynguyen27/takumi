@@ -46,11 +46,7 @@ fn draw_glyph_run(
   // Collect all glyph IDs for batch processing
   let glyph_ids = glyph_run.positioned_glyphs().map(|glyph| glyph.id);
 
-  // Batch resolve all glyphs in one mutex acquisition
-  let resolved_glyphs = context
-    .global
-    .font_context
-    .get_or_resolve_glyphs(run, glyph_ids);
+  let resolved_glyphs = context.global.font_context.resolve_glyphs(run, glyph_ids);
 
   // Draw each glyph using the batch-resolved cache
   glyph_run.positioned_glyphs().for_each(|glyph| {

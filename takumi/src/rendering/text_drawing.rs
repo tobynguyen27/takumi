@@ -13,7 +13,7 @@ use crate::{
     style::{Affine, Color, ImageScalingAlgorithm, SizedFontStyle, TextTransform},
   },
   rendering::{BorderProperties, Canvas, apply_mask_alpha_to_pixel},
-  resources::font::{CachedGlyph, ResolvedGlyph},
+  resources::font::ResolvedGlyph,
 };
 
 pub(crate) fn draw_decoration(
@@ -48,7 +48,7 @@ pub(crate) fn draw_decoration(
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn draw_glyph(
   glyph: Glyph,
-  cached_glyph: &CachedGlyph,
+  glyph_content: &ResolvedGlyph,
   canvas: &Canvas,
   style: &SizedFontStyle,
   layout: Layout,
@@ -61,7 +61,7 @@ pub(crate) fn draw_glyph(
     height: layout.border.top + layout.padding.top + glyph.y,
   }) * transform;
 
-  if let ResolvedGlyph::Image(bitmap) = &**cached_glyph {
+  if let ResolvedGlyph::Image(bitmap) = glyph_content {
     let border = BorderProperties {
       size: Size {
         width: bitmap.placement.width as f32,
@@ -142,7 +142,7 @@ pub(crate) fn draw_glyph(
     );
   }
 
-  if let ResolvedGlyph::Outline(outline) = &**cached_glyph {
+  if let ResolvedGlyph::Outline(outline) = glyph_content {
     // have to invert the y coordinate from y-up to y-down first
     let mut paths = outline
       .path()
