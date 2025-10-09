@@ -26,6 +26,7 @@ export const persistentImages = [
   },
 ];
 
+// https://x.com/kanewang_/status/1976314376102740338
 export default function XPostImage() {
   return (
     <div
@@ -112,7 +113,7 @@ export default function XPostImage() {
           style={{
             width: "100%",
             borderRadius: "2rem",
-            borderWidth: 1,
+            borderWidth: 2,
             borderColor: "dimgray",
           }}
           alt="content"
@@ -122,8 +123,9 @@ export default function XPostImage() {
         style={{
           position: "absolute",
           width: "100%",
-          height: "100%",
-          backgroundImage: "linear-gradient(to top, black, transparent 50%)",
+          height: "50%",
+          bottom: 0,
+          backgroundImage: "linear-gradient(to top, black, transparent)",
         }}
       />
     </div>
