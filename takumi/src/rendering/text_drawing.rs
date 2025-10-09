@@ -123,6 +123,7 @@ pub(crate) fn draw_glyph(
         border,
         transform,
         ImageScalingAlgorithm::Auto,
+        None,
       );
     }
 
@@ -139,6 +140,7 @@ pub(crate) fn draw_glyph(
       border,
       transform,
       ImageScalingAlgorithm::Auto,
+      None,
     );
   }
 

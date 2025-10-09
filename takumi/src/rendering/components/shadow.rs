@@ -119,6 +119,7 @@ impl SizedShadow {
       BorderProperties::zero(),
       Affine::identity(),
       ImageScalingAlgorithm::Auto,
+      None,
     );
   }
 
@@ -140,6 +141,7 @@ impl SizedShadow {
       border_radius,
       transform,
       ImageScalingAlgorithm::Auto,
+      None,
     );
   }
 }

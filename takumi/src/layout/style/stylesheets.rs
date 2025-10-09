@@ -144,6 +144,7 @@ define_style!(
   font_style: FontStyle = CssValue::inherit() => Default::default(),
   border_color: CssOption<ColorInput> = CssOption::none() => CssOption::none(),
   color: ColorInput = CssValue::inherit() => ColorInput::CurrentColor,
+  filter: CssOption<Filters> = CssOption::none() => CssOption::none(),
   font_size: CssOption<LengthUnit> = CssValue::inherit() => CssOption::none(),
   font_family: CssOption<FontFamily> = CssValue::inherit() => CssOption::none(),
   line_height: LineHeight = CssValue::inherit() => Default::default(),

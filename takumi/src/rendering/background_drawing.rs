@@ -315,6 +315,7 @@ pub(crate) fn draw_background_layers(
           radius,
           context.transform,
           ImageScalingAlgorithm::Auto,
+          context.style.filter.0.to_owned(),
         );
       }
     }

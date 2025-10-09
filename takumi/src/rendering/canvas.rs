@@ -21,7 +21,7 @@ use zeno::{Mask, Placement};
 use crate::{
   layout::{
     Viewport,
-    style::{Affine, Angle, Color, ImageScalingAlgorithm},
+    style::{Affine, Angle, Color, Filters, ImageScalingAlgorithm},
   },
   rendering::BorderProperties,
 };
@@ -47,6 +47,7 @@ impl Canvas {
     border: BorderProperties,
     transform: Affine,
     algorithm: ImageScalingAlgorithm,
+    filters: Option<Filters>,
   ) {
     if image.is_empty() {
       return;
@@ -58,6 +59,7 @@ impl Canvas {
       border,
       transform,
       algorithm,
+      filters,
     });
   }
 
@@ -138,6 +140,8 @@ pub(crate) enum DrawCommand {
     transform: Affine,
     /// The algorithm to use when transforming the image
     algorithm: ImageScalingAlgorithm,
+    /// Filters to apply when overlaying
+    filters: Option<Filters>,
   },
   /// Draw a mask with the specified color onto the canvas.
   DrawMask {
@@ -174,9 +178,10 @@ impl Display for DrawCommand {
         border: radius,
         transform,
         algorithm,
+        ref filters,
       } => write!(
         f,
-        "OverlayImage(width={}, height={}, offset={offset:?}, radius={radius:?}, transform={}, algorithm={algorithm:?})",
+        "OverlayImage(width={}, height={}, offset={offset:?}, radius={radius:?}, transform={}, algorithm={algorithm:?}), filters={filters:?}",
         image.width(),
         image.height(),
         transform.decompose()
@@ -212,18 +217,24 @@ impl Display for DrawCommand {
 
 impl DrawCommand {
   /// Executes the drawing command on the provided canvas.
-  ///
-  /// # Arguments
-  /// * `canvas` - The canvas to draw on
-  pub fn draw(&self, canvas: &mut RgbaImage) {
-    match *self {
+  pub fn draw(self, canvas: &mut RgbaImage) {
+    match self {
       DrawCommand::OverlayImage {
         ref image,
         offset,
         border: radius,
         transform,
         algorithm,
-      } => overlay_image(canvas, image, offset, radius, transform, algorithm),
+        ref filters,
+      } => overlay_image(
+        canvas,
+        image,
+        offset,
+        radius,
+        transform,
+        algorithm,
+        filters.as_ref(),
+      ),
       DrawCommand::FillColor {
         offset,
         size,
@@ -388,6 +399,7 @@ pub(crate) fn overlay_image(
   border: BorderProperties,
   transform: Affine,
   algorithm: ImageScalingAlgorithm,
+  _filters: Option<&Filters>,
 ) {
   let transform_part = transform.decompose();
   let can_direct_draw =
