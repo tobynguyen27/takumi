@@ -4,6 +4,7 @@
 //! fast image blending and pixel manipulation operations.
 
 use std::{
+  borrow::Cow,
   fmt::Display,
   sync::{
     Arc,
@@ -399,11 +400,23 @@ pub(crate) fn overlay_image(
   border: BorderProperties,
   transform: Affine,
   algorithm: ImageScalingAlgorithm,
-  _filters: Option<&Filters>,
+  filters: Option<&Filters>,
 ) {
   let transform_part = transform.decompose();
   let can_direct_draw =
     !transform_part.is_rotated() && !transform_part.is_scaled() && border.is_zero();
+
+  let mut image = Cow::Borrowed(image);
+
+  if let Some(filters) = filters
+    && !filters.0.is_empty()
+  {
+    let mut owned_image = image.into_owned();
+
+    filters.apply_to(&mut owned_image);
+
+    image = Cow::Owned(owned_image);
+  }
 
   if can_direct_draw {
     let transformed_offset = Point {
@@ -462,8 +475,8 @@ pub(crate) fn overlay_image(
       } * inverse;
 
       let sampled_pixel = match algorithm {
-        ImageScalingAlgorithm::Pixelated => interpolate_nearest(image, point.x, point.y),
-        _ => interpolate_bilinear(image, point.x, point.y),
+        ImageScalingAlgorithm::Pixelated => interpolate_nearest(&*image, point.x, point.y),
+        _ => interpolate_bilinear(&*image, point.x, point.y),
       };
 
       if let Some(mut pixel) = sampled_pixel {
