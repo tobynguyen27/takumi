@@ -75,6 +75,20 @@
         "typescript": "catalog:",
       },
     },
+    "example/satori-html": {
+      "name": "satori-html-compability",
+      "dependencies": {
+        "@takumi-rs/core": "workspace:*",
+        "@takumi-rs/helpers": "workspace:*",
+        "satori-html": "^0.3.2",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
     "example/twitter-images": {
       "name": "example-twitter-images",
       "dependencies": {
@@ -93,11 +107,11 @@
     },
     "takumi": {
       "name": "takumi",
-      "version": "0.35.0",
+      "version": "0.35.2",
     },
     "takumi-helpers": {
       "name": "@takumi-rs/helpers",
-      "version": "0.35.0",
+      "version": "0.35.2",
       "devDependencies": {
         "@types/bun": "^1.2.23",
         "@types/react": "^19.2.2",
@@ -112,7 +126,7 @@
     },
     "takumi-image-response": {
       "name": "@takumi-rs/image-response",
-      "version": "0.35.0",
+      "version": "0.35.2",
       "devDependencies": {
         "@takumi-rs/core": "workspace:*",
         "@takumi-rs/helpers": "workspace:*",
@@ -123,13 +137,13 @@
         "typescript": "catalog:",
       },
       "peerDependencies": {
-        "@takumi-rs/core": "0.35.0",
-        "@takumi-rs/helpers": "0.35.0",
+        "@takumi-rs/core": "0.35.2",
+        "@takumi-rs/helpers": "0.35.2",
       },
     },
     "takumi-napi-core": {
       "name": "@takumi-rs/core",
-      "version": "0.35.0",
+      "version": "0.35.2",
       "devDependencies": {
         "@napi-rs/cli": "3.3.0",
         "@takumi-rs/helpers": "workspace:*",
@@ -142,7 +156,7 @@
     },
     "takumi-template": {
       "name": "@takumi-rs/template",
-      "version": "0.35.0",
+      "version": "0.35.2",
       "devDependencies": {
         "@takumi-rs/core": "workspace:*",
         "@takumi-rs/helpers": "workspace:*",
@@ -154,7 +168,7 @@
     },
     "takumi-wasm": {
       "name": "@takumi-rs/wasm",
-      "version": "0.35.0",
+      "version": "0.35.2",
       "devDependencies": {
         "@takumi-rs/helpers": "workspace:*",
         "@types/bun": "catalog:",
@@ -1740,6 +1754,10 @@
 
     "safer-buffer": ["safer-buffer@2.1.2", "", {}, "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg=="],
 
+    "satori-html": ["satori-html@0.3.2", "", { "dependencies": { "ultrahtml": "^1.2.0" } }, "sha512-wjTh14iqADFKDK80e51/98MplTGfxz2RmIzh0GqShlf4a67+BooLywF17TvJPD6phO0Hxm7Mf1N5LtRYvdkYRA=="],
+
+    "satori-html-compability": ["satori-html-compability@workspace:example/satori-html"],
+
     "scheduler": ["scheduler@0.27.0", "", {}, "sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q=="],
 
     "scroll-into-view-if-needed": ["scroll-into-view-if-needed@3.1.0", "", { "dependencies": { "compute-scroll-into-view": "^3.0.2" } }, "sha512-49oNpRjWRvnU8NyGVmUaYG4jtTkNonFZI86MmGRDqBphEK2EXT9gdEUoQPZhuBM8yWHxCWbobltqYO5M4XrUvQ=="],
@@ -1885,6 +1903,8 @@
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "ufo": ["ufo@1.6.1", "", {}, "sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA=="],
+
+    "ultrahtml": ["ultrahtml@1.6.0", "", {}, "sha512-R9fBn90VTJrqqLDwyMph+HGne8eqY1iPfYhPzZrvKpIfwkWZbcYlfpsb8B9dTvBfpy1/hqAD7Wi8EKfP9e8zdw=="],
 
     "undici": ["undici@7.14.0", "", {}, "sha512-Vqs8HTzjpQXZeXdpsfChQTlafcMQaaIwnGwLam1wudSSjlJeQ3bw1j+TLPePgrCnCpUXx7Ba5Pdpf5OBih62NQ=="],
 
