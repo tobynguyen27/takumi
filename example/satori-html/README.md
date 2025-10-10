@@ -1,15 +1,21 @@
-# satori-html-compability
+# satori-html
 
-To install dependencies:
+This is a example of how to use satori-html with Takumi.
 
-```bash
-bun install
-```
+Before running the example, you need to build the native binary.
 
-To run:
+Make sure you have [Rust installed](https://www.rust-lang.org/tools/install).
 
 ```bash
-bun run index.ts
+cd takumi-napi-core
+bun run build
 ```
 
-This project was created using `bun init` in bun v1.2.23. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+Then, run the code.
+
+```bash
+cd example/satori-html
+node index.ts # Bun fails https://github.com/natemoo-re/ultrahtml/issues/66
+```
+
+Open `output.png` to see the result.

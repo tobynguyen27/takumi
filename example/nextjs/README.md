@@ -2,7 +2,7 @@
 
 This is a simple example of how to use Takumi with Next.js.
 
-Before running the example, you need to build the native library.
+Before running the example, you need to build the native binary.
 
 Make sure you have [Rust installed](https://www.rust-lang.org/tools/install).
 
