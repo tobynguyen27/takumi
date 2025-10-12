@@ -1,11 +1,10 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { ImageResponse } from "@takumi-rs/image-response";
 import DocsTemplateV1 from "@takumi-rs/template/docs-template-v1";
 import { source } from "~/source";
+import logo from "../../public/logo.svg?raw";
 import type { Route } from "./+types/og";
 
-export async function loader({ params }: Route.LoaderArgs) {
+export function loader({ params }: Route.LoaderArgs) {
   const slugs = params["*"]
     .split("/")
     .filter((v) => v.length > 0)
@@ -33,9 +32,7 @@ export async function loader({ params }: Route.LoaderArgs) {
       persistentImages: [
         {
           src: "takumi.svg",
-          data: await readFile(
-            join(import.meta.dirname, "..", "..", "public", "logo.svg"),
-          ),
+          data: Buffer.from(logo),
         },
       ],
       width: 1200,
