@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { lazy, Suspense } from "react";
 import { baseOptions } from "~/layout-config";
 
-const ImageEditor = lazy(() => import("~/components/image-editor"));
+const ImageEditor = lazy(() => import("~/components/playground/playground"));
 
 export default function Playground() {
   return (

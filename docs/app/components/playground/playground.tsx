@@ -1,12 +1,6 @@
-import { Editor } from "@monaco-editor/react";
-import { fromJsx } from "@takumi-rs/helpers/jsx";
-import DocsTemplateV1 from "@takumi-rs/template/docs-template-v1";
-import type { AnyNode } from "@takumi-rs/wasm";
-import * as React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PanelGroupProps } from "react-resizable-panels";
 import { useSearchParams } from "react-router";
-import { transform } from "sucrase";
 import defaultTemplate from "~/playground/default?raw";
 import { compressCode, decompressCode } from "~/playground/share";
 import TakumiWorker from "~/playground/worker?worker";
@@ -14,38 +8,8 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "./ui/resizable";
-
-function transformCode(code: string) {
-  return transform(code, {
-    transforms: ["jsx", "typescript", "imports"],
-    production: true,
-  }).code;
-}
-
-function componentFromCode(code: string) {
-  const exports = {};
-
-  try {
-    new Function("exports", "require", "React", transformCode(code))(
-      exports,
-      require,
-      React,
-    );
-
-    if (!("default" in exports) || typeof exports.default !== "function")
-      throw new Error("Default export should be a React component.");
-
-    return exports.default as React.JSXElementConstructor<unknown>;
-  } catch (e) {
-    console.error(e);
-    return () => <></>;
-  }
-}
-
-function require(module: string) {
-  if (module === "@takumi-rs/template/docs-template-v1") return DocsTemplateV1;
-}
+} from "../ui/resizable";
+import { ComponentEditor } from "./editor";
 
 const mobileViewportWidth = 640;
 
@@ -70,12 +34,10 @@ function useDirection() {
   return direction;
 }
 
-export default function ImageEditor() {
-  const [code, setCode] = useState(defaultTemplate);
-  const [node, setNode] = useState<AnyNode>();
+export default function Playground() {
+  const [code, setCode] = useState<string>();
   const [rendered, setRendered] = useState<string>();
   const [isReady, setIsReady] = useState(false);
-  const Component = useMemo(() => componentFromCode(code), [code]);
 
   const workerRef = useRef<Worker | undefined>(undefined);
   const direction = useDirection();
@@ -85,9 +47,12 @@ export default function ImageEditor() {
 
   useEffect(() => {
     if (codeQuery) decompressCode(codeQuery).then(setCode);
+    else setCode(defaultTemplate);
   }, [codeQuery]);
 
   useEffect(() => {
+    if (!code) return;
+
     if (code === defaultTemplate) {
       return setSearchParams((prev) => {
         prev.delete("code");
@@ -128,55 +93,19 @@ export default function ImageEditor() {
   }, []);
 
   useEffect(() => {
-    fromJsx(<Component />).then((node) => {
-      setNode(node);
-
-      if (isReady) {
-        workerRef.current?.postMessage({
-          type: "render",
-          node,
-        });
-      }
-    });
-  }, [Component, isReady]);
+    if (isReady) {
+      workerRef.current?.postMessage({
+        type: "render",
+        code,
+      });
+    }
+  }, [isReady, code]);
 
   return (
     <div className="h-[calc(100dvh-3.5rem)]">
       <ResizablePanelGroup direction={direction}>
         <ResizablePanel defaultSize={50}>
-          <Editor
-            onMount={(_, monaco) => {
-              monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(
-                {
-                  noSemanticValidation: true,
-                  noSyntaxValidation: true,
-                  noSuggestionDiagnostics: true,
-                },
-              );
-            }}
-            width="100%"
-            height="100%"
-            language="typescript"
-            theme="vs-dark"
-            options={{
-              wordWrap: "on",
-              tabSize: 2,
-              minimap: {
-                enabled: false,
-              },
-              stickyScroll: {
-                enabled: false,
-              },
-              scrollbar: {
-                useShadows: false,
-              },
-              fontSize: 16,
-              scrollBeyondLastLine: false,
-            }}
-            loading="Launching editor..."
-            defaultValue={code}
-            onChange={(code) => setCode(code ?? "")}
-          />
+          {code && <ComponentEditor code={code} setCode={setCode} />}
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={50}>
@@ -196,8 +125,8 @@ export default function ImageEditor() {
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={50}>
               <div className="h-full overflow-y-auto p-4">
-                <p className="text-lg py-2 font-medium">What Takumi Sees</p>
-                <pre>{JSON.stringify(node, null, 2)}</pre>
+                <p className="text-lg py-2 font-medium">Viewport</p>
+                <p>1200 x 630</p>
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>

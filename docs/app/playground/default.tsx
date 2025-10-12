@@ -14,10 +14,6 @@ export default function Image() {
             borderRadius: "50%",
             justifyContent: "center",
             backgroundColor: "red",
-            fontSize: 48,
-            fontWeight: 600,
-            color: "white",
-            textAlign: "center",
           }}
         />
       }
