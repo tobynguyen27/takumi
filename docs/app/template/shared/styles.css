@@ -1,9 +1,0 @@
-img {
-  width: calc(100vw - 1rem);
-  height: calc(100vh - 1rem);
-  object-fit: contain;
-  position: fixed;
-  padding: 0.5rem;
-  top: 0;
-  left: 0;
-}
