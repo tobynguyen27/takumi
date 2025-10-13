@@ -16,13 +16,15 @@ const exportsSchema = z.object({
   options: optionsSchema,
 });
 
+let renderer: Renderer | undefined;
+
 (async () => {
   const [_, normalFont] = await Promise.all([
     initWasm({ module_or_path: wasmUrl }),
     fetch("/fonts/Geist.woff2").then((r) => r.arrayBuffer()),
   ]);
 
-  const renderer = new Renderer();
+  renderer = new Renderer();
   renderer.loadFont(new Uint8Array(normalFont));
 
   postMessage({ type: "ready" });
