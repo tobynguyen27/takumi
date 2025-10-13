@@ -26,6 +26,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "Hello World",
+      style: stylePresets.span,
     } satisfies TextNode);
   });
 
@@ -34,6 +35,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "42",
+      style: stylePresets.span,
     } satisfies TextNode);
   });
 
@@ -204,13 +206,17 @@ describe("fromJsx", () => {
             {
               type: "container",
               children: [
-                { type: "text", text: "Paragraph with " },
+                {
+                  type: "text",
+                  text: "Paragraph with ",
+                  style: stylePresets.span,
+                },
                 {
                   type: "text",
                   text: "bold",
                   style: stylePresets.strong,
                 },
-                { type: "text", text: " text" },
+                { type: "text", text: " text", style: stylePresets.span },
               ],
               style: stylePresets.p,
             },
@@ -239,6 +245,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "Resolved text",
+      style: stylePresets.span,
     } satisfies TextNode);
   });
 
