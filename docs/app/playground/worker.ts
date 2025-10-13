@@ -5,31 +5,26 @@ import wasmUrl from "@takumi-rs/wasm/takumi_wasm_bg.wasm?url";
 import * as React from "react";
 import { transform } from "sucrase";
 import * as z from "zod/mini";
+import { type messageSchema, optionsSchema } from "./schema";
 
-let renderer: Renderer | undefined;
-
-const optionsSchema = z.object({
-  width: z.int().check(z.positive(), z.minimum(1)),
-  height: z.int().check(z.positive(), z.minimum(1)),
-  quality: z.optional(
-    z.int().check(z.positive(), z.minimum(1), z.maximum(100)),
-  ),
-  format: z.enum(["png", "jpeg", "webp"]),
-});
+function postMessage(message: z.input<typeof messageSchema>) {
+  return self.postMessage(message);
+}
 
 const exportsSchema = z.object({
   default: z.function(),
   options: optionsSchema,
 });
 
-initWasm({ module_or_path: wasmUrl }).then(async () => {
-  const font = await fetch("/fonts/Geist.woff2").then((r) => r.arrayBuffer());
+const [_, normalFont] = await Promise.all([
+  initWasm({ module_or_path: wasmUrl }),
+  fetch("/fonts/Geist.woff2").then((r) => r.arrayBuffer()),
+]);
 
-  renderer = new Renderer();
-  renderer.loadFont(new Uint8Array(font));
+const renderer = new Renderer();
+renderer.loadFont(new Uint8Array(normalFont));
 
-  self.postMessage({ type: "ready" });
-});
+postMessage({ type: "ready" });
 
 function require(module: string) {
   if (module === "@takumi-rs/template/docs-template-v1") return DocsTemplateV1;
@@ -74,17 +69,23 @@ self.onmessage = async (event: MessageEvent) => {
       );
       const duration = performance.now() - start;
 
-      self.postMessage({
-        type: "render_complete",
-        dataUrl,
-        duration,
-        node,
-        options,
+      postMessage({
+        type: "render-result",
+        result: {
+          status: "success",
+          dataUrl,
+          duration,
+          node,
+          options,
+        },
       });
     } catch (error) {
-      self.postMessage({
-        type: "render_error",
-        error: error instanceof Error ? error.message : "Unknown error",
+      postMessage({
+        type: "render-result",
+        result: {
+          status: "error",
+          message: error instanceof Error ? error.message : "Unknown error",
+        },
       });
     }
   }
