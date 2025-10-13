@@ -12,7 +12,13 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
-import { ArrowBigRight, BookOpen, Hand } from "lucide-react";
+import {
+  ArrowBigRight,
+  BookOpen,
+  Hand,
+  Shovel,
+  ShovelIcon,
+} from "lucide-react";
 import { redirect } from "react-router";
 import { baseOptions } from "~/layout-config";
 import { source } from "~/source";
@@ -23,6 +29,7 @@ const components = {
   Hand,
   BookOpen,
   ArrowBigRight,
+  ShovelIcon,
   DocsCategory,
   Tabs,
   Tab,
@@ -60,7 +67,17 @@ export default function Page(props: Route.ComponentProps) {
   const title = `${page.data.title} - Takumi`;
 
   return (
-    <DocsLayout {...baseOptions} links={[]} tree={tree as PageTree.Root}>
+    <DocsLayout
+      {...baseOptions}
+      links={[
+        {
+          icon: <Shovel />,
+          text: "Try in Playground",
+          url: "/playground",
+        },
+      ]}
+      tree={tree as PageTree.Root}
+    >
       <DocsPage toc={toc}>
         <title>{title}</title>
         <meta name="description" content={page.data.description} />

@@ -4,7 +4,7 @@
 
 Takumi is an **image rendering engine** written in Rust that provides bindings for Node.js and WebAssembly. Suitable for high-throughput image rendering workloads such as Open Graph images and Twitter images.
 
-For newcomers, check out the [Overview](https://takumi.kane.tw/docs) page for installation and usage.
+For newcomers, you can try out Takumi in [playground](https://takumi.kane.tw/playground) without installation. Or check [Getting Started](https://takumi.kane.tw/docs/getting-started/) page for usage.
 
 ## Why build a satori alternative?
 
