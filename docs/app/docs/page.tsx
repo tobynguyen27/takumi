@@ -80,6 +80,7 @@ export default function Page(props: Route.ComponentProps) {
         <meta name="og:title" content={title} />
         <meta name="og:description" content={page.data.description} />
         <meta name="og:image" content={og} />
+        <meta name="twitter:image" content={og} />
         <DocsTitle>{page.data.title}</DocsTitle>
         <DocsDescription>{page.data.description}</DocsDescription>
         <DocsBody>
