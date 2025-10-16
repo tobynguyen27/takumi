@@ -1,21 +1,19 @@
 {
   "name": "takumi",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "takumi",
-      "takumi-helpers",
-      "takumi-napi-core",
-      "takumi-wasm",
-      "takumi-image-response",
-      "takumi-template",
-      "docs",
-      "example/*"
-    ],
-    "catalog": {
-      "@types/bun": "^1.3.0",
-      "typescript": "^5.9.3"
-    }
+  "workspaces": [
+    "takumi",
+    "takumi-helpers",
+    "takumi-napi-core",
+    "takumi-wasm",
+    "takumi-image-response",
+    "takumi-template",
+    "docs",
+    "example/*"
+  ],
+  "catalog": {
+    "@types/bun": "^1.3.0",
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "lint": "biome ci .",
