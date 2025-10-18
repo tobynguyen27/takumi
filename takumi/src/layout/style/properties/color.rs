@@ -45,7 +45,7 @@ impl ColorInput {
   pub fn resolve(self, current_color: Color, opacity: f32) -> Color {
     match self {
       ColorInput::Value(color) => color.with_opacity(opacity),
-      ColorInput::CurrentColor => current_color,
+      ColorInput::CurrentColor => current_color.with_opacity(opacity),
     }
   }
 }
