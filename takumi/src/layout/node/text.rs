@@ -66,6 +66,7 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
     context: &RenderContext,
     available_space: Size<AvailableSpace>,
     known_dimensions: Size<Option<f32>>,
+    _style: &taffy::Style,
   ) -> Size<f32> {
     let (max_width, max_height) =
       create_inline_constraint(context, available_space, known_dimensions);

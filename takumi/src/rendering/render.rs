@@ -55,18 +55,18 @@ pub fn render<'g, N: Node<N>>(options: RenderOptions<'g, N>) -> Result<RgbaImage
     .compute_layout_with_measure(
       root_node_id,
       available_space,
-      |known_dimensions, available_space, _node_id, node_context, _style| {
+      |known_dimensions, available_space, _node_id, node_context, style| {
         if let Size {
           width: Some(width),
           height: Some(height),
-        } = known_dimensions
+        } = known_dimensions.maybe_apply_aspect_ratio(style.aspect_ratio)
         {
-          return Size { width, height };
+          Size { width, height }
+        } else {
+          node_context
+            .unwrap()
+            .measure(available_space, known_dimensions, style)
         }
-
-        node_context
-          .unwrap()
-          .measure(available_space, known_dimensions)
       },
     )
     .unwrap();
@@ -177,7 +177,7 @@ fn render_node<'g, Nodes: Node<Nodes>>(
   }
 
   if node_context.should_construct_inline_layout() {
-    let (inline_layout, _, boxes) = node_context.create_inline_layout(layout.content_box_size());
+    let (inline_layout, _, boxes) = node_context.create_inline_layout(layout.content_size);
     let font_style = node_context
       .context
       .style

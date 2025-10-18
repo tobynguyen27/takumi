@@ -69,37 +69,6 @@ fn test_overflow_hidden() {
 }
 
 #[test]
-fn test_overflow_clip() {
-  let container = ContainerNode {
-    style: Some(
-      StyleBuilder::default()
-        .width(Px(200.0))
-        .height(Px(200.0))
-        .background_color(ColorInput::Value(Color::white()))
-        .overflow(Overflows(Overflow::Clip, Overflow::Clip))
-        .build()
-        .unwrap(),
-    ),
-    children: Some(vec![
-      ContainerNode {
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(300.0))
-            .height(Px(300.0))
-            .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-    ]),
-  };
-
-  run_style_width_test(container.into(), "tests/fixtures/overflow_clip.png");
-}
-
-#[test]
 fn test_overflow_mixed_axes() {
   let container = ContainerNode {
     style: Some(
@@ -107,7 +76,7 @@ fn test_overflow_mixed_axes() {
         .width(Px(200.0))
         .height(Px(200.0))
         .background_color(ColorInput::Value(Color::white()))
-        .overflow_x(CssOption::some(Overflow::Clip))
+        .overflow_x(CssOption::some(Overflow::Visible))
         .overflow_y(CssOption::some(Overflow::Hidden))
         .build()
         .unwrap(),

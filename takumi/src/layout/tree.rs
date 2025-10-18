@@ -179,6 +179,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     &self,
     available_space: Size<AvailableSpace>,
     known_dimensions: Size<Option<f32>>,
+    style: &taffy::Style,
   ) -> Size<f32> {
     if self.should_construct_inline_layout() {
       let (max_width, max_height) =
@@ -207,7 +208,12 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
                   index_pos += text.len();
                 }
                 InlineItem::Node(node) => {
-                  let size = node.measure(context, available_space, Size::NONE);
+                  let size = node.measure(
+                    context,
+                    available_space,
+                    Size::NONE,
+                    &taffy::Style::default(),
+                  );
 
                   boxes.push(size);
 
@@ -251,7 +257,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
       return Size::zero();
     };
 
-    node.measure(&self.context, available_space, known_dimensions)
+    node.measure(&self.context, available_space, known_dimensions, style)
   }
 
   pub(crate) fn create_inline_layout(&self, size: Size<f32>) -> (InlineLayout, String, Vec<&N>) {
@@ -289,6 +295,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
                     height: AvailableSpace::Definite(size.height),
                   },
                   Size::NONE,
+                  &taffy::Style::default(),
                 );
 
                 let inline_box = InlineBox {

@@ -12,9 +12,6 @@ pub enum Overflow {
   /// Content that overflows this node *should* contribute to the scroll region of its parent.
   #[default]
   Visible,
-  /// The automatic minimum size of this node as a flexbox/grid item should be based on the size of its content.
-  /// Content that overflows this node should *not* contribute to the scroll region of its parent.
-  Clip,
   /// The automatic minimum size of this node as a flexbox/grid item should be `0`.
   /// Content that overflows this node should *not* contribute to the scroll region of its parent.
   Hidden,
@@ -24,7 +21,6 @@ impl From<Overflow> for taffy::Overflow {
   fn from(val: Overflow) -> Self {
     match val {
       Overflow::Visible => taffy::Overflow::Visible,
-      Overflow::Clip => taffy::Overflow::Clip,
       Overflow::Hidden => taffy::Overflow::Hidden,
     }
   }
@@ -37,7 +33,6 @@ impl<'i> FromCss<'i> for Overflow {
 
     match_ignore_ascii_case! { ident,
       "visible" => Ok(Overflow::Visible),
-      "clip" => Ok(Overflow::Clip),
       "hidden" => Ok(Overflow::Hidden),
       _ => Err(location.new_unexpected_token_error(
         cssparser::Token::Ident(ident.clone())
@@ -112,10 +107,6 @@ mod tests {
     let mut input = ParserInput::new("hidden");
     let mut parser = Parser::new(&mut input);
     assert_eq!(Overflow::from_css(&mut parser).unwrap(), Overflow::Hidden);
-
-    let mut input = ParserInput::new("clip");
-    let mut parser = Parser::new(&mut input);
-    assert_eq!(Overflow::from_css(&mut parser).unwrap(), Overflow::Clip);
   }
 
   #[test]

@@ -47,22 +47,13 @@ pub(crate) fn create_inline_constraint(
     AvailableSpace::Definite(width) => Some(width),
   });
 
-  let height_constraint = known_dimensions.height.or(match available_space.height {
-    AvailableSpace::MaxContent | AvailableSpace::MinContent => None,
-    AvailableSpace::Definite(height) => Some(height),
-  });
-
-  let height_constraint_with_max_lines =
-    match (context.style.line_clamp.as_ref(), height_constraint) {
-      (Some(clamp), Some(height)) => Some(MaxHeight::Both(height, clamp.count)),
-      (Some(clamp), None) => Some(MaxHeight::Lines(clamp.count)),
-      (None, Some(height)) => Some(MaxHeight::Absolute(height)),
-      (None, None) => None,
-    };
-
   (
     width_constraint.unwrap_or(f32::MAX),
-    height_constraint_with_max_lines,
+    context
+      .style
+      .line_clamp
+      .as_ref()
+      .map(|lines| MaxHeight::Lines(lines.count)),
   )
 }
 
