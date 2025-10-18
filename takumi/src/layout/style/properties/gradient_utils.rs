@@ -81,7 +81,7 @@ pub(crate) fn resolve_stops_along_axis(
           .unwrap_or(-1.0);
 
         resolved.push(ResolvedGradientStop {
-          color: color.resolve(context.current_color),
+          color: color.resolve(context.current_color, context.opacity),
           position,
         });
       }
@@ -94,7 +94,7 @@ pub(crate) fn resolve_stops_along_axis(
         let after_color = stops
           .get(i + 1)
           .and_then(|stop| match stop {
-            GradientStop::ColorHint { color, hint: _ } => Some(color.resolve(context.current_color)),
+            GradientStop::ColorHint { color, hint: _ } => Some(color.resolve(context.current_color, context.opacity)),
             GradientStop::Hint(_) => None,
           })
           .expect("Gradient hint found without a following color stop. Each hint must be followed by a color stop.");

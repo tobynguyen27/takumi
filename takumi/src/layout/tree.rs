@@ -52,7 +52,9 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
       .map(|font_size| font_size.resolve_to_px(parent_context, parent_context.font_size))
       .unwrap_or(parent_context.font_size);
 
-    let current_color = style.color.resolve(parent_context.current_color);
+    let current_color = style
+      .color
+      .resolve(parent_context.current_color, parent_context.opacity);
 
     let opacity = style.opacity.0 * parent_context.opacity;
 

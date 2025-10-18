@@ -199,7 +199,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
       context
         .style
         .background_color
-        .resolve(context.current_color),
+        .resolve(context.current_color, context.opacity),
       radius,
       context.transform,
     );

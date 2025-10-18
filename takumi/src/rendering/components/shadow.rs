@@ -48,7 +48,7 @@ impl SizedShadow {
         .spread_radius
         .resolve_to_px(context, size.width)
         .max(0.0),
-      color: shadow.color.resolve(context.current_color),
+      color: shadow.color.resolve(context.current_color, context.opacity),
     }
   }
 
@@ -60,7 +60,7 @@ impl SizedShadow {
       blur_radius: shadow.blur_radius.resolve_to_px(context, size.width),
       // Text shadows do not support spread radius; set to 0.
       spread_radius: 0.0,
-      color: shadow.color.resolve(context.current_color),
+      color: shadow.color.resolve(context.current_color, context.opacity),
     }
   }
 

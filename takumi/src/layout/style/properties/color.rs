@@ -42,9 +42,9 @@ pub enum ColorInput {
 
 impl ColorInput {
   /// Resolves the color input to a color.
-  pub fn resolve(&self, current_color: Color) -> Color {
+  pub fn resolve(self, current_color: Color, opacity: f32) -> Color {
     match self {
-      ColorInput::Value(color) => *color,
+      ColorInput::Value(color) => color.with_opacity(opacity),
       ColorInput::CurrentColor => current_color,
     }
   }
@@ -66,7 +66,7 @@ impl Display for Color {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(
       f,
-      "rgba({} {} {} / {})",
+      "rgb({} {} {} / {})",
       self.0[0],
       self.0[1],
       self.0[2],
@@ -95,6 +95,13 @@ impl Color {
   /// Creates a new white color.
   pub const fn white() -> Self {
     Color([255, 255, 255, 255])
+  }
+
+  /// Apply opacity to alpha channel
+  pub fn with_opacity(mut self, opacity: f32) -> Self {
+    self.0[3] = ((self.0[3] as f32) * opacity).round() as u8;
+
+    self
   }
 }
 

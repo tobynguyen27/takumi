@@ -157,11 +157,14 @@ fn render_node<'g, Nodes: Node<Nodes>>(
   mut transform: Affine,
 ) {
   let mut layout = *taffy.layout(node_id).unwrap();
+  let node_context = taffy.get_node_context_mut(node_id).unwrap();
+
+  if node_context.context.opacity == 0.0 {
+    return;
+  }
 
   layout.location.x += offset.x;
   layout.location.y += offset.y;
-
-  let node_context = taffy.get_node_context_mut(node_id).unwrap();
 
   transform =
     transform * create_transform(&node_context.context.style, &layout, &node_context.context);

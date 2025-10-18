@@ -268,16 +268,13 @@ pub(crate) fn draw_pixel(canvas: &mut RgbaImage, x: u32, y: u32, color: Rgba<u8>
   }
 }
 
-pub(crate) fn apply_mask_alpha_to_pixel(pixel: Rgba<u8>, alpha: u8) -> Rgba<u8> {
+pub(crate) fn apply_mask_alpha_to_pixel(mut pixel: Rgba<u8>, alpha: u8) -> Rgba<u8> {
   if alpha == u8::MAX {
     pixel
   } else {
-    Rgba([
-      pixel.0[0],
-      pixel.0[1],
-      pixel.0[2],
-      (pixel.0[3] as f32 * (alpha as f32 / 255.0)) as u8,
-    ])
+    pixel.0[3] = ((pixel.0[3] as f32) * (alpha as f32 / 255.0)).round() as u8;
+
+    pixel
   }
 }
 

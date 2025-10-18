@@ -70,7 +70,7 @@ impl BorderProperties {
         .border_color
         .or(context.style.border.color)
         .unwrap_or(ColorInput::CurrentColor)
-        .resolve(context.current_color),
+        .resolve(context.current_color, context.opacity),
       radius: Sides([top_left, top_right, bottom_right, bottom_left]),
       transform: context.transform,
     }

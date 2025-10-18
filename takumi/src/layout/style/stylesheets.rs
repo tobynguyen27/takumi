@@ -421,17 +421,17 @@ impl InheritedStyle {
           })
           .collect()
       }),
-      color: self.color.resolve(context.current_color),
+      color: self.color.resolve(context.current_color, context.opacity),
       text_stroke_color: self
         .text_stroke_color
         .or(self.text_stroke.and_then(|stroke| stroke.color))
         .unwrap_or(self.color)
-        .resolve(context.current_color),
+        .resolve(context.current_color, context.opacity),
       text_decoration_color: self
         .text_decoration_color
         .or(self.text_decoration.color)
         .unwrap_or(ColorInput::CurrentColor)
-        .resolve(context.current_color),
+        .resolve(context.current_color, context.opacity),
     }
   }
 
