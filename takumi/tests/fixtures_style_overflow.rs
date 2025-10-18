@@ -1,6 +1,6 @@
 use takumi::layout::{
   node::{ContainerNode, TextNode},
-  style::{Color, ColorInput, CssOption, LengthUnit::Px, Overflow, Overflows, StyleBuilder},
+  style::{LengthUnit::*, *},
 };
 
 mod test_utils;
@@ -11,10 +11,11 @@ fn test_overflow_visible() {
   let container = ContainerNode {
     style: Some(
       StyleBuilder::default()
-        .width(Px(200.0))
-        .height(Px(200.0))
+        .width(Percentage(100.0))
+        .height(Percentage(100.0))
         .background_color(ColorInput::Value(Color::white()))
-        .overflow(Overflows(Overflow::Visible, Overflow::Visible))
+        .align_items(AlignItems::Center)
+        .justify_content(JustifyContent::Center)
         .build()
         .unwrap(),
     ),
@@ -22,13 +23,31 @@ fn test_overflow_visible() {
       ContainerNode {
         style: Some(
           StyleBuilder::default()
-            .width(Px(300.0))
-            .height(Px(300.0))
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+            .display(Display::Block)
+            .width(Px(200.0))
+            .height(Px(200.0))
+            .border_width(CssOption::some(Sides([Px(4.0); 4])))
+            .border_color(CssOption::some(Color([255, 0, 0, 255]).into()))
+            .overflow(Overflows(Overflow::Visible, Overflow::Visible))
             .build()
             .unwrap(),
         ),
-        children: None,
+        children: Some(vec![
+          ContainerNode {
+            style: Some(
+              StyleBuilder::default()
+                .width(Px(300.0))
+                .height(Px(300.0))
+                .border_width(CssOption::some(Sides([Px(4.0); 4])))
+                .border_color(CssOption::some(Color([0, 255, 0, 255]).into()))
+                .overflow(Overflows(Overflow::Visible, Overflow::Visible))
+                .build()
+                .unwrap(),
+            ),
+            children: None,
+          }
+          .into(),
+        ]),
       }
       .into(),
     ]),
