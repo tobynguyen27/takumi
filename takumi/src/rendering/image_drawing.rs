@@ -232,10 +232,6 @@ pub fn draw_image(image: &ImageSource, context: &RenderContext, canvas: &Canvas,
   let mut border = BorderProperties::from_context(context, &layout).inset_by_border_width();
   border.offset = Point::zero();
   border.width = Rect::zero();
-  border.size = Size {
-    width: image.width() as f32,
-    height: image.height() as f32,
-  };
 
   canvas.overlay_image(
     Arc::new(image.into_owned()),
