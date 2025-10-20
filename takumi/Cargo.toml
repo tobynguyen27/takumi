@@ -71,7 +71,7 @@ features = [
 
 [dependencies.serde]
 version = "1"
-features = ["derive"]
+features = ["derive", "rc"]
 
 [dependencies.image]
 default-features = false

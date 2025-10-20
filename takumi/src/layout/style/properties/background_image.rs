@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use cssparser::{Parser, ParserInput};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
@@ -15,6 +17,8 @@ pub enum BackgroundImage {
   Radial(RadialGradient),
   /// Custom noise-v1(...)
   Noise(NoiseV1),
+  /// Load external image resource.
+  Url(Arc<str>),
 }
 
 impl<'i> FromCss<'i> for BackgroundImage {

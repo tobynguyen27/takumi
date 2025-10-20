@@ -32,4 +32,8 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for ContainerNode<Nodes> {
   fn take_children(&mut self) -> Option<Vec<Nodes>> {
     self.children.take()
   }
+
+  fn get_style(&self) -> Option<&Style> {
+    self.style.as_ref()
+  }
 }

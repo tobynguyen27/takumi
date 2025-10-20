@@ -1,4 +1,7 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
+use smallvec::SmallVec;
 use taffy::{AvailableSpace, Layout, Size};
 
 #[cfg(feature = "image_data_uri")]
@@ -11,7 +14,10 @@ use crate::{
     style::{InheritedStyle, Style},
   },
   rendering::{Canvas, RenderContext, draw_image},
-  resources::image::{ImageResourceError, ImageSource, is_svg},
+  resources::{
+    image::{ImageResourceError, ImageSource, is_svg},
+    task::FetchTask,
+  },
 };
 
 /// A node that renders image content.
@@ -20,7 +26,7 @@ pub struct ImageNode {
   /// The styling properties for this image node
   pub style: Option<Style>,
   /// The source URL or path to the image
-  pub src: String,
+  pub src: Arc<str>,
   /// The width of the image
   pub width: Option<f32>,
   /// The height of the image
@@ -28,6 +34,16 @@ pub struct ImageNode {
 }
 
 impl<Nodes: Node<Nodes>> Node<Nodes> for ImageNode {
+  fn create_fetch_tasks(&self) -> SmallVec<[FetchTask; 1]> {
+    let mut tasks = SmallVec::new();
+
+    if self.src.starts_with("http") {
+      tasks.push(FetchTask::new(self.src.clone()));
+    }
+
+    tasks
+  }
+
   fn create_inherited_style(&mut self, parent_style: &InheritedStyle) -> InheritedStyle {
     self.style.take().unwrap_or_default().inherit(parent_style)
   }
@@ -85,6 +101,10 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for ImageNode {
     };
 
     draw_image(&image, context, canvas, layout);
+  }
+
+  fn get_style(&self) -> Option<&Style> {
+    self.style.as_ref()
   }
 }
 

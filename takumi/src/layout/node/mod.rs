@@ -4,6 +4,7 @@ mod text;
 
 pub use container::*;
 pub use image::*;
+use smallvec::SmallVec;
 pub use text::*;
 
 use serde::{Deserialize, Serialize};
@@ -11,11 +12,15 @@ use taffy::{AvailableSpace, Layout, Point, Size};
 use zeno::Mask;
 
 use crate::{
-  layout::{inline::InlineContentKind, style::InheritedStyle},
+  layout::{
+    inline::InlineContentKind,
+    style::{BackgroundImage, CssOption, CssValue, InheritedStyle, Style},
+  },
   rendering::{
     BorderProperties, Canvas, RenderContext, SizedShadow, draw_background_layers, draw_border,
     resolve_layers_tiles,
   },
+  resources::task::FetchTask,
 };
 
 /// Implements the Node trait for an enum type that contains different node variants.
@@ -87,6 +92,30 @@ macro_rules! impl_node_enum {
           $( $name::$variant(inner) => <_ as $crate::layout::node::Node<$name>>::draw_inset_box_shadow(inner, context, canvas, layout), )*
         }
       }
+
+      fn get_style(&self) -> Option<&Style> {
+        match self {
+          $( $name::$variant(inner) => <_ as $crate::layout::node::Node<$name>>::get_style(inner), )*
+        }
+      }
+
+      fn create_fetch_tasks(&self) -> SmallVec<[FetchTask; 1]> {
+        match self {
+          $( $name::$variant(inner) => <_ as $crate::layout::node::Node<$name>>::create_fetch_tasks(inner), )*
+        }
+      }
+
+      fn create_style_fetch_tasks(&self) -> SmallVec<[FetchTask; 1]> {
+        match self {
+          $( $name::$variant(inner) => <_ as $crate::layout::node::Node<$name>>::create_style_fetch_tasks(inner), )*
+        }
+      }
+
+      fn draw_background_image(&self, context: &$crate::rendering::RenderContext, canvas: &$crate::rendering::Canvas, layout: $crate::taffy::Layout) {
+        match self {
+          $( $name::$variant(inner) => <_ as $crate::layout::node::Node<$name>>::draw_background_image(inner, context, canvas, layout), )*
+        }
+      }
     }
 
     $(
@@ -104,6 +133,44 @@ macro_rules! impl_node_enum {
 /// This trait defines the common interface for all elements that can be
 /// rendered in the layout system, including containers, text, and images.
 pub trait Node<N: Node<N>>: Send + Sync + Clone {
+  /// Creates resolving tasks for node's http resources.
+  fn create_fetch_tasks(&self) -> SmallVec<[FetchTask; 1]> {
+    SmallVec::new()
+  }
+
+  /// Returns a reference to this node's raw [`Style`], if any.
+  fn get_style(&self) -> Option<&Style>;
+
+  /// Creates resolving tasks for style's http resources.
+  fn create_style_fetch_tasks(&self) -> SmallVec<[FetchTask; 1]> {
+    let mut tasks = SmallVec::new();
+    let Some(style) = self.get_style() else {
+      return tasks;
+    };
+
+    if let CssValue::Value(CssOption(Some(images))) = &style.background_image {
+      tasks.extend(images.0.iter().filter_map(|image| {
+        if let BackgroundImage::Url(url) = image {
+          Some(FetchTask::new(url.clone()))
+        } else {
+          None
+        }
+      }));
+    };
+
+    if let CssValue::Value(CssOption(Some(images))) = &style.mask_image {
+      tasks.extend(images.0.iter().filter_map(|image| {
+        if let BackgroundImage::Url(url) = image {
+          Some(FetchTask::new(url.clone()))
+        } else {
+          None
+        }
+      }));
+    };
+
+    tasks
+  }
+
   /// Return reference to children nodes.
   fn take_children(&mut self) -> Option<Vec<N>> {
     None

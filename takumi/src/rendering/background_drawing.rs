@@ -101,6 +101,7 @@ pub(crate) fn render_gradient_tile(
     BackgroundImage::Linear(gradient) => gradient.to_image(tile_w, tile_h, context),
     BackgroundImage::Radial(gradient) => gradient.to_image(tile_w, tile_h, context),
     BackgroundImage::Noise(noise) => noise.to_image(tile_w, tile_h, context),
+    BackgroundImage::Url(_url) => todo!(),
   }
 }
 

@@ -98,6 +98,10 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
       height: total_height.ceil(),
     }
   }
+
+  fn get_style(&self) -> Option<&Style> {
+    self.style.as_ref()
+  }
 }
 
 fn create_text_only_layout(
