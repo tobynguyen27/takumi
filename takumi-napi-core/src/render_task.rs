@@ -83,7 +83,6 @@ impl RenderTask {
         let array_buffer_fn = ctx
           .value
           .get_named_property::<ArrayBufferFn>("arrayBuffer")?;
-        println!("fetched");
 
         array_buffer_fn.apply(ctx.value, ())?.then(move |ctx| {
           tx.send((

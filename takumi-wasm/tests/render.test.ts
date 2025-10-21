@@ -56,11 +56,11 @@ const node = container({
 
 describe("setup", () => {
   test(`loadFonts (${fonts.length})`, () => {
-    for (const font of fonts) renderer.loadFont(font);
+    for (const font of fonts) renderer.loadFont(new Uint8Array(font));
   });
 
   test("putPersistentImage", () => {
-    renderer.putPersistentImage(localImagePath, localImage);
+    renderer.putPersistentImage(localImagePath, new Uint8Array(localImage));
   });
 });
 

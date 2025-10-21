@@ -97,13 +97,13 @@ test("no crash without fonts and images", () => {
 });
 
 describe("setup", () => {
-  test("loadFontsAsync", async () => {
-    const count = await renderer.loadFontsAsync(fontBuffers);
+  test("loadFonts", async () => {
+    const count = await renderer.loadFonts(fontBuffers);
     expect(count).toBe(files.length);
   });
 
-  test("putPersistentImageAsync", async () => {
-    await renderer.putPersistentImageAsync(localImagePath, localImage);
+  test("putPersistentImage", async () => {
+    await renderer.putPersistentImage(localImagePath, localImage);
   });
 });
 
