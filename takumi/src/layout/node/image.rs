@@ -33,7 +33,7 @@ pub struct ImageNode {
 
 impl<Nodes: Node<Nodes>> Node<Nodes> for ImageNode {
   fn collect_fetch_tasks(&self, collection: &mut FetchTaskCollection) {
-    if self.src.starts_with("http") {
+    if self.src.starts_with("https://") || self.src.starts_with("http://") {
       collection.insert(self.src.clone());
     }
   }
