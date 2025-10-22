@@ -1,5 +1,11 @@
 # takumi
 
+## 0.38.0
+
+### Minor Changes
+
+- 7245e49: Add `FetchTask` for resources need to be fetch externally.
+
 ## 0.37.0
 
 ### Minor Changes

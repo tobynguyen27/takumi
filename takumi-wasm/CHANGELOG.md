@@ -1,5 +1,13 @@
 # @takumi-rs/wasm
 
+## 0.38.0
+
+### Minor Changes
+
+- 6e37d24: add panic handler that calls `console.error()`.
+- d92472f: align `render*` function props with NAPI version.
+- e4cf948: deprecate `loadFontWithInfo` (merged into `loadFont`)
+
 ## 0.37.0
 
 ## 0.36.2

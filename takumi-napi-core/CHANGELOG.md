@@ -1,5 +1,12 @@
 # @takumi-rs/core
 
+## 0.38.0
+
+### Minor Changes
+
+- 7245e49: calls nodejs `fetch()` to get url resources.
+- 7245e49: **drop `renderSync` support** (since `fetch()` requires async event loop).
+
 ## 0.37.0
 
 ## 0.36.2
