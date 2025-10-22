@@ -2295,7 +2295,9 @@ dependencies = [
  "base64",
  "js-sys",
  "serde",
+ "serde-untagged",
  "serde-wasm-bindgen",
+ "smallvec",
  "takumi",
  "wasm-bindgen",
 ]

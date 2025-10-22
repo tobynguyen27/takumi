@@ -1,17 +1,24 @@
-use std::{io::Cursor, sync::Arc};
+use std::{collections::HashMap, io::Cursor, sync::Arc};
 
 use base64::{Engine, prelude::BASE64_STANDARD};
+use serde::Deserialize;
 use serde_wasm_bindgen::from_value;
 use takumi::{
   GlobalContext,
   image::load_from_memory,
-  layout::{Viewport, node::NodeKind},
+  layout::{
+    Viewport,
+    node::{Node, NodeKind},
+  },
   parley::{FontWeight, fontique::FontInfoOverride},
   rendering::{
-    AnimationFrame, RenderOptionsBuilder, encode_animated_png, encode_animated_webp, render,
-    write_image,
+    AnimationFrame, ImageOutputFormat, RenderOptionsBuilder, encode_animated_png,
+    encode_animated_webp, render, write_image,
   },
-  resources::image::ImageSource,
+  resources::{
+    image::{ImageSource, load_image_source_from_bytes},
+    task::FetchTaskCollection,
+  },
 };
 use wasm_bindgen::prelude::*;
 
@@ -21,6 +28,29 @@ export interface AnyNode {
   type: string;
   [key: string]: any;
 }
+
+export interface RenderOptions {
+  width: number;
+  height: number;
+  format?: "png" | "jpeg" | "webp";
+  quality?: number;
+  fetchedResources?: Map<string, Uint8Array>;
+  drawDebugBorder?: boolean;
+}
+
+export interface RenderAnimationOptions {
+  width: number;
+  height: number;
+  format?: "webp" | "apng";
+  drawDebugBorder?: boolean;
+}
+
+export interface FontInfo {
+  name?: string,
+  data: Uint8Array, 
+  weight?: f64,
+  style?: "normal" | "italic" | "oblique",
+}
 "#;
 
 #[wasm_bindgen]
@@ -28,39 +58,59 @@ extern "C" {
   #[wasm_bindgen(typescript_type = "AnyNode")]
   #[derive(Debug)]
   pub type AnyNode;
+
+  #[wasm_bindgen(typescript_type = "RenderOptions")]
+  pub type RenderOptionsType;
+
+  #[wasm_bindgen(typescript_type = "RenderAnimationOptions")]
+  pub type RenderAnimationOptionsType;
+
+  #[wasm_bindgen(typescript_type = "FontInfo")]
+  pub type FontInfoType;
 }
 
-/// Proxy type for the ImageOutputFormat enum.
-/// This is needed because wasm-bindgen doesn't support cfg macro in enum variants.
-/// https://github.com/erwanvivien/fast_qr/pull/41/files
-#[wasm_bindgen]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ImageOutputFormat {
-  WebP = "webp",
-  Png = "png",
-  Jpeg = "jpeg",
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RenderOptions {
+  width: u32,
+  height: u32,
+  format: Option<ImageOutputFormat>,
+  quality: Option<u8>,
+  fetched_resources: Option<HashMap<Arc<str>, Vec<u8>>>,
+  draw_debug_border: Option<bool>,
 }
 
-#[wasm_bindgen]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AnimationOutputFormat {
-  WebP = "webp",
-  APng = "apng",
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RenderAnimationOptions {
+  width: u32,
+  height: u32,
+  format: Option<AnimationOutputFormat>,
+  draw_debug_border: Option<bool>,
 }
 
-#[wasm_bindgen]
-pub struct FontInfo {
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct FontInfo {
   name: Option<String>,
   data: Vec<u8>,
   weight: Option<f64>,
   style: Option<FontStyle>,
 }
 
-#[wasm_bindgen]
-pub enum FontStyle {
-  Normal = "normal",
-  Italic = "italic",
-  Oblique = "oblique",
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum AnimationOutputFormat {
+  APng,
+  WebP,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum FontStyle {
+  Normal,
+  Italic,
+  Oblique,
 }
 
 #[wasm_bindgen]
@@ -86,19 +136,7 @@ impl From<FontStyle> for takumi::parley::FontStyle {
     match style {
       FontStyle::Italic => takumi::parley::FontStyle::Italic,
       FontStyle::Oblique => takumi::parley::FontStyle::Oblique(None),
-      FontStyle::Normal | FontStyle::__Invalid => takumi::parley::FontStyle::Normal,
-    }
-  }
-}
-
-impl From<ImageOutputFormat> for takumi::rendering::ImageOutputFormat {
-  fn from(format: ImageOutputFormat) -> Self {
-    match format {
-      ImageOutputFormat::WebP => takumi::rendering::ImageOutputFormat::WebP,
-      ImageOutputFormat::Jpeg => takumi::rendering::ImageOutputFormat::Jpeg,
-      ImageOutputFormat::Png | ImageOutputFormat::__Invalid => {
-        takumi::rendering::ImageOutputFormat::Png
-      }
+      FontStyle::Normal => takumi::parley::FontStyle::Normal,
     }
   }
 }
@@ -117,7 +155,9 @@ impl Renderer {
   }
 
   #[wasm_bindgen(js_name = loadFontWithInfo)]
-  pub fn load_font_with_info(&self, #[wasm_bindgen(js_name = fontData)] font_data: FontInfo) {
+  pub fn load_font_with_info(&self, #[wasm_bindgen(js_name = fontData)] font_data: FontInfoType) {
+    let font_data: FontInfo = from_value(font_data.into()).unwrap();
+
     self
       .context
       .font_context
@@ -162,22 +202,29 @@ impl Renderer {
   }
 
   #[wasm_bindgen]
-  pub fn render(
-    &self,
-    node: AnyNode,
-    width: u32,
-    height: u32,
-    format: Option<ImageOutputFormat>,
-    quality: Option<u8>,
-    #[wasm_bindgen(js_name = drawDebugBorder)] draw_debug_border: Option<bool>,
-  ) -> Vec<u8> {
+  pub fn render(&self, node: AnyNode, options: RenderOptionsType) -> Vec<u8> {
     let node: NodeKind = from_value(node.into()).unwrap();
+    let options: RenderOptions = from_value(options.into()).unwrap();
 
-    let viewport = Viewport::new(width, height);
+    self.render_internal(node, options)
+  }
+
+  fn render_internal(&self, node: NodeKind, options: RenderOptions) -> Vec<u8> {
+    let fetched_resources = options
+      .fetched_resources
+      .map(|resources| {
+        resources
+          .into_iter()
+          .map(|(url, buffer)| (url, load_image_source_from_bytes(&buffer).unwrap()))
+          .collect()
+      })
+      .unwrap_or_default();
+
     let image = render(
       RenderOptionsBuilder::default()
-        .viewport(viewport)
-        .draw_debug_border(draw_debug_border.unwrap_or_default())
+        .viewport(Viewport::new(options.width, options.height))
+        .draw_debug_border(options.draw_debug_border.unwrap_or_default())
+        .fetched_resources(fetched_resources)
         .node(node)
         .global(&self.context)
         .build()
@@ -191,8 +238,8 @@ impl Renderer {
     write_image(
       &image,
       &mut cursor,
-      format.unwrap_or(ImageOutputFormat::Png).into(),
-      quality,
+      options.format.unwrap_or(ImageOutputFormat::Png),
+      options.quality,
     )
     .unwrap();
 
@@ -200,18 +247,12 @@ impl Renderer {
   }
 
   #[wasm_bindgen(js_name = "renderAsDataUrl")]
-  pub fn render_as_data_url(
-    &self,
-    node: AnyNode,
-    width: u32,
-    height: u32,
-    format: Option<ImageOutputFormat>,
-    quality: Option<u8>,
-    #[wasm_bindgen(js_name = drawDebugBorder)] draw_debug_border: Option<bool>,
-  ) -> String {
-    let buffer = self.render(node, width, height, format, quality, draw_debug_border);
-    let format: takumi::rendering::ImageOutputFormat =
-      format.unwrap_or(ImageOutputFormat::Png).into();
+  pub fn render_as_data_url(&self, node: AnyNode, options: RenderOptionsType) -> String {
+    let node: NodeKind = from_value(node.into()).unwrap();
+    let options: RenderOptions = from_value(options.into()).unwrap();
+
+    let format = options.format.unwrap_or(ImageOutputFormat::Png);
+    let buffer = self.render_internal(node, options);
 
     let mut data_uri = String::new();
 
@@ -227,12 +268,9 @@ impl Renderer {
   pub fn render_animation(
     &self,
     frames: Vec<AnimationFrameSource>,
-    width: u32,
-    height: u32,
-    format: Option<AnimationOutputFormat>,
-    #[wasm_bindgen(js_name = drawDebugBorder)] draw_debug_border: Option<bool>,
+    options: RenderAnimationOptionsType,
   ) -> Vec<u8> {
-    let viewport = Viewport::new(width, height);
+    let options: RenderAnimationOptions = from_value(options.into()).unwrap();
 
     let rendered_frames: Vec<AnimationFrame> = frames
       .into_iter()
@@ -242,10 +280,10 @@ impl Renderer {
 
         let image = render(
           RenderOptionsBuilder::default()
-            .viewport(viewport)
+            .viewport(Viewport::new(options.width, options.height))
             .node(node)
             .global(&self.context)
-            .draw_debug_border(draw_debug_border.unwrap_or_default())
+            .draw_debug_border(options.draw_debug_border.unwrap_or_default())
             .build()
             .unwrap(),
         )
@@ -257,8 +295,8 @@ impl Renderer {
     let mut buffer = Vec::new();
     let mut cursor = Cursor::new(&mut buffer);
 
-    match format.unwrap_or(AnimationOutputFormat::WebP) {
-      AnimationOutputFormat::WebP | AnimationOutputFormat::__Invalid => {
+    match options.format.unwrap_or(AnimationOutputFormat::WebP) {
+      AnimationOutputFormat::WebP => {
         encode_animated_webp(&rendered_frames, &mut cursor, true, false, None).unwrap();
       }
       AnimationOutputFormat::APng => {
@@ -268,4 +306,20 @@ impl Renderer {
 
     buffer
   }
+}
+
+#[wasm_bindgen(js_name = collectNodeFetchTasks)]
+pub fn collect_node_fetch_tasks(node: AnyNode) -> Vec<String> {
+  let node: NodeKind = from_value(node.into()).unwrap();
+
+  let mut collection = FetchTaskCollection::default();
+
+  node.collect_fetch_tasks(&mut collection);
+  node.collect_style_fetch_tasks(&mut collection);
+
+  collection
+    .into_inner()
+    .iter()
+    .map(|task| task.to_string())
+    .collect()
 }

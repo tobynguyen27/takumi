@@ -165,16 +165,11 @@ function createOpenGraphImage(name: string) {
 Finally, render the layout to an image buffer.
 
 ```ts
-const imageBuffer = await renderer.render(
-  // root node
-  createOpenGraphImage("John Doe"),
-  // width
-  1200,
-  // height
-  630,
-  // format
-  "webp",
-);
+const imageBuffer = await renderer.render(createOpenGraphImage("John Doe"), {
+  width: 1200,
+  height: 630,
+  format: "webp",
+});
 
 // Data URL rendering is also supported through renderer.renderAsDataUrl()
 ```

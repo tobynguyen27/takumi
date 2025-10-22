@@ -66,25 +66,43 @@ describe("setup", () => {
 
 describe("render", () => {
   test("webp", () => {
-    const result = renderer.render(node, 1200, 630, "webp");
+    const result = renderer.render(node, {
+      width: 1200,
+      height: 630,
+      format: "webp",
+    });
 
     expect(result).toBeInstanceOf(Uint8Array);
   });
 
   test("png", () => {
-    const result = renderer.render(node, 1200, 630, "png");
+    const result = renderer.render(node, {
+      width: 1200,
+      height: 630,
+      format: "png",
+    });
 
     expect(result).toBeInstanceOf(Uint8Array);
   });
 
   test("jpeg 75%", () => {
-    const result = renderer.render(node, 1200, 630, "jpeg", 75);
+    const result = renderer.render(node, {
+      width: 1200,
+      height: 630,
+      format: "jpeg",
+      quality: 75,
+    });
 
     expect(result).toBeInstanceOf(Uint8Array);
   });
 
   test("jpeg 100%", () => {
-    const result = renderer.render(node, 1200, 630, "jpeg", 100);
+    const result = renderer.render(node, {
+      width: 1200,
+      height: 630,
+      format: "jpeg",
+      quality: 100,
+    });
 
     expect(result).toBeInstanceOf(Uint8Array);
   });
@@ -92,28 +110,41 @@ describe("render", () => {
 
 describe("renderAsDataUrl", () => {
   test("default format (png)", () => {
-    const result = renderer.renderAsDataUrl(node, 1200, 630);
+    const result = renderer.renderAsDataUrl(node, { width: 1200, height: 630 });
 
     expect(result).toMatch(/^data:image\/png;base64,/);
     expect(result.length).toBeGreaterThan(100);
   });
 
   test("webp format", () => {
-    const result = renderer.renderAsDataUrl(node, 1200, 630, "webp");
+    const result = renderer.renderAsDataUrl(node, {
+      width: 1200,
+      height: 630,
+      format: "webp",
+    });
 
     expect(result).toMatch(/^data:image\/webp;base64,/);
     expect(result.length).toBeGreaterThan(100);
   });
 
   test("jpeg format with quality", () => {
-    const result = renderer.renderAsDataUrl(node, 1200, 630, "jpeg", 75);
+    const result = renderer.renderAsDataUrl(node, {
+      width: 1200,
+      height: 630,
+      format: "jpeg",
+      quality: 75,
+    });
 
     expect(result).toMatch(/^data:image\/jpeg;base64,/);
     expect(result.length).toBeGreaterThan(100);
   });
 
   test("png format explicit", () => {
-    const result = renderer.renderAsDataUrl(node, 1200, 630, "png");
+    const result = renderer.renderAsDataUrl(node, {
+      width: 1200,
+      height: 630,
+      format: "png",
+    });
 
     expect(result).toMatch(/^data:image\/png;base64,/);
     expect(result.length).toBeGreaterThan(100);
@@ -122,14 +153,22 @@ describe("renderAsDataUrl", () => {
   describe("renderAnimation", () => {
     test("webp", () => {
       const frame = new AnimationFrameSource(node, 1000);
-      const result = renderer.renderAnimation([frame], 1200, 630, "webp");
+      const result = renderer.renderAnimation([frame], {
+        width: 1200,
+        height: 630,
+        format: "webp",
+      });
 
       expect(result).toBeInstanceOf(Uint8Array);
     });
 
     test("apng", () => {
       const frame = new AnimationFrameSource(node, 1000);
-      const result = renderer.renderAnimation([frame], 1200, 630, "apng");
+      const result = renderer.renderAnimation([frame], {
+        width: 1200,
+        height: 630,
+        format: "apng",
+      });
 
       expect(result).toBeInstanceOf(Uint8Array);
     });
