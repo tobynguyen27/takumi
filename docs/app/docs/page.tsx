@@ -1,3 +1,4 @@
+import { docs } from ".source";
 import {
   getPageTreePeers,
   type Root as PageTreeRoot,
@@ -16,7 +17,6 @@ import {
 } from "fumadocs-ui/page";
 import { ArrowBigRight, BookOpen, Hand, Shovel } from "lucide-react";
 import { redirect } from "react-router";
-import { docs } from "source.generated";
 import { baseOptions } from "~/layout-config";
 import { source } from "~/source";
 import type { Route } from "./+types/page";

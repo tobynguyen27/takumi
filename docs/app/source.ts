@@ -1,3 +1,4 @@
+import { create, docs } from ".source";
 import { loader } from "fumadocs-core/source";
 import defaultAttributes from "lucide-react/dist/esm/defaultAttributes";
 import { __iconNode as arrowBigRightIconNode } from "lucide-react/dist/esm/icons/arrow-big-right";
@@ -7,7 +8,6 @@ import { __iconNode as brainIconNode } from "lucide-react/dist/esm/icons/brain";
 import { __iconNode as flaskConicalIconNode } from "lucide-react/dist/esm/icons/flask-conical";
 import { __iconNode as leafIconNode } from "lucide-react/dist/esm/icons/leaf";
 import { createElement } from "react";
-import { create, docs } from "source.generated";
 
 const iconProps = {
   ...defaultAttributes,
