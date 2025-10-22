@@ -1,8 +1,8 @@
 import {
   getPageTreePeers,
-  type PageTree,
-  type TOCItemType,
-} from "fumadocs-core/server";
+  type Root as PageTreeRoot,
+} from "fumadocs-core/page-tree";
+import type { TOCItemType } from "fumadocs-core/toc";
 import { toClientRenderer } from "fumadocs-mdx/runtime/vite";
 import { Card, Cards } from "fumadocs-ui/components/card";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
@@ -78,7 +78,7 @@ export default function Page(props: Route.ComponentProps) {
           url: "/playground",
         },
       ]}
-      tree={tree as PageTree.Root}
+      tree={tree as PageTreeRoot}
     >
       <DocsPage
         toc={data.toc as TOCItemType[]}
@@ -101,7 +101,7 @@ export default function Page(props: Route.ComponentProps) {
         <DocsBody>
           <Content />
           {data.isIndex ? (
-            <DocsCategory tree={tree as PageTree.Root} url={url} />
+            <DocsCategory tree={tree as PageTreeRoot} url={url} />
           ) : null}
         </DocsBody>
       </DocsPage>
@@ -109,7 +109,7 @@ export default function Page(props: Route.ComponentProps) {
   );
 }
 
-function DocsCategory({ tree, url }: { tree: PageTree.Root; url: string }) {
+function DocsCategory({ tree, url }: { tree: PageTreeRoot; url: string }) {
   return (
     <Cards>
       {getPageTreePeers(tree, url).map((peer) => (
