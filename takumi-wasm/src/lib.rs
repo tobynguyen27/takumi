@@ -1,7 +1,12 @@
-use std::{collections::HashMap, io::Cursor, sync::Arc};
+use std::{
+  collections::HashMap,
+  io::Cursor,
+  sync::{Arc, Once},
+};
 
 use base64::{Engine, prelude::BASE64_STANDARD};
 use serde::Deserialize;
+use serde_bytes::ByteBuf;
 use serde_wasm_bindgen::from_value;
 use takumi::{
   GlobalContext,
@@ -26,30 +31,32 @@ use wasm_bindgen::prelude::*;
 const TS_APPEND_CONTENT: &'static str = r#"
 export type AnyNode = { type: string; [key: string]: any };
 
+export type ByteBuf = Uint8Array | ArrayBuffer | Buffer;
+
 export type RenderOptions = {
-  width: number;
-  height: number;
-  format?: "png" | "jpeg" | "webp";
-  quality?: number;
-  fetchedResources?: Map<string, Uint8Array>;
-  drawDebugBorder?: boolean;
+  width: number,
+  height: number,
+  format?: "png" | "jpeg" | "webp",
+  quality?: number,
+  fetchedResources?: Map<string, ByteBuf>,
+  drawDebugBorder?: boolean,
 };
 
 export type RenderAnimationOptions = {
-  width: number;
-  height: number;
-  format?: "webp" | "apng";
-  drawDebugBorder?: boolean;
+  width: number,
+  height: number,
+  format?: "webp" | "apng",
+  drawDebugBorder?: boolean,
 };
 
 export type FontDetails = {
   name?: string,
-  data: Uint8Array,
+  data: ByteBuf,
   weight?: number,
   style?: "normal" | "italic" | "oblique",
 };
 
-export type Font = FontDetails | Uint8Array;
+export type Font = FontDetails | ByteBuf;
 "#;
 
 #[wasm_bindgen]
@@ -69,6 +76,9 @@ extern "C" {
 
   #[wasm_bindgen(typescript_type = "Font")]
   pub type FontType;
+
+  #[wasm_bindgen(js_namespace = console, js_name = "error")]
+  fn console_error(msg: String);
 }
 
 #[derive(Deserialize)]
@@ -78,7 +88,7 @@ struct RenderOptions {
   height: u32,
   format: Option<ImageOutputFormat>,
   quality: Option<u8>,
-  fetched_resources: Option<HashMap<Arc<str>, Vec<u8>>>,
+  fetched_resources: Option<HashMap<Arc<str>, ByteBuf>>,
   draw_debug_border: Option<bool>,
 }
 
@@ -95,7 +105,7 @@ struct RenderAnimationOptions {
 #[serde(rename_all = "camelCase")]
 struct FontDetails {
   name: Option<String>,
-  data: Vec<u8>,
+  data: ByteBuf,
   weight: Option<f64>,
   style: Option<FontStyle>,
 }
@@ -103,8 +113,8 @@ struct FontDetails {
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum Font {
-  Buffer(Vec<u8>),
   Object(FontDetails),
+  Buffer(ByteBuf),
 }
 
 #[derive(Deserialize)]
@@ -160,6 +170,8 @@ pub struct Renderer {
 impl Renderer {
   #[wasm_bindgen(constructor)]
   pub fn new() -> Renderer {
+    panic_hook();
+
     Renderer::default()
   }
 
@@ -325,6 +337,8 @@ impl Renderer {
 
 #[wasm_bindgen(js_name = collectNodeFetchTasks)]
 pub fn collect_node_fetch_tasks(node: AnyNode) -> Vec<String> {
+  panic_hook();
+
   let node: NodeKind = from_value(node.into()).unwrap();
 
   let mut collection = FetchTaskCollection::default();
@@ -337,4 +351,19 @@ pub fn collect_node_fetch_tasks(node: AnyNode) -> Vec<String> {
     .iter()
     .map(|task| task.to_string())
     .collect()
+}
+
+static PANIC_HOOK_ONCE: Once = Once::new();
+
+fn panic_hook() {
+  PANIC_HOOK_ONCE.call_once(|| {
+    std::panic::set_hook(Box::new(|info| {
+      let mut message = info.to_string();
+
+      // https://github.com/rustwasm/console_error_panic_hook/blob/master/src/lib.rs#L119
+      message.push_str("\r\n");
+
+      console_error(message);
+    }));
+  });
 }

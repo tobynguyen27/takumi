@@ -56,7 +56,7 @@ const node = container({
 
 describe("setup", () => {
   test(`loadFonts (${fonts.length})`, () => {
-    for (const font of fonts) renderer.loadFont(new Uint8Array(font));
+    for (const font of fonts) renderer.loadFont(font);
   });
 
   test("putPersistentImage", () => {
