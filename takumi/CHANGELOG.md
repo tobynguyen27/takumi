@@ -1,5 +1,12 @@
 # takumi
 
+## 0.38.1
+
+### Patch Changes
+
+- 88a56ed: use faster noise crate `fastnoiselite`
+- 88a56ed: use `crossbeam-channel`
+
 ## 0.38.0
 
 ### Minor Changes
