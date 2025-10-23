@@ -75,13 +75,7 @@ self.onmessage = async (event: MessageEvent) => {
         );
 
         const start = performance.now();
-        const dataUrl = renderer.renderAsDataUrl(
-          node,
-          options.width,
-          options.height,
-          options.format,
-          options.quality,
-        );
+        const dataUrl = renderer.renderAsDataUrl(node, options);
         const duration = performance.now() - start;
 
         postMessage({

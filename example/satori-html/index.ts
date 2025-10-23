@@ -1,6 +1,6 @@
-import { writeFile } from "node:fs/promises";
 import { Renderer } from "@takumi-rs/core";
 import { fromJsx } from "@takumi-rs/helpers/jsx";
+import { write } from "bun";
 import { html } from "satori-html";
 
 const renderer = new Renderer();
@@ -13,4 +13,4 @@ const png = await renderer.render(node, {
   height: 400,
 });
 
-await writeFile("./output.png", png);
+await write("./output.png", png.buffer);
