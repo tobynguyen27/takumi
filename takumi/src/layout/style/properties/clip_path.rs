@@ -2,7 +2,7 @@ use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::layout::style::{FromCss, LengthUnit, ParseResult};
+use crate::layout::style::{FromCss, LengthUnit, ParseResult, Sides};
 
 /// Represents the fill rule used for determining the interior of shapes.
 ///
@@ -67,7 +67,7 @@ pub struct InsetShape {
   /// Left inset distance
   pub left: LengthUnit,
   /// Optional border radius for rounded corners
-  pub border_radius: Option<Box<super::Sides<LengthUnit>>>,
+  pub border_radius: Option<Sides<LengthUnit>>,
 }
 
 /// Represents a circle() shape.
@@ -258,14 +258,7 @@ impl<'i> FromCss<'i> for ClipPath {
 
             // Parse border radius with "round" keyword
             let border_radius = if input.try_parse(|input| input.expect_ident_matching("round")).is_ok() {
-              // Parse 1-4 values for border radius (similar to CSS border-radius syntax)
-              let first = LengthUnit::from_css(input)?;
-              let second = input.try_parse(LengthUnit::from_css).unwrap_or(first);
-              let third = input.try_parse(LengthUnit::from_css).unwrap_or(first);
-              let fourth = input.try_parse(LengthUnit::from_css).unwrap_or(second);
-
-              let radii = super::Sides([first, second, third, fourth]);
-              Some(Box::new(radii))
+              Some(Sides::from_css(input)?)
             } else {
               None
             };

@@ -3,7 +3,7 @@ use serde::{Deserialize, Deserializer, Serialize, de::Error as DeError};
 use taffy::Rect;
 use ts_rs::TS;
 
-use crate::layout::style::{FromCss, LengthUnit};
+use crate::layout::style::{FromCss, LengthUnit, ParseResult};
 
 /// Represents the values for the four sides of a box (top, right, bottom, left).
 #[derive(Debug, Clone, Copy, Serialize, TS, PartialEq)]
@@ -28,6 +28,43 @@ pub enum SidesValue<T> {
   SingleValue(T),
 }
 
+impl<'i, T: TS + Copy + FromCss<'i>> FromCss<'i> for Sides<T> {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    // Parse between 1 and 4 values of T using FromCss
+    let first = T::from_css(input)?;
+
+    // Collect all values by parsing until we can't parse more
+    let mut values = Vec::with_capacity(4);
+
+    values.push(first);
+
+    // Keep parsing values separated by whitespace
+    loop {
+      // Try to parse the next value
+      match input.try_parse(T::from_css) {
+        Ok(next_value) => values.push(next_value),
+        Err(_) => break,
+      }
+
+      // Don't allow more than 4 values
+      if values.len() >= 4 {
+        break;
+      }
+    }
+
+    // Now create the sides based on how many values we got
+    let sides = match values.len() {
+      1 => Sides([values[0]; 4]),
+      2 => Sides([values[0], values[1], values[0], values[1]]),
+      3 => Sides([values[0], values[1], values[2], values[1]]),
+      4 => Sides([values[0], values[1], values[2], values[3]]),
+      _ => unreachable!(),
+    };
+
+    Ok(sides)
+  }
+}
+
 impl<T: TS + Copy + for<'i> FromCss<'i>> TryFrom<SidesValue<T>> for Sides<T> {
   type Error = String;
 
@@ -37,38 +74,7 @@ impl<T: TS + Copy + for<'i> FromCss<'i>> TryFrom<SidesValue<T>> for Sides<T> {
         let mut input = ParserInput::new(&string);
         let mut parser = Parser::new(&mut input);
 
-        // Parse between 1 and 4 values of T using FromCss
-        let first = T::from_css(&mut parser).map_err(|e| e.to_string())?;
-
-        // Collect all values by parsing until we can't parse more
-        let mut values = Vec::with_capacity(4);
-
-        values.push(first);
-
-        // Keep parsing values separated by whitespace
-        loop {
-          // Try to parse the next value
-          match parser.try_parse(T::from_css) {
-            Ok(next_value) => values.push(next_value),
-            Err(_) => break,
-          }
-
-          // Don't allow more than 4 values
-          if values.len() >= 4 {
-            break;
-          }
-        }
-
-        // Now create the sides based on how many values we got
-        let sides = match values.len() {
-          1 => Sides([values[0]; 4]),
-          2 => Sides([values[0], values[1], values[0], values[1]]),
-          3 => Sides([values[0], values[1], values[2], values[1]]),
-          4 => Sides([values[0], values[1], values[2], values[3]]),
-          _ => unreachable!(),
-        };
-
-        Ok(sides)
+        Self::from_css(&mut parser).map_err(|e| e.to_string())
       }
       SidesValue::AllSides(top, right, bottom, left) => Ok(Sides([top, right, bottom, left])),
       SidesValue::AxisSidesArray(vertical, horizontal) => {
