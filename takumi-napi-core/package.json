@@ -20,13 +20,13 @@
   },
   "main": "index.js",
   "devDependencies": {
-    "@napi-rs/cli": "3.3.1",
+    "@napi-rs/cli": "3.4.1",
     "@takumi-rs/helpers": "workspace:*",
     "@takumi-rs/template": "workspace:*",
     "@types/bun": "catalog:",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "lucide-react": "^0.546.0",
+    "lucide-react": "^0.547.0",
     "mitata": "^1.0.34",
     "react": "^19.2.0",
     "typescript": "catalog:"
