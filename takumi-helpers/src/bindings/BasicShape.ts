@@ -9,9 +9,9 @@ import type { PolygonShape } from "./PolygonShape";
  * Represents a basic shape function for clip-path.
  */
 export type BasicShape =
-  | { inset: InsetShape }
-  | { circle: CircleShape }
-  | { ellipse: EllipseShape }
-  | { polygon: PolygonShape }
-  | { path: PathShape }
+  | ({ type: "inset" } & InsetShape)
+  | ({ type: "circle" } & CircleShape)
+  | ({ type: "ellipse" } & EllipseShape)
+  | ({ type: "polygon" } & PolygonShape)
+  | ({ type: "path" } & PathShape)
   | string;

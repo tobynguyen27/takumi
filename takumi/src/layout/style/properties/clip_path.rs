@@ -132,7 +132,7 @@ pub struct PolygonCoordinate {
 #[serde(rename_all = "camelCase")]
 pub struct PolygonShape {
   /// The fill rule to use
-  pub fill_rule: FillRule,
+  pub fill_rule: Option<FillRule>,
   /// List of coordinate pairs defining the polygon vertices
   pub coordinates: Vec<PolygonCoordinate>,
 }
@@ -142,9 +142,9 @@ pub struct PolygonShape {
 #[serde(rename_all = "camelCase")]
 pub struct PathShape {
   /// The fill rule to use
-  pub fill_rule: FillRule,
+  pub fill_rule: Option<FillRule>,
   /// SVG path data string
-  pub path_data: String,
+  pub path: String,
 }
 
 /// Represents a basic shape function for clip-path.
@@ -162,15 +162,9 @@ pub enum BasicShape {
   Path(PathShape),
 }
 
-impl Default for BasicShape {
-  fn default() -> Self {
-    BasicShape::Inset(InsetShape::default())
-  }
-}
-
 /// Proxy type for CSS deserialization that accepts either structured data or CSS strings.
 #[derive(Debug, Clone, Deserialize, TS)]
-#[serde(rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub(crate) enum BasicShapeValue {
   /// inset() function
   Inset(InsetShape),
@@ -220,11 +214,21 @@ fn resolve_radius(
 }
 
 impl BasicShape {
+  pub(crate) fn fill_rule(&self) -> Option<FillRule> {
+    match self {
+      BasicShape::Polygon(shape) => shape.fill_rule,
+      BasicShape::Path(shape) => shape.fill_rule,
+      _ => None,
+    }
+  }
+
   pub(crate) fn render_mask(
     &self,
     context: &RenderContext,
     layout: Layout,
   ) -> (Vec<u8>, Placement) {
+    let mut paths = Vec::new();
+
     match self {
       BasicShape::Inset(shape) => {
         let border = BorderProperties {
@@ -250,12 +254,7 @@ impl BasicShape {
           transform: context.transform,
         };
 
-        let mut paths = Vec::new();
         border.append_mask_commands(&mut paths);
-
-        context.transform.apply_on_paths(&mut paths);
-
-        Mask::new(&paths).render()
       }
       BasicShape::Ellipse(shape) => {
         let distance = Size {
@@ -263,20 +262,13 @@ impl BasicShape {
           height: shape.position.y.resolve_to_px(context, layout.size.height),
         };
 
-        let mut paths = Vec::new();
         paths.add_ellipse(
           (distance.width, distance.height),
           resolve_radius(shape.radius_x, distance, context, layout.size.width),
           resolve_radius(shape.radius_y, distance, context, layout.size.height),
         );
-
-        context.transform.apply_on_paths(&mut paths);
-
-        Mask::new(&paths).render()
       }
       BasicShape::Polygon(shape) => {
-        let mut paths = Vec::new();
-
         if !shape.coordinates.is_empty() {
           // Start the path at the first coordinate
           let first = &shape.coordinates[0];
@@ -295,21 +287,17 @@ impl BasicShape {
           // Close the path to complete the polygon
           paths.close();
         }
-
-        context.transform.apply_on_paths(&mut paths);
-
-        Mask::new(&paths)
-          .style(Fill::from(shape.fill_rule))
-          .render()
       }
-      BasicShape::Path(path) => {
-        let mut paths: Vec<_> = path.path_data.as_str().commands().collect();
-
-        context.transform.apply_on_paths(&mut paths);
-
-        Mask::new(&paths).style(Fill::from(path.fill_rule)).render()
+      BasicShape::Path(shape) => {
+        paths.extend(shape.path.as_str().commands());
       }
     }
+
+    Mask::new(&paths)
+      .style(Fill::from(
+        self.fill_rule().unwrap_or(context.style.clip_rule),
+      ))
+      .render()
   }
 }
 
@@ -442,7 +430,7 @@ impl<'i> FromCss<'i> for BasicShape {
             }
 
             let polygon_shape = PolygonShape {
-              fill_rule: fill_rule.unwrap_or_default(),
+              fill_rule,
               coordinates,
             };
 
@@ -454,14 +442,12 @@ impl<'i> FromCss<'i> for BasicShape {
               input.expect_comma()?;
             }
 
-            let path_data = input.expect_string()?.to_string();
+            let path = input.expect_string()?.to_string();
 
-            let path_shape = PathShape {
-              fill_rule: fill_rule.unwrap_or_default(),
-              path_data,
-            };
-
-            Ok(BasicShape::Path(path_shape))
+            Ok(BasicShape::Path(PathShape {
+              fill_rule,
+              path,
+            }))
           }),
           _ => Err(location.new_basic_unexpected_token_error(token.clone()).into())
         }
@@ -614,7 +600,7 @@ mod tests {
   fn test_parse_polygon_triangle() {
     let result = BasicShape::from_str("polygon(50% 0%, 0% 100%, 100% 100%)").unwrap();
     if let BasicShape::Polygon(polygon) = result {
-      assert_eq!(polygon.fill_rule, FillRule::NonZero);
+      assert_eq!(polygon.fill_rule, None);
       assert_eq!(polygon.coordinates.len(), 3);
 
       assert_eq!(polygon.coordinates[0].x, LengthUnit::Percentage(50.0));
@@ -632,7 +618,7 @@ mod tests {
   fn test_parse_polygon_with_fill_rule() {
     let result = BasicShape::from_str("polygon(evenodd, 50% 0%, 0% 100%, 100% 100%)").unwrap();
     if let BasicShape::Polygon(polygon) = result {
-      assert_eq!(polygon.fill_rule, FillRule::EvenOdd);
+      assert_eq!(polygon.fill_rule, Some(FillRule::EvenOdd));
       assert_eq!(polygon.coordinates.len(), 3);
     } else {
       panic!("Expected polygon shape");
@@ -643,8 +629,8 @@ mod tests {
   fn test_parse_path() {
     let result = BasicShape::from_str("path('M 10 10 L 90 90')").unwrap();
     if let BasicShape::Path(path) = result {
-      assert_eq!(path.fill_rule, FillRule::NonZero);
-      assert_eq!(path.path_data, "M 10 10 L 90 90");
+      assert_eq!(path.fill_rule, None);
+      assert_eq!(path.path, "M 10 10 L 90 90");
     } else {
       panic!("Expected path shape");
     }
@@ -654,8 +640,8 @@ mod tests {
   fn test_parse_path_with_fill_rule() {
     let result = BasicShape::from_str("path(evenodd, 'M 10 10 L 90 90')").unwrap();
     if let BasicShape::Path(path) = result {
-      assert_eq!(path.fill_rule, FillRule::EvenOdd);
-      assert_eq!(path.path_data, "M 10 10 L 90 90");
+      assert_eq!(path.fill_rule, Some(FillRule::EvenOdd));
+      assert_eq!(path.path, "M 10 10 L 90 90");
     } else {
       panic!("Expected path shape");
     }

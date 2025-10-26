@@ -15,6 +15,7 @@ import type { ColorInput } from "./ColorInput";
 import type { CssOption } from "./CssOption";
 import type { CssValue } from "./CssValue";
 import type { Display } from "./Display";
+import type { FillRule } from "./FillRule";
 import type { Filters } from "./Filters";
 import type { Flex } from "./Flex";
 import type { FlexDirection } from "./FlexDirection";
@@ -164,4 +165,5 @@ export type Style = {
   overflowWrap: CssValue<OverflowWrap>;
   wordBreak: CssValue<WordBreak>;
   clipPath: CssValue<CssOption<BasicShape>>;
+  clipRule: CssValue<FillRule>;
 };

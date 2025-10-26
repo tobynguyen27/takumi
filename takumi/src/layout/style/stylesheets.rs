@@ -170,6 +170,7 @@ define_style!(
   overflow_wrap: OverflowWrap = CssValue::inherit() => Default::default(),
   word_break: WordBreak = CssValue::inherit() => Default::default(),
   clip_path: CssOption<BasicShape> = CssOption::none() => CssOption::none(),
+  clip_rule: FillRule = CssValue::inherit() => FillRule::NonZero
 );
 
 /// Sized font style with resolved font size and line height.

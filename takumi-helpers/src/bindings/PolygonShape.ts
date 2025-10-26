@@ -9,7 +9,7 @@ export type PolygonShape = {
   /**
    * The fill rule to use
    */
-  fillRule: FillRule;
+  fillRule: FillRule | null;
   /**
    * List of coordinate pairs defining the polygon vertices
    */

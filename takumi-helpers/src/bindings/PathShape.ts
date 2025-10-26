@@ -8,9 +8,9 @@ export type PathShape = {
   /**
    * The fill rule to use
    */
-  fillRule: FillRule;
+  fillRule: FillRule | null;
   /**
    * SVG path data string
    */
-  pathData: string;
+  path: string;
 };
