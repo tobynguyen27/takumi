@@ -152,8 +152,7 @@ fn render_node<'g, Nodes: Node<Nodes>>(
   if let Some(clip) = &node_context.context.style.clip_path.0 {
     let translation = node_context.context.transform.decompose().translation;
 
-    node_context.context.transform.x = 0.0;
-    node_context.context.transform.y = 0.0;
+    node_context.context.transform.zero_translation();
 
     let (mask, mut placement) = clip.render_mask(&node_context.context, layout.size);
 

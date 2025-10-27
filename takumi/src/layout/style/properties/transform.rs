@@ -401,6 +401,12 @@ impl Affine {
     })
   }
 
+  /// Zero the translation
+  pub fn zero_translation(mut self) {
+    self.x = 0.0;
+    self.y = 0.0;
+  }
+
   /// Decomposes the transform into a scale, rotation, and translation
   pub(crate) fn decompose(self) -> DecomposedTransform {
     DecomposedTransform {
