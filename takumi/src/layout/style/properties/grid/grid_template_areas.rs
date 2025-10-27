@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use cssparser::{Parser, ParserInput, Token};
+use cssparser::{Parser, Token};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -18,7 +18,7 @@ pub struct GridTemplateAreas(pub Vec<Vec<String>>);
 /// Serde helper that accepts either a matrix or a CSS string
 #[derive(Debug, Clone, Deserialize, Serialize, TS, PartialEq)]
 #[serde(untagged)]
-pub enum GridTemplateAreasValue {
+pub(crate) enum GridTemplateAreasValue {
   /// A 2D matrix representation (use "." for empty)
   Matrix(Vec<Vec<String>>),
   /// A CSS string representation
@@ -39,9 +39,7 @@ impl TryFrom<GridTemplateAreasValue> for GridTemplateAreas {
         Ok(GridTemplateAreas(matrix))
       }
       GridTemplateAreasValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-        GridTemplateAreas::from_css(&mut parser).map_err(|e| e.to_string())
+        GridTemplateAreas::from_str(&css).map_err(|e| e.to_string())
       }
     }
   }

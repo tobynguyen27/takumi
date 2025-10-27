@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
+use cssparser::{Parser, Token, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use ts_rs::TS;
@@ -46,6 +46,19 @@ enum TextDecorationLinesValue {
   Css(String),
 }
 
+impl<'i> FromCss<'i> for TextDecorationLines {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let mut lines = SmallVec::new();
+
+    while !input.is_exhausted() {
+      let line = TextDecorationLine::from_css(input)?;
+      lines.push(line);
+    }
+
+    Ok(TextDecorationLines(lines))
+  }
+}
+
 impl TryFrom<TextDecorationLinesValue> for TextDecorationLines {
   type Error = String;
 
@@ -53,17 +66,7 @@ impl TryFrom<TextDecorationLinesValue> for TextDecorationLines {
     match value {
       TextDecorationLinesValue::Lines(lines) => Ok(TextDecorationLines(lines)),
       TextDecorationLinesValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        let mut lines = SmallVec::new();
-
-        while !parser.is_exhausted() {
-          let line = TextDecorationLine::from_css(&mut parser).map_err(|e| e.to_string())?;
-          lines.push(line);
-        }
-
-        Ok(TextDecorationLines(lines))
+        TextDecorationLines::from_str(&css).map_err(|e| e.to_string())
       }
     }
   }
@@ -105,12 +108,7 @@ impl TryFrom<TextDecorationValue> for TextDecoration {
       TextDecorationValue::Structured { line, style, color } => {
         Ok(TextDecoration { line, style, color })
       }
-      TextDecorationValue::Css(s) => {
-        let mut input = ParserInput::new(&s);
-        let mut parser = Parser::new(&mut input);
-
-        Ok(TextDecoration::from_css(&mut parser).map_err(|e| e.to_string())?)
-      }
+      TextDecorationValue::Css(s) => Ok(TextDecoration::from_str(&s).map_err(|e| e.to_string())?),
     }
   }
 }
@@ -203,9 +201,7 @@ mod tests {
 
   #[test]
   fn test_parse_text_decoration_underline() {
-    let mut input = ParserInput::new("underline");
-    let mut parser = Parser::new(&mut input);
-    let result = TextDecoration::from_css(&mut parser).unwrap();
+    let result = TextDecoration::from_str("underline").unwrap();
     assert_eq!(result.line.0.as_slice(), &[TextDecorationLine::Underline]);
     assert_eq!(result.style, None);
     assert_eq!(result.color, None);
@@ -213,9 +209,7 @@ mod tests {
 
   #[test]
   fn test_parse_text_decoration_line_through() {
-    let mut input = ParserInput::new("line-through");
-    let mut parser = Parser::new(&mut input);
-    let result = TextDecoration::from_css(&mut parser).unwrap();
+    let result = TextDecoration::from_str("line-through").unwrap();
     assert_eq!(result.line.0.as_slice(), &[TextDecorationLine::LineThrough]);
     assert_eq!(result.style, None);
     assert_eq!(result.color, None);
@@ -223,9 +217,7 @@ mod tests {
 
   #[test]
   fn test_parse_text_decoration_underline_solid() {
-    let mut input = ParserInput::new("underline solid");
-    let mut parser = Parser::new(&mut input);
-    let result = TextDecoration::from_css(&mut parser).unwrap();
+    let result = TextDecoration::from_str("underline solid").unwrap();
     assert_eq!(result.line.0.as_slice(), &[TextDecorationLine::Underline]);
     assert_eq!(result.style, Some(TextDecorationStyle::Solid));
     assert_eq!(result.color, None);
@@ -233,9 +225,7 @@ mod tests {
 
   #[test]
   fn test_parse_text_decoration_line_through_solid_red() {
-    let mut input = ParserInput::new("line-through solid red");
-    let mut parser = Parser::new(&mut input);
-    let result = TextDecoration::from_css(&mut parser).unwrap();
+    let result = TextDecoration::from_str("line-through solid red").unwrap();
     assert_eq!(result.line.0.as_slice(), &[TextDecorationLine::LineThrough]);
     assert_eq!(result.style, Some(TextDecorationStyle::Solid));
     assert_eq!(
@@ -246,9 +236,7 @@ mod tests {
 
   #[test]
   fn test_parse_text_decoration_multiple_lines() {
-    let mut input = ParserInput::new("underline line-through solid red");
-    let mut parser = Parser::new(&mut input);
-    let result = TextDecoration::from_css(&mut parser).unwrap();
+    let result = TextDecoration::from_str("underline line-through solid red").unwrap();
     assert_eq!(
       result.line.0.as_slice(),
       &[
@@ -265,9 +253,7 @@ mod tests {
 
   #[test]
   fn test_parse_text_decoration_invalid() {
-    let mut input = ParserInput::new("invalid");
-    let mut parser = Parser::new(&mut input);
-    let result = TextDecoration::from_css(&mut parser);
+    let result = TextDecoration::from_str("invalid");
     assert!(result.is_err());
   }
 }

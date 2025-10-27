@@ -92,28 +92,21 @@ impl<'i> FromCss<'i> for GridRepetitionCount {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use cssparser::{Parser, ParserInput};
 
   #[test]
   fn test_parse_repetition_count() {
-    let mut input = ParserInput::new("auto-fill");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridRepetitionCount::from_css(&mut parser).unwrap(),
+      GridRepetitionCount::from_str("auto-fill").unwrap(),
       GridRepetitionCount::Keyword(GridRepetitionKeyword::AutoFill)
     );
 
-    let mut input = ParserInput::new("auto-fit");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridRepetitionCount::from_css(&mut parser).unwrap(),
+      GridRepetitionCount::from_str("auto-fit").unwrap(),
       GridRepetitionCount::Keyword(GridRepetitionKeyword::AutoFit)
     );
 
-    let mut input = ParserInput::new("3");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridRepetitionCount::from_css(&mut parser).unwrap(),
+      GridRepetitionCount::from_str("3").unwrap(),
       GridRepetitionCount::Count(3)
     );
   }

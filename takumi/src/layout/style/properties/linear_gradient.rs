@@ -70,12 +70,7 @@ impl TryFrom<LinearGradientValue> for LinearGradient {
   fn try_from(value: LinearGradientValue) -> Result<Self, Self::Error> {
     match value {
       LinearGradientValue::Structured { angle, stops } => Ok(LinearGradient { angle, stops }),
-      LinearGradientValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        LinearGradient::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      LinearGradientValue::Css(css) => LinearGradient::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }
@@ -179,7 +174,7 @@ pub struct StopPosition(pub LengthUnit);
 /// Proxy type for `StopPosition` Css deserialization.
 #[derive(Debug, Clone, PartialEq, TS, Deserialize, Serialize)]
 #[serde(untagged)]
-pub enum StopPositionValue {
+pub(crate) enum StopPositionValue {
   /// Length value, percentage or number (0.0-1.0) is treated as a percentage.
   Length(LengthUnit),
   /// CSS string

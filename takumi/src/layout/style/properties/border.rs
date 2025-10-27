@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput, Token};
+use cssparser::{Parser, Token};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -54,12 +54,7 @@ impl TryFrom<BorderValue> for Border {
         style,
         color,
       }),
-      BorderValue::Css(s) => {
-        let mut input = ParserInput::new(&s);
-        let mut parser = Parser::new(&mut input);
-
-        Ok(Border::from_css(&mut parser).map_err(|e| e.to_string())?)
-      }
+      BorderValue::Css(s) => Ok(Border::from_str(&s).map_err(|e| e.to_string())?),
     }
   }
 }

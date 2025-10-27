@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput};
+use cssparser::Parser;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -25,7 +25,7 @@ impl Default for LineHeight {
 /// Proxy type for `LineHeight` Css deserialization.
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize, TS)]
 #[serde(untagged)]
-pub enum LineHeightValue {
+pub(crate) enum LineHeightValue {
   /// A number value.
   Number(f32),
   /// A CSS string value.
@@ -40,12 +40,7 @@ impl TryFrom<LineHeightValue> for LineHeight {
   fn try_from(value: LineHeightValue) -> Result<Self, Self::Error> {
     match value {
       LineHeightValue::Number(number) => Ok(LineHeight(LengthUnit::Em(number))),
-      LineHeightValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        LineHeight::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      LineHeightValue::Css(css) => LineHeight::from_str(&css).map_err(|e| e.to_string()),
       LineHeightValue::Length(length) => Ok(LineHeight(length)),
     }
   }

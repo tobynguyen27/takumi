@@ -120,51 +120,37 @@ impl<'i> FromCss<'i> for GridPlacement {
 
 #[cfg(test)]
 mod tests {
-  use cssparser::ParserInput;
-
   use super::*;
 
   #[test]
   fn test_parse_placement() {
-    let mut input = ParserInput::new("auto");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridPlacement::from_css(&mut parser).unwrap(),
+      GridPlacement::from_str("auto").unwrap(),
       GridPlacement::auto()
     );
 
-    let mut input = ParserInput::new("span 2");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridPlacement::from_css(&mut parser).unwrap(),
+      GridPlacement::from_str("span 2").unwrap(),
       GridPlacement::span(2)
     );
 
-    let mut input = ParserInput::new("span name");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridPlacement::from_css(&mut parser).unwrap(),
+      GridPlacement::from_str("span name").unwrap(),
       GridPlacement::span(1)
     );
 
-    let mut input = ParserInput::new("3");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridPlacement::from_css(&mut parser).unwrap(),
+      GridPlacement::from_str("3").unwrap(),
       GridPlacement::Line(3)
     );
 
-    let mut input = ParserInput::new("-1");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridPlacement::from_css(&mut parser).unwrap(),
+      GridPlacement::from_str("-1").unwrap(),
       GridPlacement::Line(-1)
     );
 
-    let mut input = ParserInput::new("header");
-    let mut parser = Parser::new(&mut input);
     assert_eq!(
-      GridPlacement::from_css(&mut parser).unwrap(),
+      GridPlacement::from_str("header").unwrap(),
       GridPlacement::Named("header".to_string())
     );
   }

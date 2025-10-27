@@ -169,6 +169,8 @@ define_style!(
   image_rendering: ImageScalingAlgorithm = CssValue::inherit() => Default::default(),
   overflow_wrap: OverflowWrap = CssValue::inherit() => Default::default(),
   word_break: WordBreak = CssValue::inherit() => Default::default(),
+  clip_path: CssOption<BasicShape> = CssOption::none() => CssOption::none(),
+  clip_rule: FillRule = CssValue::inherit() => FillRule::NonZero
 );
 
 /// Sized font style with resolved font size and line height.
@@ -250,6 +252,13 @@ impl<'s> SizedFontStyle<'s> {
 }
 
 impl InheritedStyle {
+  pub(crate) fn resolve_overflows(&self) -> Overflows {
+    Overflows(
+      self.overflow_x.unwrap_or(self.overflow.0),
+      self.overflow_y.unwrap_or(self.overflow.1),
+    )
+  }
+
   #[inline]
   fn convert_template_components(
     components: &Option<GridTemplateComponents>,

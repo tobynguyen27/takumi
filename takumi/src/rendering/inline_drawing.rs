@@ -5,6 +5,7 @@ use taffy::{Layout, Point, Size};
 use crate::{
   layout::{
     inline::{InlineBrush, InlineLayout},
+    node::Node,
     style::{Affine, SizedFontStyle, TextDecorationLine},
   },
   rendering::{
@@ -90,6 +91,43 @@ fn draw_glyph_run(
       context.transform,
     );
   }
+}
+
+pub(crate) fn draw_inline_box<N: Node<N>>(
+  inline_box: &PositionedInlineBox,
+  node: &N,
+  context: &RenderContext,
+  mut layout: Layout,
+  canvas: &Canvas,
+) {
+  if context.opacity == 0.0 {
+    return;
+  }
+
+  let translated = context.transform
+    * Affine::translation(Size {
+      width: inline_box.x,
+      height: inline_box.y,
+    });
+
+  let translation_diff = translated.decompose().translation
+    + context.transform.decompose().translation.map(|axis| -axis);
+
+  layout.location.x += translation_diff.width;
+  layout.location.y += translation_diff.height;
+
+  node.draw_on_canvas(
+    context,
+    canvas,
+    Layout {
+      size: Size {
+        width: inline_box.width,
+        height: inline_box.height,
+      },
+      location: layout.location,
+      ..Default::default()
+    },
+  );
 }
 
 pub(crate) fn draw_inline_layout(

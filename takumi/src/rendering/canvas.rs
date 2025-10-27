@@ -98,7 +98,15 @@ pub(crate) fn draw_pixel(canvas: &mut RgbaImage, x: u32, y: u32, color: Rgba<u8>
 
   // image-rs blend will skip the operation if the source color is fully transparent
   if let Some(pixel) = canvas.get_pixel_mut_checked(x, y) {
-    pixel.blend(&color);
+    if pixel.0[3] == 0 {
+      // If the destination pixel is fully transparent, we directly assign the new color.
+      // This is a performance optimization: blending with a fully transparent pixel is
+      // equivalent to assignment, so we skip the blend operation. This deviates from the
+      // standard alpha blending approach for efficiency.
+      *pixel = color;
+    } else {
+      pixel.blend(&color);
+    }
   }
 }
 

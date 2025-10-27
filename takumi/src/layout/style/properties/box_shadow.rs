@@ -1,6 +1,6 @@
 use std::{borrow::Cow, fmt::Debug};
 
-use cssparser::{BasicParseErrorKind, ParseError, Parser, ParserInput};
+use cssparser::{BasicParseErrorKind, ParseError, Parser};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use ts_rs::TS;
@@ -35,7 +35,7 @@ pub struct BoxShadow {
 /// Proxy type for `BoxShadow` Css deserialization.
 #[derive(Debug, Clone, PartialEq, TS, Deserialize)]
 #[serde(untagged)]
-pub enum BoxShadowValue {
+pub(crate) enum BoxShadowValue {
   /// Represents a structured box shadow.
   #[serde(rename_all = "camelCase")]
   Structured {
@@ -76,12 +76,7 @@ impl TryFrom<BoxShadowValue> for BoxShadow {
         spread_radius,
         color,
       }),
-      BoxShadowValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        BoxShadow::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      BoxShadowValue::Css(css) => BoxShadow::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }
@@ -100,34 +95,34 @@ pub(crate) enum BoxShadowsValue {
   Css(String),
 }
 
+impl<'i> FromCss<'i> for BoxShadows {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let mut shadows = SmallVec::new();
+
+    loop {
+      if input.is_exhausted() {
+        break;
+      }
+
+      let shadow = BoxShadow::from_css(input)?;
+      shadows.push(shadow);
+
+      if input.expect_comma().is_err() {
+        break;
+      }
+    }
+
+    Ok(BoxShadows(shadows))
+  }
+}
+
 impl TryFrom<BoxShadowsValue> for BoxShadows {
   type Error = String;
 
   fn try_from(value: BoxShadowsValue) -> Result<Self, Self::Error> {
     match value {
       BoxShadowsValue::Structured(shadows) => Ok(BoxShadows(shadows)),
-      BoxShadowsValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        let mut shadows = SmallVec::new();
-
-        loop {
-          if parser.is_exhausted() {
-            break;
-          }
-
-          let shadow = BoxShadow::from_css(&mut parser).map_err(|e| e.to_string())?;
-
-          shadows.push(shadow);
-
-          if parser.expect_comma().is_err() {
-            break;
-          }
-        }
-
-        Ok(BoxShadows(shadows))
-      }
+      BoxShadowsValue::Css(css) => BoxShadows::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }

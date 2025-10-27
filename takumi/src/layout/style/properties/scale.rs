@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput};
+use cssparser::Parser;
 use serde::{Deserialize, Serialize};
 use taffy::Size;
 use ts_rs::TS;
@@ -29,12 +29,7 @@ impl TryFrom<ScaleValue> for Scale {
   fn try_from(value: ScaleValue) -> Result<Self, Self::Error> {
     match value {
       ScaleValue::Structured { x, y } => Ok(Self { x, y }),
-      ScaleValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        Scale::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      ScaleValue::Css(css) => Scale::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }

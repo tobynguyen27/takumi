@@ -10,6 +10,7 @@ mod background_repeat;
 mod background_size;
 mod border;
 mod box_shadow;
+mod clip_path;
 mod color;
 mod filter;
 mod flex;
@@ -49,6 +50,7 @@ pub use background_repeat::*;
 pub use background_size::*;
 pub use border::*;
 pub use box_shadow::*;
+pub use clip_path::*;
 pub use color::*;
 pub use filter::*;
 pub use flex::*;
@@ -78,7 +80,7 @@ pub use transform::*;
 pub use translate::*;
 pub use word_break::*;
 
-use cssparser::{ParseError, Parser};
+use cssparser::{ParseError, Parser, ParserInput};
 use image::imageops::FilterType;
 use parley::{Alignment, FontStack};
 use serde::{Deserialize, Serialize};
@@ -89,10 +91,21 @@ pub type ParseResult<'i, T> = Result<T, ParseError<'i, Cow<'i, str>>>;
 
 /// Trait for types that can be deserialized from CSS.
 pub trait FromCss<'i> {
-  /// Deserializes the type from a CSS string.
+  /// Deserializes the type from a [`Parser`] instance.
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self>
   where
     Self: Sized;
+
+  /// Helper function to deserialize the type from a string.
+  fn from_str(source: &'i str) -> ParseResult<'i, Self>
+  where
+    Self: Sized,
+  {
+    let mut input = ParserInput::new(source);
+    let mut parser = Parser::new(&mut input);
+
+    Self::from_css(&mut parser)
+  }
 }
 
 /// Macro to implement From trait for Taffy enum conversions

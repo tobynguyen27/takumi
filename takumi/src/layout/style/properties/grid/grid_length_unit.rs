@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput, Token};
+use cssparser::{Parser, Token};
 use serde::{Deserialize, Serialize};
 use taffy::CompactLength;
 use ts_rs::TS;
@@ -30,7 +30,7 @@ pub enum GridLengthUnit {
 /// Represents a grid length unit value with serde support
 #[derive(Debug, Clone, Deserialize, Serialize, TS, PartialEq)]
 #[serde(untagged)]
-pub enum GridLengthUnitValue {
+pub(crate) enum GridLengthUnitValue {
   /// A fraction of the available space
   Fr(FrLengthUnit),
   /// A fixed length
@@ -46,11 +46,7 @@ impl TryFrom<GridLengthUnitValue> for GridLengthUnit {
     match value {
       GridLengthUnitValue::Fr(FrLengthUnit::Fr(fr)) => Ok(GridLengthUnit::Fr(fr)),
       GridLengthUnitValue::Unit(unit) => Ok(GridLengthUnit::Unit(unit)),
-      GridLengthUnitValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-        GridLengthUnit::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      GridLengthUnitValue::Css(css) => GridLengthUnit::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }
@@ -101,14 +97,10 @@ mod tests {
 
   #[test]
   fn test_parse_fr_and_unit() {
-    let mut parser_input = ParserInput::new("1fr");
-    let mut parser = Parser::new(&mut parser_input);
-    let fr = GridLengthUnit::from_css(&mut parser).unwrap();
+    let fr = GridLengthUnit::from_str("1fr").unwrap();
     assert_eq!(fr, GridLengthUnit::Fr(1.0));
 
-    let mut parser_input = ParserInput::new("10px");
-    let mut parser = Parser::new(&mut parser_input);
-    let px = GridLengthUnit::from_css(&mut parser).unwrap();
+    let px = GridLengthUnit::from_str("10px").unwrap();
     assert_eq!(px, GridLengthUnit::Unit(LengthUnit::Px(10.0)));
   }
 }

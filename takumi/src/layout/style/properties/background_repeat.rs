@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
+use cssparser::{Parser, Token, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -102,7 +102,7 @@ impl<'i> FromCss<'i> for BackgroundRepeat {
 /// Proxy type to deserialize CSS background-repeat as either a list or CSS string.
 #[derive(Debug, Clone, PartialEq, TS, Deserialize)]
 #[serde(untagged)]
-pub enum BackgroundRepeatsValue {
+pub(crate) enum BackgroundRepeatsValue {
   /// Parsed repeats for one or more layers.
   Repeats(Vec<BackgroundRepeat>),
   /// Raw CSS to be parsed at runtime.
@@ -121,25 +121,20 @@ impl TryFrom<BackgroundRepeatsValue> for BackgroundRepeats {
   fn try_from(value: BackgroundRepeatsValue) -> Result<Self, Self::Error> {
     match value {
       BackgroundRepeatsValue::Repeats(v) => Ok(Self(v)),
-      BackgroundRepeatsValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-        let mut values = Vec::new();
-
-        while let Ok(v) = BackgroundRepeat::from_css(&mut parser) {
-          values.push(v);
-
-          if parser.expect_comma().is_err() {
-            break;
-          }
-        }
-
-        if values.is_empty() {
-          return Err("background-repeat should have at least one value".to_string());
-        }
-
-        Ok(Self(values))
-      }
+      BackgroundRepeatsValue::Css(css) => Self::from_str(&css).map_err(|e| e.to_string()),
     }
+  }
+}
+
+impl<'i> FromCss<'i> for BackgroundRepeats {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let mut values = Vec::new();
+    values.push(BackgroundRepeat::from_css(input)?);
+
+    while input.expect_comma().is_ok() {
+      values.push(BackgroundRepeat::from_css(input)?);
+    }
+
+    Ok(Self(values))
   }
 }

@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
+use cssparser::{Parser, Token, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use ts_rs::TS;
@@ -352,7 +352,7 @@ impl RadialPosition {
 /// Proxy type for `RadialGradient` Css deserialization.
 #[derive(Debug, Clone, PartialEq, TS, Deserialize)]
 #[serde(untagged)]
-pub enum RadialGradientValue {
+pub(crate) enum RadialGradientValue {
   /// Represents a radial gradient.
   Structured {
     /// The shape of the gradient.
@@ -384,12 +384,7 @@ impl TryFrom<RadialGradientValue> for RadialGradient {
         center,
         stops,
       }),
-      RadialGradientValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        RadialGradient::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      RadialGradientValue::Css(css) => RadialGradient::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }
@@ -402,9 +397,7 @@ mod tests {
 
   #[test]
   fn test_parse_radial_gradient_basic() {
-    let mut input = ParserInput::new("radial-gradient(#ff0000, #0000ff)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = RadialGradient::from_css(&mut parser);
+    let gradient = RadialGradient::from_str("radial-gradient(#ff0000, #0000ff)");
 
     assert_eq!(
       gradient,
@@ -428,9 +421,8 @@ mod tests {
 
   #[test]
   fn test_parse_radial_gradient_circle_farthest_side() {
-    let mut input = ParserInput::new("radial-gradient(circle farthest-side, #ff0000, #0000ff)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = RadialGradient::from_css(&mut parser);
+    let gradient =
+      RadialGradient::from_str("radial-gradient(circle farthest-side, #ff0000, #0000ff)");
 
     assert_eq!(
       gradient,
@@ -454,9 +446,8 @@ mod tests {
 
   #[test]
   fn test_parse_radial_gradient_ellipse_at_left_top() {
-    let mut input = ParserInput::new("radial-gradient(ellipse at left top, #ff0000, #0000ff)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = RadialGradient::from_css(&mut parser);
+    let gradient =
+      RadialGradient::from_str("radial-gradient(ellipse at left top, #ff0000, #0000ff)");
 
     assert_eq!(
       gradient,
@@ -480,10 +471,8 @@ mod tests {
 
   #[test]
   fn test_parse_radial_gradient_size_then_position() {
-    let mut input =
-      ParserInput::new("radial-gradient(farthest-corner at 25% 60%, #ffffff, #000000)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = RadialGradient::from_css(&mut parser);
+    let gradient =
+      RadialGradient::from_str("radial-gradient(farthest-corner at 25% 60%, #ffffff, #000000)");
 
     assert_eq!(
       gradient,
@@ -507,10 +496,8 @@ mod tests {
 
   #[test]
   fn test_parse_radial_gradient_with_stop_positions() {
-    let mut input =
-      ParserInput::new("radial-gradient(circle, #ff0000 0%, #00ff00 50%, #0000ff 100%)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = RadialGradient::from_css(&mut parser);
+    let gradient =
+      RadialGradient::from_str("radial-gradient(circle, #ff0000 0%, #00ff00 50%, #0000ff 100%)");
 
     assert_eq!(
       gradient,

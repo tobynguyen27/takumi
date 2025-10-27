@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
+use cssparser::{Parser, Token, match_ignore_ascii_case};
 use image::{
   Pixel, RgbaImage,
   imageops::colorops::{contrast_in_place, huerotate_in_place},
@@ -102,25 +102,26 @@ impl Filters {
   }
 }
 
+impl<'i> FromCss<'i> for Filters {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let mut filters = SmallVec::new();
+
+    while !input.is_exhausted() {
+      let filter = Filter::from_css(input)?;
+      filters.push(filter);
+    }
+
+    Ok(Filters(filters))
+  }
+}
+
 impl TryFrom<FiltersValue> for Filters {
   type Error = String;
 
   fn try_from(value: FiltersValue) -> Result<Self, Self::Error> {
     match value {
       FiltersValue::Structured(filters) => Ok(Filters(filters)),
-      FiltersValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        let mut filters = SmallVec::new();
-
-        while !parser.is_exhausted() {
-          let filter = Filter::from_css(&mut parser).map_err(|e| e.to_string())?;
-          filters.push(filter);
-        }
-
-        Ok(Filters(filters))
-      }
+      FiltersValue::Css(css) => Filters::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }

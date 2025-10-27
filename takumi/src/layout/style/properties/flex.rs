@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput};
+use cssparser::Parser;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -49,12 +49,7 @@ impl TryFrom<FlexValue> for Flex {
         shrink: 1.0,
         basis: LengthUnit::zero(),
       }),
-      FlexValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        Flex::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      FlexValue::Css(css) => Flex::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }
@@ -122,9 +117,7 @@ mod tests {
 
   #[test]
   fn test_flex_three_values() {
-    let mut input = ParserInput::new("1 1 auto");
-    let mut parser = Parser::new(&mut input);
-    let flex = Flex::from_css(&mut parser).unwrap();
+    let flex = Flex::from_str("1 1 auto").unwrap();
 
     assert_eq!(
       flex,
@@ -138,9 +131,7 @@ mod tests {
 
   #[test]
   fn test_flex_single_number() {
-    let mut input = ParserInput::new("2");
-    let mut parser = Parser::new(&mut input);
-    let flex = Flex::from_css(&mut parser).unwrap();
+    let flex = Flex::from_str("2").unwrap();
 
     assert_eq!(
       flex,
@@ -154,9 +145,7 @@ mod tests {
 
   #[test]
   fn test_flex_number_and_length() {
-    let mut input = ParserInput::new("1 30px");
-    let mut parser = Parser::new(&mut input);
-    let flex = Flex::from_css(&mut parser).unwrap();
+    let flex = Flex::from_str("1 30px").unwrap();
 
     assert_eq!(
       flex,
@@ -170,9 +159,7 @@ mod tests {
 
   #[test]
   fn test_flex_two_numbers() {
-    let mut input = ParserInput::new("2 2");
-    let mut parser = Parser::new(&mut input);
-    let flex = Flex::from_css(&mut parser).unwrap();
+    let flex = Flex::from_str("2 2").unwrap();
 
     assert_eq!(
       flex,

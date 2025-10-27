@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use cssparser::{BasicParseErrorKind, Parser, ParserInput};
+use cssparser::{BasicParseErrorKind, Parser};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use ts_rs::TS;
@@ -44,7 +44,7 @@ impl<'i> FromCss<'i> for BackgroundImage {
 #[derive(Debug, Clone, PartialEq, TS, Deserialize)]
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
-pub enum BackgroundImagesValue {
+pub(crate) enum BackgroundImagesValue {
   /// Structured variant: explicit list of background images
   #[ts(as = "Vec<BackgroundImage>")]
   Images(SmallVec<[BackgroundImage; 4]>),
@@ -58,25 +58,26 @@ pub enum BackgroundImagesValue {
 #[serde(try_from = "BackgroundImagesValue")]
 pub struct BackgroundImages(pub SmallVec<[BackgroundImage; 4]>);
 
+impl<'i> FromCss<'i> for BackgroundImages {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let mut images = SmallVec::new();
+    images.push(BackgroundImage::from_css(input)?);
+
+    while input.expect_comma().is_ok() {
+      images.push(BackgroundImage::from_css(input)?);
+    }
+
+    Ok(Self(images))
+  }
+}
+
 impl TryFrom<BackgroundImagesValue> for BackgroundImages {
   type Error = String;
 
   fn try_from(value: BackgroundImagesValue) -> Result<Self, Self::Error> {
     match value {
       BackgroundImagesValue::Images(images) => Ok(Self(images)),
-      BackgroundImagesValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        let mut images = SmallVec::new();
-        images.push(BackgroundImage::from_css(&mut parser).map_err(|e| e.to_string())?);
-
-        while parser.expect_comma().is_ok() {
-          images.push(BackgroundImage::from_css(&mut parser).map_err(|e| e.to_string())?);
-        }
-
-        Ok(Self(images))
-      }
+      BackgroundImagesValue::Css(css) => Self::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }

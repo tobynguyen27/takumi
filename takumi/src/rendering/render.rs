@@ -9,10 +9,10 @@ use crate::{
   layout::{
     Viewport,
     node::Node,
-    style::{Affine, InheritedStyle, Overflow, Overflows},
+    style::{Affine, Color, InheritedStyle, Overflow},
     tree::NodeTree,
   },
-  rendering::{BorderProperties, Canvas, draw_debug_border, inline_drawing::draw_inline_layout},
+  rendering::{BorderProperties, Canvas},
   resources::image::ImageSource,
 };
 
@@ -142,118 +142,94 @@ fn render_node<'g, Nodes: Node<Nodes>>(
     return;
   }
 
-  layout.location.x += offset.x;
-  layout.location.y += offset.y;
+  layout.location = layout.location + offset;
 
   transform =
     transform * create_transform(&node_context.context.style, &layout, &node_context.context);
 
   node_context.context.transform = transform;
 
-  // Draw the block node itself first
-  if let Some(node) = &node_context.node {
-    node.draw_on_canvas(&node_context.context, canvas, layout);
-  }
+  if let Some(clip) = &node_context.context.style.clip_path.0 {
+    let translation = node_context.context.transform.decompose().translation;
 
-  if node_context.should_construct_inline_layout() {
-    let (inline_layout, _, boxes) = node_context.create_inline_layout(layout.content_box_size());
-    let font_style = node_context
-      .context
-      .style
-      .to_sized_font_style(&node_context.context);
+    node_context.context.transform.zero_translation();
 
-    // Draw the inline layout without a callback first
-    let positioned_inline_boxes = draw_inline_layout(
-      &node_context.context,
-      canvas,
-      layout,
-      inline_layout,
-      &font_style,
-    );
+    let (mask, mut placement) = clip.render_mask(&node_context.context, layout.size);
 
-    // Then handle the inline boxes directly by zipping the node refs with their positioned boxes
-    for (node, inline_box) in boxes.iter().zip(positioned_inline_boxes.iter()) {
-      let mut render_context = node_context.context.clone();
+    node_context.context.transform.x = -placement.left as f32;
+    node_context.context.transform.y = -placement.top as f32;
 
-      render_context.transform = render_context.transform
-        * Affine::translation(Size {
-          width: inline_box.x,
-          height: inline_box.y,
-        });
+    let inner_canvas = Canvas::new(Size {
+      width: placement.width,
+      height: placement.height,
+    });
 
-      node.draw_on_canvas(
-        &render_context,
-        canvas,
-        Layout {
-          size: Size {
-            width: inline_box.width,
-            height: inline_box.height,
-          },
-          ..Default::default()
-        },
-      );
-    }
-  }
-
-  if node_context.context.draw_debug_border {
-    draw_debug_border(canvas, layout, node_context.context.transform);
-  }
-
-  let overflow = Overflows(
-    node_context
-      .context
-      .style
-      .overflow_x
-      .unwrap_or(node_context.context.style.overflow.0),
-    node_context
-      .context
-      .style
-      .overflow_y
-      .unwrap_or(node_context.context.style.overflow.1),
-  );
-
-  if overflow != Overflows(Overflow::Visible, Overflow::Visible) {
-    let inner_size = Size {
-      width: if overflow.0 == Overflow::Visible {
-        node_context.context.viewport.width
-      } else {
-        (layout.size.width - layout.padding.right - layout.border.right) as u32
-      },
-      height: if overflow.1 == Overflow::Visible {
-        node_context.context.viewport.height
-      } else {
-        (layout.size.height - layout.padding.bottom - layout.border.bottom) as u32
-      },
+    let inner_layout = Layout {
+      location: Point::zero(),
+      ..layout
     };
 
-    if inner_size.width == 0 || inner_size.height == 0 {
-      return;
+    node_context.draw_on_canvas(&inner_canvas, inner_layout);
+
+    if node_context.should_create_inline_layout() {
+      node_context.draw_inline(&inner_canvas, inner_layout);
+    } else {
+      for child_id in taffy.children(node_id).unwrap() {
+        render_node(taffy, child_id, &inner_canvas, Point::zero(), transform);
+      }
     }
+
+    placement.left += (layout.location.x + translation.width) as i32;
+    placement.top += (layout.location.y + translation.height) as i32;
+
+    return canvas.draw_mask(
+      &mask,
+      placement,
+      Color::transparent(),
+      Some(inner_canvas.into_inner()),
+    );
+  }
+
+  node_context.draw_on_canvas(canvas, layout);
+
+  let overflow = node_context.context.style.resolve_overflows();
+
+  if overflow.should_clip_content() {
+    // if theres no space for canvas to draw, just return.
+    let Some(inner_canvas) = overflow.create_clip_canvas(node_context.context.viewport, layout)
+    else {
+      return;
+    };
 
     let image_rendering = node_context.context.style.image_rendering;
     let filters = node_context.context.style.filter.0.clone();
 
-    let inner_canvas = Canvas::new(inner_size);
+    let offset = Point {
+      x: if overflow.0 == Overflow::Visible {
+        layout.location.x
+      } else {
+        0.0
+      },
+      y: if overflow.1 == Overflow::Visible {
+        layout.location.y
+      } else {
+        0.0
+      },
+    };
 
-    for child_id in taffy.children(node_id).unwrap() {
-      render_node(
-        taffy,
-        child_id,
+    if node_context.should_create_inline_layout() {
+      node_context.draw_inline(
         &inner_canvas,
-        Point {
-          x: if overflow.0 == Overflow::Visible {
-            layout.location.x
-          } else {
-            0.0
-          },
-          y: if overflow.1 == Overflow::Visible {
-            layout.location.y
-          } else {
-            0.0
-          },
+        Layout {
+          size: layout.content_box_size(),
+          location: offset,
+          ..Default::default()
         },
-        transform,
       );
+    } else {
+      for child_id in taffy.children(node_id).unwrap() {
+        render_node(taffy, child_id, &inner_canvas, offset, transform);
+      }
     }
 
     return canvas.overlay_image(
@@ -277,7 +253,11 @@ fn render_node<'g, Nodes: Node<Nodes>>(
     );
   }
 
-  for child_id in taffy.children(node_id).unwrap() {
-    render_node(taffy, child_id, canvas, layout.location, transform);
+  if node_context.should_create_inline_layout() {
+    node_context.draw_inline(canvas, layout);
+  } else {
+    for child_id in taffy.children(node_id).unwrap() {
+      render_node(taffy, child_id, canvas, layout.location, transform);
+    }
   }
 }

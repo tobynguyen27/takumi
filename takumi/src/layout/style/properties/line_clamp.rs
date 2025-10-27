@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput};
+use cssparser::Parser;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -45,11 +45,7 @@ impl TryFrom<LineClampValue> for LineClamp {
         count,
         ellipsis: None,
       }),
-      LineClampValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-        LineClamp::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      LineClampValue::Css(css) => LineClamp::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }

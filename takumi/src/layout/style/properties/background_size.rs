@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput};
+use cssparser::Parser;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -63,7 +63,7 @@ impl<'i> FromCss<'i> for BackgroundSize {
 /// A value representing either a list of parsed sizes or a raw CSS string.
 #[derive(Debug, Clone, PartialEq, TS, Deserialize)]
 #[serde(untagged)]
-pub enum BackgroundSizesValue {
+pub(crate) enum BackgroundSizesValue {
   /// Parsed sizes for one or more layers.
   Sizes(Vec<BackgroundSize>),
   /// Raw CSS to be parsed at runtime.
@@ -76,21 +76,26 @@ pub enum BackgroundSizesValue {
 #[serde(try_from = "BackgroundSizesValue")]
 pub struct BackgroundSizes(pub Vec<BackgroundSize>);
 
+impl<'i> FromCss<'i> for BackgroundSizes {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let mut values = Vec::new();
+    values.push(BackgroundSize::from_css(input)?);
+
+    while input.expect_comma().is_ok() {
+      values.push(BackgroundSize::from_css(input)?);
+    }
+
+    Ok(Self(values))
+  }
+}
+
 impl TryFrom<BackgroundSizesValue> for BackgroundSizes {
   type Error = String;
 
   fn try_from(value: BackgroundSizesValue) -> Result<Self, Self::Error> {
     match value {
       BackgroundSizesValue::Sizes(v) => Ok(Self(v)),
-      BackgroundSizesValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-        let mut values = vec![BackgroundSize::from_css(&mut parser).map_err(|e| e.to_string())?];
-        while parser.expect_comma().is_ok() {
-          values.push(BackgroundSize::from_css(&mut parser).map_err(|e| e.to_string())?);
-        }
-        Ok(Self(values))
-      }
+      BackgroundSizesValue::Css(css) => Self::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }

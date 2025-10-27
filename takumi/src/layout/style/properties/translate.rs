@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput};
+use cssparser::Parser;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -28,12 +28,7 @@ impl TryFrom<TranslateValue> for Translate {
   fn try_from(value: TranslateValue) -> Result<Self, Self::Error> {
     match value {
       TranslateValue::Structured { x, y } => Ok(Self { x, y }),
-      TranslateValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        Translate::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      TranslateValue::Css(css) => Translate::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }

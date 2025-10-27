@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput, match_ignore_ascii_case};
+use cssparser::{Parser, match_ignore_ascii_case};
 use serde::{Deserialize, Deserializer, Serialize};
 use ts_rs::TS;
 
@@ -26,10 +26,7 @@ impl<'de> Deserialize<'de> for TextOverflow {
     D: Deserializer<'de>,
   {
     let string = String::deserialize(deserializer)?;
-    let mut input = ParserInput::new(&string);
-    let mut parser = Parser::new(&mut input);
-
-    Self::from_css(&mut parser).map_err(|e| serde::de::Error::custom(e.to_string()))
+    Self::from_str(&string).map_err(|e| serde::de::Error::custom(e.to_string()))
   }
 }
 

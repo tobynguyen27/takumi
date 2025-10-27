@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use csscolorparser::{NAMED_COLORS, ParseColorError};
-use cssparser::{Parser, ParserInput, ToCss, Token};
+use cssparser::{Parser, ToCss, Token};
 use image::Rgba;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -11,7 +11,7 @@ use crate::layout::style::{FromCss, ParseResult};
 /// `Color` proxy type for deserializing CSS color values.
 #[derive(Debug, Clone, Deserialize, TS)]
 #[serde(untagged)]
-pub enum ColorInputValue {
+pub(crate) enum ColorInputValue {
   /// RGB color with 8-bit components
   Rgb(u8, u8, u8),
   /// RGBA color with 8-bit RGB components and 32-bit float alpha (alpha is between 0.0 and 1.0)
@@ -121,12 +121,7 @@ impl TryFrom<ColorInputValue> for ColorInput {
 
         Ok(ColorInput::Value(Color([r, g, b, 255])))
       }
-      ColorInputValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        ColorInput::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      ColorInputValue::Css(css) => ColorInput::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }

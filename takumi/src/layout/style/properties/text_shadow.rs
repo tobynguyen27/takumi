@@ -1,6 +1,6 @@
 use std::{borrow::Cow, fmt::Debug};
 
-use cssparser::{BasicParseErrorKind, ParseError, Parser, ParserInput};
+use cssparser::{BasicParseErrorKind, ParseError, Parser};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use ts_rs::TS;
@@ -58,12 +58,7 @@ impl TryFrom<TextShadowValue> for TextShadow {
         blur_radius,
         color,
       }),
-      TextShadowValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        TextShadow::from_css(&mut parser).map_err(|e| e.to_string())
-      }
+      TextShadowValue::Css(css) => TextShadow::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }
@@ -82,34 +77,34 @@ pub(crate) enum TextShadowsValue {
   Css(String),
 }
 
+impl<'i> FromCss<'i> for TextShadows {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let mut shadows = SmallVec::new();
+
+    loop {
+      if input.is_exhausted() {
+        break;
+      }
+
+      let shadow = TextShadow::from_css(input)?;
+      shadows.push(shadow);
+
+      if input.expect_comma().is_err() {
+        break;
+      }
+    }
+
+    Ok(TextShadows(shadows))
+  }
+}
+
 impl TryFrom<TextShadowsValue> for TextShadows {
   type Error = String;
 
   fn try_from(value: TextShadowsValue) -> Result<Self, Self::Error> {
     match value {
       TextShadowsValue::Structured(shadows) => Ok(TextShadows(shadows)),
-      TextShadowsValue::Css(css) => {
-        let mut input = ParserInput::new(&css);
-        let mut parser = Parser::new(&mut input);
-
-        let mut shadows = SmallVec::new();
-
-        loop {
-          if parser.is_exhausted() {
-            break;
-          }
-
-          let shadow = TextShadow::from_css(&mut parser).map_err(|e| e.to_string())?;
-
-          shadows.push(shadow);
-
-          if parser.expect_comma().is_err() {
-            break;
-          }
-        }
-
-        Ok(TextShadows(shadows))
-      }
+      TextShadowsValue::Css(css) => TextShadows::from_str(&css).map_err(|e| e.to_string()),
     }
   }
 }
