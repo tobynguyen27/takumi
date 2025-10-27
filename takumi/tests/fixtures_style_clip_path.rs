@@ -60,9 +60,9 @@ fn fixtures_clip_path_text_stroke_filled() {
             .font_size(CssOption::some(Px(84.0)))
             .font_weight(FontWeight::from(700.0))
             .color(ColorInput::Value(Color::transparent())) // Transparent fill
-            .text_stroke_width(Px(1.0))
+            .text_stroke_width(Px(2.0))
             .text_stroke_color(CssOption::some(ColorInput::Value(Color([
-              255, 255, 255, 200,
+              128, 128, 128, 255,
             ])))) // Semi-transparent white stroke
             .text_align(TextAlign::Center)
             .clip_path(CssOption::some(
