@@ -10,6 +10,28 @@ use crate::layout::style::{FromCss, LengthUnit, ParseResult};
 #[ts(as = "SidesValue<T>")]
 pub struct Sides<T: TS + Copy>(pub [T; 4]);
 
+pub(crate) enum Axis {
+  Horizontal,
+  Vertical,
+}
+
+impl<T: TS + Copy> Sides<T> {
+  pub(crate) fn map_axis<R, F>(&self, func: F) -> Sides<R>
+  where
+    R: TS + Copy,
+    F: Fn(T, Axis) -> R,
+  {
+    let [top, right, bottom, left] = self.0;
+
+    Sides([
+      func(top, Axis::Vertical),
+      func(right, Axis::Horizontal),
+      func(bottom, Axis::Vertical),
+      func(left, Axis::Horizontal),
+    ])
+  }
+}
+
 /// Represents values that can be applied to all sides of an element.
 ///
 /// This enum allows for flexible specification of values like padding, margin,

@@ -1,8 +1,15 @@
 use cssparser::{Parser, ParserInput, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
+use taffy::{Layout, Size};
 use ts_rs::TS;
 
-use crate::layout::style::{FromCss, ParseResult};
+use crate::{
+  layout::{
+    Viewport,
+    style::{FromCss, ParseResult},
+  },
+  rendering::Canvas,
+};
 
 /// How children overflowing their container should affect layout
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, TS, PartialEq, Default)]
@@ -68,6 +75,34 @@ pub(crate) enum OverflowValue {
 impl Default for Overflows {
   fn default() -> Self {
     Self(Overflow::Visible, Overflow::Visible)
+  }
+}
+
+impl Overflows {
+  #[inline]
+  pub(crate) fn should_clip_content(&self) -> bool {
+    *self != Overflows(Overflow::Visible, Overflow::Visible)
+  }
+
+  pub(crate) fn create_clip_canvas(&self, viewport: Viewport, layout: Layout) -> Option<Canvas> {
+    let inner_size = Size {
+      width: if self.0 == Overflow::Visible {
+        viewport.width
+      } else {
+        (layout.size.width - layout.padding.right - layout.border.right) as u32
+      },
+      height: if self.1 == Overflow::Visible {
+        viewport.height
+      } else {
+        (layout.size.height - layout.padding.bottom - layout.border.bottom) as u32
+      },
+    };
+
+    if inner_size.width == 0 || inner_size.height == 0 {
+      return None;
+    }
+
+    Some(Canvas::new(inner_size))
   }
 }
 

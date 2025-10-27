@@ -252,6 +252,13 @@ impl<'s> SizedFontStyle<'s> {
 }
 
 impl InheritedStyle {
+  pub(crate) fn resolve_overflows(&self) -> Overflows {
+    Overflows(
+      self.overflow_x.unwrap_or(self.overflow.0),
+      self.overflow_y.unwrap_or(self.overflow.1),
+    )
+  }
+
   #[inline]
   fn convert_template_components(
     components: &Option<GridTemplateComponents>,

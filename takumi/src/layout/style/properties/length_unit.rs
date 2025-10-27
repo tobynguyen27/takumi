@@ -277,27 +277,19 @@ impl LengthUnit {
   }
 }
 /// Utility function to resolve a rect of length units to length percentages.
+#[inline]
 pub(crate) fn resolve_length_unit_rect_to_length_percentage(
   context: &RenderContext,
   value: Rect<LengthUnit>,
 ) -> Rect<LengthPercentage> {
-  Rect {
-    left: value.left.resolve_to_length_percentage(context),
-    right: value.right.resolve_to_length_percentage(context),
-    top: value.top.resolve_to_length_percentage(context),
-    bottom: value.bottom.resolve_to_length_percentage(context),
-  }
+  value.map(|unit| unit.resolve_to_length_percentage(context))
 }
 
 /// Utility function to resolve a rect of length units to length percentage auto.
+#[inline]
 pub(crate) fn resolve_length_unit_rect_to_length_percentage_auto(
   context: &RenderContext,
   value: Rect<LengthUnit>,
 ) -> Rect<LengthPercentageAuto> {
-  Rect {
-    left: value.left.resolve_to_length_percentage_auto(context),
-    right: value.right.resolve_to_length_percentage_auto(context),
-    top: value.top.resolve_to_length_percentage_auto(context),
-    bottom: value.bottom.resolve_to_length_percentage_auto(context),
-  }
+  value.map(|unit| unit.resolve_to_length_percentage_auto(context))
 }

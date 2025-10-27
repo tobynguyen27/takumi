@@ -1,9 +1,9 @@
 use takumi::layout::{
   node::{ContainerNode, ImageNode, TextNode},
   style::{
-    Color, ColorInput, CssOption, Display, FontWeight, JustifyContent,
+    AlignItems, Color, ColorInput, CssOption, Display, FontWeight, JustifyContent,
     LengthUnit::{Percentage, Px},
-    StyleBuilder, TextOverflow, TextTransform,
+    Sides, StyleBuilder, TextOverflow, TextTransform,
   },
 };
 
@@ -117,14 +117,28 @@ fn fixtures_inline_image() {
   let container = ContainerNode {
     style: Some(
       StyleBuilder::default()
-        .background_color(ColorInput::Value(Color::white()))
         .width(Percentage(100.0))
-        .display(Display::Block)
-        .font_size(CssOption::some(Px(48.0)))
+        .height(Percentage(100.0))
+        .align_items(AlignItems::Center)
+        .justify_content(JustifyContent::Center)
+        .background_color(ColorInput::Value(Color::white()))
         .build()
         .unwrap(),
     ),
-    children: Some(children),
+    children: Some(vec![
+      ContainerNode {
+        style: Some(
+          StyleBuilder::default()
+            .border_width(CssOption::some(Sides([Px(1.0); 4])))
+            .display(Display::Block)
+            .font_size(CssOption::some(Px(48.0)))
+            .build()
+            .unwrap(),
+        ),
+        children: Some(children),
+      }
+      .into(),
+    ]),
   };
 
   run_style_width_test(container.into(), "tests/fixtures/inline_image.png");

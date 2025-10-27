@@ -1,11 +1,11 @@
 use cssparser::{Parser, Token, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
-use taffy::{Layout, Rect, Size};
+use taffy::{AbsoluteAxis, Point, Rect, Size};
 use ts_rs::TS;
 use zeno::{Fill, Mask, PathBuilder, PathData, Placement};
 
 use crate::{
-  layout::style::{Color, FromCss, LengthUnit, ParseResult, Sides},
+  layout::style::{Affine, Axis, Color, FromCss, LengthUnit, ParseResult, Sides},
   rendering::{BorderProperties, RenderContext},
 };
 
@@ -71,28 +71,10 @@ impl Default for ShapePosition {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct InsetShape {
-  /// Top inset distance
-  pub top: LengthUnit,
-  /// Right inset distance
-  pub right: LengthUnit,
-  /// Bottom inset distance
-  pub bottom: LengthUnit,
-  /// Left inset distance
-  pub left: LengthUnit,
+  /// Sides of the inset.
+  pub inset: Sides<LengthUnit>,
   /// Optional border radius for rounded corners
   pub border_radius: Option<Sides<LengthUnit>>,
-}
-
-impl Default for InsetShape {
-  fn default() -> Self {
-    Self {
-      top: LengthUnit::Px(0.0),
-      right: LengthUnit::Px(0.0),
-      bottom: LengthUnit::Px(0.0),
-      left: LengthUnit::Px(0.0),
-      border_radius: None,
-    }
-  }
 }
 
 /// Represents a circle() shape.
@@ -225,21 +207,35 @@ impl BasicShape {
   pub(crate) fn render_mask(
     &self,
     context: &RenderContext,
-    layout: Layout,
+    size: Size<f32>,
   ) -> (Vec<u8>, Placement) {
     let mut paths = Vec::new();
 
     match self {
       BasicShape::Inset(shape) => {
+        let inset: Rect<f32> = shape
+          .inset
+          .map_axis(|value, axis| {
+            value.resolve_to_px(
+              context,
+              match axis {
+                Axis::Horizontal => size.width,
+                Axis::Vertical => size.height,
+              },
+            )
+          })
+          .into();
+
         let border = BorderProperties {
-          width: Rect {
-            top: shape.top.resolve_to_px(context, layout.size.width),
-            right: shape.right.resolve_to_px(context, layout.size.width),
-            bottom: shape.bottom.resolve_to_px(context, layout.size.width),
-            left: shape.left.resolve_to_px(context, layout.size.width),
+          width: Rect::zero(),
+          offset: Point {
+            x: inset.left,
+            y: inset.top,
           },
-          offset: layout.location,
-          size: layout.size,
+          size: Size {
+            width: size.width - inset.grid_axis_sum(AbsoluteAxis::Horizontal),
+            height: size.height - inset.grid_axis_sum(AbsoluteAxis::Vertical),
+          },
           color: Color::transparent(),
           radius: shape
             .border_radius
@@ -247,40 +243,40 @@ impl BasicShape {
               Sides(
                 radius
                   .0
-                  .map(|corner| corner.resolve_to_px(context, layout.size.width)),
+                  .map(|corner| corner.resolve_to_px(context, size.width)),
               )
             })
             .unwrap_or_default(),
-          transform: context.transform,
+          transform: Affine::identity(),
         };
 
         border.append_mask_commands(&mut paths);
       }
       BasicShape::Ellipse(shape) => {
         let distance = Size {
-          width: shape.position.x.resolve_to_px(context, layout.size.width),
-          height: shape.position.y.resolve_to_px(context, layout.size.height),
+          width: shape.position.x.resolve_to_px(context, size.width),
+          height: shape.position.y.resolve_to_px(context, size.height),
         };
 
         paths.add_ellipse(
           (distance.width, distance.height),
-          resolve_radius(shape.radius_x, distance, context, layout.size.width),
-          resolve_radius(shape.radius_y, distance, context, layout.size.height),
+          resolve_radius(shape.radius_x, distance, context, size.width),
+          resolve_radius(shape.radius_y, distance, context, size.height),
         );
       }
       BasicShape::Polygon(shape) => {
         if !shape.coordinates.is_empty() {
           // Start the path at the first coordinate
           let first = &shape.coordinates[0];
-          let first_x = first.x.resolve_to_px(context, layout.size.width);
-          let first_y = first.y.resolve_to_px(context, layout.size.height);
+          let first_x = first.x.resolve_to_px(context, size.width);
+          let first_y = first.y.resolve_to_px(context, size.height);
 
           paths.move_to((first_x, first_y));
 
           // Add lines to each subsequent coordinate
           for coord in &shape.coordinates[1..] {
-            let x = coord.x.resolve_to_px(context, layout.size.width);
-            let y = coord.y.resolve_to_px(context, layout.size.height);
+            let x = coord.x.resolve_to_px(context, size.width);
+            let y = coord.y.resolve_to_px(context, size.height);
             paths.line_to((x, y));
           }
 
@@ -292,6 +288,8 @@ impl BasicShape {
         paths.extend(shape.path.as_str().commands());
       }
     }
+
+    context.transform.apply_on_paths(&mut paths);
 
     Mask::new(&paths)
       .style(Fill::from(
@@ -367,10 +365,7 @@ impl<'i> FromCss<'i> for BasicShape {
       Token::Function(function) => {
         match_ignore_ascii_case! { &function,
           "inset" => parser.parse_nested_block(|input| {
-            let top = LengthUnit::from_css(input)?;
-            let right = input.try_parse(LengthUnit::from_css).unwrap_or(top);
-            let bottom = input.try_parse(LengthUnit::from_css).unwrap_or(top);
-            let left = input.try_parse(LengthUnit::from_css).unwrap_or(right);
+            let inset = Sides::from_css(input)?;
 
             // Parse border radius with "round" keyword
             let border_radius = if input.try_parse(|input| input.expect_ident_matching("round")).is_ok() {
@@ -379,15 +374,10 @@ impl<'i> FromCss<'i> for BasicShape {
               None
             };
 
-            let inset_shape = InsetShape {
-              top,
-              right,
-              bottom,
-              left,
+            Ok(BasicShape::Inset(InsetShape {
+              inset,
               border_radius,
-            };
-
-            Ok(BasicShape::Inset(inset_shape))
+            }))
           }),
           "circle" => parser.parse_nested_block(|input| {
             let radius = input.try_parse(ShapeRadius::from_css).unwrap_or_default();
@@ -429,12 +419,10 @@ impl<'i> FromCss<'i> for BasicShape {
               coordinates.push(PolygonCoordinate::from_css(input)?);
             }
 
-            let polygon_shape = PolygonShape {
+            Ok(BasicShape::Polygon(PolygonShape {
               fill_rule,
               coordinates,
-            };
-
-            Ok(BasicShape::Polygon(polygon_shape))
+            }))
           }),
           "path" => parser.parse_nested_block(|input| {
             let fill_rule = input.try_parse(FillRule::from_css).ok();
@@ -464,15 +452,13 @@ impl<'i> FromCss<'i> for BasicShape {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use LengthUnit::*;
 
   #[test]
   fn test_parse_inset_simple() {
     let result = BasicShape::from_str("inset(10px)").unwrap();
     if let BasicShape::Inset(inset) = result {
-      assert_eq!(inset.top, LengthUnit::Px(10.0));
-      assert_eq!(inset.right, LengthUnit::Px(10.0));
-      assert_eq!(inset.bottom, LengthUnit::Px(10.0));
-      assert_eq!(inset.left, LengthUnit::Px(10.0));
+      assert_eq!(inset.inset.0, [Px(10.0); 4]);
     } else {
       panic!("Expected inset shape");
     }
@@ -482,10 +468,10 @@ mod tests {
   fn test_parse_inset_four_values() {
     let result = BasicShape::from_str("inset(10px 20px 30px 40px)").unwrap();
     if let BasicShape::Inset(inset) = result {
-      assert_eq!(inset.top, LengthUnit::Px(10.0));
-      assert_eq!(inset.right, LengthUnit::Px(20.0));
-      assert_eq!(inset.bottom, LengthUnit::Px(30.0));
-      assert_eq!(inset.left, LengthUnit::Px(40.0));
+      assert_eq!(inset.inset.0[0], LengthUnit::Px(10.0));
+      assert_eq!(inset.inset.0[1], LengthUnit::Px(20.0));
+      assert_eq!(inset.inset.0[2], LengthUnit::Px(30.0));
+      assert_eq!(inset.inset.0[3], LengthUnit::Px(40.0));
       assert_eq!(inset.border_radius, None);
     } else {
       panic!("Expected inset shape");
@@ -496,10 +482,10 @@ mod tests {
   fn test_parse_inset_with_border_radius() {
     let result = BasicShape::from_str("inset(10px round 5px)").unwrap();
     if let BasicShape::Inset(inset) = result {
-      assert_eq!(inset.top, LengthUnit::Px(10.0));
-      assert_eq!(inset.right, LengthUnit::Px(10.0));
-      assert_eq!(inset.bottom, LengthUnit::Px(10.0));
-      assert_eq!(inset.left, LengthUnit::Px(10.0));
+      assert_eq!(inset.inset.0[0], LengthUnit::Px(10.0));
+      assert_eq!(inset.inset.0[1], LengthUnit::Px(10.0));
+      assert_eq!(inset.inset.0[2], LengthUnit::Px(10.0));
+      assert_eq!(inset.inset.0[3], LengthUnit::Px(10.0));
 
       let border_radius = inset.border_radius.expect("Should have border radius");
       assert_eq!(border_radius.0[0], LengthUnit::Px(5.0)); // top-left
@@ -516,10 +502,10 @@ mod tests {
     let result =
       BasicShape::from_str("inset(10px 20px 30px 40px round 5px 10px 15px 20px)").unwrap();
     if let BasicShape::Inset(inset) = result {
-      assert_eq!(inset.top, LengthUnit::Px(10.0));
-      assert_eq!(inset.right, LengthUnit::Px(20.0));
-      assert_eq!(inset.bottom, LengthUnit::Px(30.0));
-      assert_eq!(inset.left, LengthUnit::Px(40.0));
+      assert_eq!(inset.inset.0[0], LengthUnit::Px(10.0));
+      assert_eq!(inset.inset.0[1], LengthUnit::Px(20.0));
+      assert_eq!(inset.inset.0[2], LengthUnit::Px(30.0));
+      assert_eq!(inset.inset.0[3], LengthUnit::Px(40.0));
 
       let border_radius = inset.border_radius.expect("Should have border radius");
       assert_eq!(border_radius.0[0], LengthUnit::Px(5.0)); // top-left

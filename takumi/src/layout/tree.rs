@@ -1,7 +1,7 @@
 use std::{borrow::Cow, mem::take};
 
 use parley::InlineBox;
-use taffy::{AvailableSpace, NodeId, Size, TaffyTree};
+use taffy::{AvailableSpace, Layout, NodeId, Size, TaffyTree};
 
 use crate::{
   GlobalContext,
@@ -10,7 +10,10 @@ use crate::{
     node::Node,
     style::{Display, InheritedStyle, SizedFontStyle, TextOverflow},
   },
-  rendering::{MaxHeight, RenderContext},
+  rendering::{
+    Canvas, MaxHeight, RenderContext, draw_debug_border,
+    inline_drawing::{draw_inline_box, draw_inline_layout},
+  },
 };
 
 pub(crate) struct NodeTree<'g, N: Node<N>> {
@@ -20,11 +23,36 @@ pub(crate) struct NodeTree<'g, N: Node<N>> {
 }
 
 impl<'g, N: Node<N>> NodeTree<'g, N> {
+  pub fn draw_on_canvas(&self, canvas: &Canvas, layout: Layout) {
+    // Draw the block node itself first
+    if let Some(node) = &self.node {
+      node.draw_on_canvas(&self.context, canvas, layout);
+    }
+
+    if self.context.draw_debug_border {
+      draw_debug_border(canvas, layout, self.context.transform);
+    }
+  }
+
+  pub fn draw_inline(&self, canvas: &Canvas, layout: Layout) {
+    let (inline_layout, _, boxes) = self.create_inline_layout(layout.content_box_size());
+    let font_style = self.context.style.to_sized_font_style(&self.context);
+
+    // Draw the inline layout without a callback first
+    let positioned_inline_boxes =
+      draw_inline_layout(&self.context, canvas, layout, inline_layout, &font_style);
+
+    // Then handle the inline boxes directly by zipping the node refs with their positioned boxes
+    for ((node, context, _), positioned) in boxes.iter().zip(positioned_inline_boxes.iter()) {
+      draw_inline_box(positioned, *node, context, layout, canvas);
+    }
+  }
+
   pub fn is_inline(&self) -> bool {
     self.context.style.display == Display::Inline
   }
 
-  pub fn should_construct_inline_layout(&self) -> bool {
+  pub fn should_create_inline_layout(&self) -> bool {
     self.context.style.display == Display::Block
       && self
         .children
@@ -152,7 +180,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
       unreachable!("Inline nodes should be wrapped in anonymous block boxes");
     }
 
-    if self.should_construct_inline_layout() {
+    if self.should_create_inline_layout() {
       return tree
         .new_leaf_with_context(self.context.style.to_taffy_style(&self.context), self)
         .unwrap();
@@ -182,7 +210,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     known_dimensions: Size<Option<f32>>,
     style: &taffy::Style,
   ) -> Size<f32> {
-    if self.should_construct_inline_layout() {
+    if self.should_create_inline_layout() {
       let (max_width, max_height) =
         create_inline_constraint(&self.context, available_space, known_dimensions);
 
@@ -261,10 +289,16 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     node.measure(&self.context, available_space, known_dimensions, style)
   }
 
-  pub(crate) fn create_inline_layout(&self, size: Size<f32>) -> (InlineLayout, String, Vec<&N>) {
+  pub(crate) fn create_inline_layout(
+    &self,
+    size: Size<f32>,
+  ) -> (
+    InlineLayout,
+    String,
+    Vec<(&N, &RenderContext<'g>, InlineBox)>,
+  ) {
     let font_style = self.context.style.to_sized_font_style(&self.context);
     let mut boxes = Vec::new();
-    let mut node_refs = Vec::new();
     let mut text_spans = Vec::new();
 
     let (mut layout, text) =
@@ -308,8 +342,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
 
                 builder.push_inline_box(inline_box.clone());
 
-                boxes.push((node, inline_box));
-                node_refs.push(node);
+                boxes.push((node, context, inline_box));
               }
             }
           }
@@ -363,10 +396,10 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
       Default::default(),
     );
 
-    (layout, text, node_refs)
+    (layout, text, boxes)
   }
 
-  fn inline_items_iter(&self) -> InlineItemIterator<'_, N> {
+  fn inline_items_iter(&self) -> InlineItemIterator<'_, 'g, N> {
     if self.context.style.display != Display::Block {
       panic!("Root node must be display block");
     }
@@ -380,7 +413,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
 
 fn create_ellipsis_layout<N: Node<N>>(
   global: &GlobalContext,
-  boxes: &mut Vec<(&N, InlineBox)>,
+  boxes: &mut Vec<(&N, &RenderContext, InlineBox)>,
   text_spans: &mut Vec<(Cow<str>, SizedFontStyle)>,
   root_font_style: &SizedFontStyle,
   max_width: f32,
@@ -396,7 +429,7 @@ fn create_ellipsis_layout<N: Node<N>>(
           builder.pop_style_span();
         }
 
-        for (_, inline_box) in boxes.iter() {
+        for (_, _, inline_box) in boxes.iter() {
           builder.push_inline_box(inline_box.clone());
         }
 
@@ -417,7 +450,7 @@ fn create_ellipsis_layout<N: Node<N>>(
 
     if boxes
       .last()
-      .is_some_and(|(_, inline_box)| inline_box.index == text.len())
+      .is_some_and(|(_, _, inline_box)| inline_box.index == text.len())
     {
       boxes.pop();
       continue;
@@ -443,13 +476,13 @@ fn create_ellipsis_layout<N: Node<N>>(
 }
 
 /// Iterator for traversing inline items in document order
-pub(crate) struct InlineItemIterator<'g, N: Node<N>> {
-  stack: Vec<(&'g NodeTree<'g, N>, usize)>, // (node, depth)
-  current_node_content: Option<(InlineItem<'g, N>, &'g RenderContext<'g>)>,
+pub(crate) struct InlineItemIterator<'n, 'g, N: Node<N>> {
+  stack: Vec<(&'n NodeTree<'g, N>, usize)>, // (node, depth)
+  current_node_content: Option<(InlineItem<'n, N>, &'n RenderContext<'g>)>,
 }
 
-impl<'g, N: Node<N>> Iterator for InlineItemIterator<'g, N> {
-  type Item = (InlineItem<'g, N>, &'g RenderContext<'g>);
+impl<'n, 'g, N: Node<N>> Iterator for InlineItemIterator<'n, 'g, N> {
+  type Item = (InlineItem<'n, N>, &'n RenderContext<'g>);
 
   fn next(&mut self) -> Option<Self::Item> {
     loop {

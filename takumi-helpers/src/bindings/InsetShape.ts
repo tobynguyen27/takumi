@@ -10,21 +10,9 @@ import type { Sides } from "./Sides";
  */
 export type InsetShape = {
   /**
-   * Top inset distance
+   * Sides of the inset.
    */
-  top: LengthUnit;
-  /**
-   * Right inset distance
-   */
-  right: LengthUnit;
-  /**
-   * Bottom inset distance
-   */
-  bottom: LengthUnit;
-  /**
-   * Left inset distance
-   */
-  left: LengthUnit;
+  inset: Sides<LengthUnit>;
   /**
    * Optional border radius for rounded corners
    */
