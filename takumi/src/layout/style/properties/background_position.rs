@@ -30,7 +30,7 @@ pub enum PositionKeywordY {
 
 /// A single `background-position` component for an axis.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, TS, PartialEq)]
-#[serde(rename_all = "kebab-case")]
+#[serde(untagged)]
 pub enum PositionComponent {
   /// A horizontal keyword.
   KeywordX(PositionKeywordX),
