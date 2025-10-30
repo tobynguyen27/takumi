@@ -1,5 +1,11 @@
 # takumi
 
+## 0.41.0
+
+### Patch Changes
+
+- 8318812: fix `PositionComponent` should be untagged
+
 ## 0.40.2
 
 ### Patch Changes

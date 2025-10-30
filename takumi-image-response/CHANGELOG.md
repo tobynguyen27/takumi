@@ -1,5 +1,17 @@
 # @takumi-rs/image-response
 
+## 0.41.0
+
+### Minor Changes
+
+- 6653f75: add wasm backend support
+
+### Patch Changes
+
+- @takumi-rs/core@0.41.0
+- @takumi-rs/wasm@0.41.0
+- @takumi-rs/helpers@0.41.0
+
 ## 0.40.2
 
 ### Patch Changes
