@@ -218,7 +218,7 @@ jobs:
   build-image-response:
     name: Build @takumi-rs/image-response
     runs-on: ubuntu-latest
-    needs: [build-helpers, build-napi]
+    needs: [build-helpers, build-napi, build-wasm]
     steps:
       - uses: actions/checkout@v5
 
