@@ -109,7 +109,7 @@ pub fn load_image_source_from_bytes(bytes: &[u8]) -> ImageResult {
 
     if let Ok(text) = from_utf8(bytes) {
       if is_svg(text) {
-        return parse_svg(text);
+        return parse_svg_str(text);
       }
     }
   }
@@ -124,9 +124,11 @@ pub(crate) fn is_svg(src: &str) -> bool {
 }
 
 #[cfg(feature = "svg")]
-pub(crate) fn parse_svg(src: &str) -> ImageResult {
-  let tree = resvg::usvg::Tree::from_str(src, &resvg::usvg::Options::default())
-    .map_err(ImageResourceError::SvgParseError)?;
+/// Parse SVG from &str.
+pub fn parse_svg_str(src: &str) -> ImageResult {
+  use resvg::usvg::Tree;
+
+  let tree = Tree::from_str(src, &Default::default()).map_err(ImageResourceError::SvgParseError)?;
 
   Ok(Arc::new(ImageSource::Svg(Box::new(tree))))
 }

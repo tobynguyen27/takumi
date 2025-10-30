@@ -10,7 +10,7 @@ use takumi::{
     AnimationFrame, ImageOutputFormat, RenderOptionsBuilder, encode_animated_png,
     encode_animated_webp, render, write_image,
   },
-  resources::image::ImageSource,
+  resources::image::{ImageSource, parse_svg_str},
 };
 
 const TEST_FONTS: &[(&[u8], &str, GenericFamily)] = &[
@@ -41,6 +41,11 @@ fn create_test_context() -> GlobalContext {
         .unwrap()
         .into_rgba8(),
     )),
+  );
+
+  context.persistent_image_store.insert(
+    "assets/images/luma.svg",
+    parse_svg_str(include_str!("../../assets/images/luma.svg")).unwrap(),
   );
 
   for (font, name, generic) in TEST_FONTS {

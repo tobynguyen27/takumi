@@ -120,7 +120,7 @@ fn resolve_image(src: &str, context: &RenderContext) -> ImageResult {
 
   if is_svg(src) {
     #[cfg(feature = "svg")]
-    return crate::resources::image::parse_svg(src);
+    return crate::resources::image::parse_svg_str(src);
     #[cfg(not(feature = "svg"))]
     return Err(ImageResourceError::SvgParseNotSupported);
   }
