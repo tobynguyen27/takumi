@@ -362,11 +362,9 @@ jobs:
           - host: windows-2025
             target: x86_64-pc-windows-msvc
           # Windows ARM64 can be built atm, but since bun does not have ARM64 support yet https://github.com/oven-sh/bun/issues/9824,
-          # we run with x64 version.
-          - host: windows-11-arm
-            target: aarch64-pc-windows-msvc
-            bun-binary-url: https://github.com/oven-sh/bun/releases/latest/download/bun-windows-x64-baseline.zip
-            core-path: ./core.win32-arm64-msvc.node
+          # we don't run it.
+          # - host: windows-11-arm
+          #   target: aarch64-pc-windows-msvc
           - host: macos-15-intel
             target: x86_64-apple-darwin
             build: bun run build --target x86_64-apple-darwin
@@ -413,8 +411,6 @@ jobs:
         if: ${{ !contains(matrix.settings.target, 'musl') }}
         working-directory: takumi-napi-core
         run: bun test
-        env: 
-          NAPI_RS_NATIVE_LIBRARY_PATH: ${{ matrix.settings.core-path }}
 
       - name: Test bindings in Alpine (musl)
         if: contains(matrix.settings.target, 'musl')
