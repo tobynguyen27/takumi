@@ -12,22 +12,25 @@
   },
   "peerDependencies": {
     "@takumi-rs/core": "0.40.2",
+    "@takumi-rs/wasm": "0.40.2",
     "@takumi-rs/helpers": "0.40.2"
   },
   "devDependencies": {
     "@takumi-rs/core": "workspace:*",
     "@takumi-rs/helpers": "workspace:*",
+    "@takumi-rs/wasm": "workspace:*",
     "@types/bun": "catalog:",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tsup": "^8.5.0",
+    "type-fest": "^5.1.0",
     "typescript": "catalog:"
   },
   "scripts": {
     "version": "jq '.peerDependencies[\"@takumi-rs/core\"] = .version | .peerDependencies[\"@takumi-rs/helpers\"] = .version' package.json > tmp.json && mv tmp.json package.json",
-    "build": "tsup-node src/index.ts --minify --dts --format esm,cjs --no-splitting"
+    "build": "tsup-node src/backends/*.ts --minify --dts --format esm,cjs --no-splitting"
   },
   "files": [
     "dist",
@@ -37,10 +40,16 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.js"
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js",
+      "require": "./dist/node.cjs",
+      "default": "./dist/node.js"
+    },
+    "./wasm": {
+      "types": "./dist/wasm.d.ts",
+      "import": "./dist/wasm.js",
+      "require": "./dist/wasm.cjs",
+      "default": "./dist/wasm.js"
     }
   },
   "license": "(MIT OR Apache-2.0)"

@@ -83,7 +83,7 @@ function loadFonts(renderer: Renderer, fonts: Font[]) {
     fontLoadMarker.add(font);
   }
 
-  return renderer.loadFontsAsync(fontsToLoad);
+  return renderer.loadFonts(fontsToLoad);
 }
 
 function putPersistentImage(renderer: Renderer, image: PersistentImage) {
@@ -93,7 +93,7 @@ function putPersistentImage(renderer: Renderer, image: PersistentImage) {
 
   persistentImageLoadMarker.add(image);
 
-  return renderer.putPersistentImageAsync(image.src, image.data);
+  return renderer.putPersistentImage(image.src, image.data);
 }
 
 function createStream(component: ReactNode, options?: ImageResponseOptions) {
@@ -140,10 +140,6 @@ export class ImageResponse extends Response {
         "content-type",
         contentTypeMapping[options?.format ?? "webp"],
       );
-    }
-
-    if (!headers.get("cache-control")) {
-      headers.set("cache-control", "public, max-age=0, must-revalidate");
     }
 
     super(stream, {
