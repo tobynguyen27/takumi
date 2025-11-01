@@ -1,5 +1,12 @@
 # takumi
 
+## 0.42.0
+
+### Minor Changes
+
+- 44368b8: remove all Mutex/RwLock uses
+- 44368b8: replace noise-v1 to use lighter hash function, only `opacity()` & `seed()` is supported
+
 ## 0.41.0
 
 ### Patch Changes
