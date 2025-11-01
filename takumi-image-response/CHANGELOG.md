@@ -1,5 +1,14 @@
 # @takumi-rs/image-response
 
+## 0.42.0
+
+### Patch Changes
+
+- 5f32366: Handles assets fetching WASM version
+  - @takumi-rs/core@0.42.0
+  - @takumi-rs/wasm@0.42.0
+  - @takumi-rs/helpers@0.42.0
+
 ## 0.41.0
 
 ### Minor Changes
