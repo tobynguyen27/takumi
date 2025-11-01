@@ -1,6 +1,7 @@
 import { fromJsx } from "@takumi-rs/helpers/jsx";
 import {
   type ByteBuf,
+  collectNodeFetchTasks,
   type Font,
   Renderer,
   type RenderOptions,
@@ -72,14 +73,36 @@ const defaultOptions: ImageResponseOptions = {
   format: "webp",
 };
 
-function createStream(component: ReactNode, options?: ImageResponseOptions) {
+function createStream(
+  component: ReactNode,
+  options: ImageResponseOptions = { ...defaultOptions },
+) {
   return new ReadableStream({
     async start(controller) {
       try {
         const renderer = getRenderer(options);
 
         const node = await fromJsx(component);
-        const image = renderer.render(node, options ?? defaultOptions);
+
+        if (!options.fetchedResources) {
+          const urls = collectNodeFetchTasks(node);
+
+          if (urls.length > 0) {
+            options.fetchedResources = new Map(
+              await Promise.all(
+                urls.map(
+                  async (url) =>
+                    [
+                      url,
+                      await fetch(url).then((r) => r.arrayBuffer()),
+                    ] as const,
+                ),
+              ),
+            );
+          }
+        }
+
+        const image = renderer.render(node, options);
 
         controller.enqueue(image);
         controller.close();
