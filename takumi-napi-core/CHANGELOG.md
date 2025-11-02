@@ -1,5 +1,11 @@
 # @takumi-rs/core
 
+## 0.43.0
+
+### Minor Changes
+
+- 796c578: deprecate pascal case image format
+
 ## 0.42.0
 
 ## 0.41.0

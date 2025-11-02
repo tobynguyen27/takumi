@@ -1,5 +1,11 @@
 # @takumi-rs/helpers
 
+## 0.43.0
+
+### Minor Changes
+
+- 9247090: Add `createTailwindFn` function
+
 ## 0.42.0
 
 ## 0.41.0

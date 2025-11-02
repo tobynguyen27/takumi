@@ -1,5 +1,19 @@
 # @takumi-rs/image-response
 
+## 0.43.0
+
+### Minor Changes
+
+- 3be9d4d: Add `jsx` options support to configure `fromJsx`
+
+### Patch Changes
+
+- Updated dependencies [9247090]
+- Updated dependencies [796c578]
+  - @takumi-rs/helpers@0.43.0
+  - @takumi-rs/core@0.43.0
+  - @takumi-rs/wasm@0.43.0
+
 ## 0.42.0
 
 ### Patch Changes
