@@ -72,9 +72,13 @@ pub enum OutputFormat {
   avif,
   png,
   jpeg,
+  /// @deprecated Use lowercase `webp` instead, may be removed in the future
   WebP,
+  /// @deprecated Use lowercase `avif` instead, may be removed in the future
   Avif,
+  /// @deprecated Use lowercase `jpeg` instead, may be removed in the future
   Jpeg,
+  /// @deprecated Use lowercase `png` instead, may be removed in the future
   Png,
   raw,
 }
@@ -82,14 +86,10 @@ pub enum OutputFormat {
 impl From<OutputFormat> for ImageOutputFormat {
   fn from(format: OutputFormat) -> Self {
     match format {
-      OutputFormat::WebP => ImageOutputFormat::WebP,
-      OutputFormat::Avif => ImageOutputFormat::Avif,
-      OutputFormat::Jpeg => ImageOutputFormat::Jpeg,
-      OutputFormat::Png => ImageOutputFormat::Png,
-      OutputFormat::png => ImageOutputFormat::Png,
-      OutputFormat::jpeg => ImageOutputFormat::Jpeg,
-      OutputFormat::webp => ImageOutputFormat::WebP,
-      OutputFormat::avif => ImageOutputFormat::Avif,
+      OutputFormat::WebP | OutputFormat::webp => ImageOutputFormat::WebP,
+      OutputFormat::Avif | OutputFormat::avif => ImageOutputFormat::Avif,
+      OutputFormat::Jpeg | OutputFormat::jpeg => ImageOutputFormat::Jpeg,
+      OutputFormat::Png | OutputFormat::png => ImageOutputFormat::Png,
       // SAFETY: It's handled in the render task
       OutputFormat::raw => unreachable!(),
     }
