@@ -18,6 +18,14 @@ const highlighter = await createHighlighterCore({
   },
 });
 
+const tailwindTypings = `
+  declare namespace React {
+  interface HTMLAttributes<T> {
+    tw?: string;
+  }
+}
+`;
+
 export function ComponentEditor({
   code,
   setCode,
@@ -63,6 +71,10 @@ export function ComponentEditor({
             {
               content: playgroundOptionsTypings,
               filePath: "file:///options.d.ts",
+            },
+            {
+              content: tailwindTypings,
+              filePath: "file:///tw.d.ts",
             },
           ]);
 

@@ -6,6 +6,7 @@ import type {
 } from "react";
 import { container, image, percentage, text } from "../helpers";
 import type { Node, PartialStyle } from "../types";
+import type { createTailwindFn } from "./create-tailwind-fn";
 import { stylePresets } from "./style-presets";
 import { serializeSvg } from "./svg";
 import {
@@ -18,10 +19,18 @@ import {
   type ReactElementLike,
 } from "./utils";
 
+export interface FromJsxOptions {
+  /**
+   * @description The tailwind function to use, it will parse the `tw` prop and apply to inline styles.
+   */
+  tailwindFn?: ReturnType<typeof createTailwindFn>;
+}
+
 export async function fromJsx(
   element: ReactNode | ReactElementLike,
+  options?: FromJsxOptions,
 ): Promise<Node> {
-  const result = await fromJsxInternal(element);
+  const result = await fromJsxInternal(element, options ?? {});
 
   if (result.length === 0) {
     return container({});
@@ -42,18 +51,20 @@ export async function fromJsx(
 
 async function fromJsxInternal(
   element: ReactNode | ReactElementLike,
+  options: FromJsxOptions,
 ): Promise<Node[]> {
   if (element === undefined || element === null || element === false) return [];
 
   // If element is a server component, wait for it to resolve first
-  if (element instanceof Promise) return fromJsxInternal(await element);
+  if (element instanceof Promise)
+    return fromJsxInternal(await element, options);
 
   // If element is an iterable, collect the children
   if (typeof element === "object" && Symbol.iterator in element)
-    return collectIterable(element);
+    return collectIterable(element, options);
 
   if (isValidElement(element)) {
-    const result = await processReactElement(element);
+    const result = await processReactElement(element, options);
     return Array.isArray(result) ? result : result ? [result] : [];
   }
 
@@ -62,6 +73,7 @@ async function fromJsxInternal(
 
 function tryHandleComponentWrapper(
   element: ReactElementLike,
+  options: FromJsxOptions,
 ): Promise<Node[]> | undefined {
   if (typeof element.type !== "object" || element.type === null)
     return undefined;
@@ -71,7 +83,7 @@ function tryHandleComponentWrapper(
     const forwardRefType = element.type as {
       render: (props: unknown, ref: unknown) => ReactNode;
     };
-    return fromJsxInternal(forwardRefType.render(element.props, null));
+    return fromJsxInternal(forwardRefType.render(element.props, null), options);
   }
 
   // Handle memo components
@@ -80,7 +92,7 @@ function tryHandleComponentWrapper(
     const innerType = memoType.type;
 
     if (isFunctionComponent(innerType)) {
-      return fromJsxInternal(innerType(element.props));
+      return fromJsxInternal(innerType(element.props), options);
     }
 
     const cloned: ReactElementLike = {
@@ -88,7 +100,7 @@ function tryHandleComponentWrapper(
       type: innerType as ReactElementLike["type"],
     } as ReactElementLike;
 
-    return processReactElement(cloned);
+    return processReactElement(cloned, options);
   }
 }
 
@@ -146,34 +158,37 @@ function collectTextFromChildren(children: ReactNode[]): string | undefined {
     .join("");
 }
 
-async function processReactElement(element: ReactElementLike): Promise<Node[]> {
+async function processReactElement(
+  element: ReactElementLike,
+  options: FromJsxOptions,
+): Promise<Node[]> {
   if (isFunctionComponent(element.type)) {
-    return fromJsxInternal(element.type(element.props));
+    return fromJsxInternal(element.type(element.props), options);
   }
 
-  const wrapperResult = tryHandleComponentWrapper(element);
+  const wrapperResult = tryHandleComponentWrapper(element, options);
   if (wrapperResult !== undefined) return wrapperResult;
 
   // Handle React fragments <></>
   if (isReactFragment(element)) {
-    const children = await collectChildren(element);
+    const children = await collectChildren(element, options);
     return children || [];
   }
 
   if (isHtmlElement(element, "img")) {
-    return [createImageElement(element)];
+    return [createImageElement(element, options)];
   }
 
   if (isHtmlElement(element, "svg")) {
-    return [createSvgElement(element)];
+    return [createSvgElement(element, options)];
   }
 
-  const style = extractStyle(element) as PartialStyle;
+  const style = extractStyle(element, options) as PartialStyle;
 
   const textChildren = await tryCollectTextChildren(element);
   if (textChildren !== undefined) return [text(textChildren, style)];
 
-  const children = await collectChildren(element);
+  const children = await collectChildren(element, options);
 
   return [
     container({
@@ -185,12 +200,13 @@ async function processReactElement(element: ReactElementLike): Promise<Node[]> {
 
 function createImageElement(
   element: ReactElement<ComponentProps<"img">, "img">,
+  options: FromJsxOptions,
 ) {
   if (!element.props.src) {
     throw new Error("Image element must have a 'src' prop.");
   }
 
-  const style = extractStyle(element) as PartialStyle;
+  const style = extractStyle(element, options) as PartialStyle;
 
   return image({
     src: element.props.src,
@@ -198,8 +214,11 @@ function createImageElement(
   });
 }
 
-function createSvgElement(element: ReactElement<ComponentProps<"svg">, "svg">) {
-  const style = extractStyle(element) as PartialStyle;
+function createSvgElement(
+  element: ReactElement<ComponentProps<"svg">, "svg">,
+  options: FromJsxOptions,
+) {
+  const style = extractStyle(element, options) as PartialStyle;
   const svg = serializeSvg(element);
 
   return image({
@@ -215,7 +234,42 @@ const webkitPropertiesMapping = {
   WebkitTextStrokeColor: "textStrokeColor",
 } satisfies Partial<Record<keyof CSSProperties, keyof PartialStyle>>;
 
-function extractStyle(element: ReactElementLike): PartialStyle {
+function processTailwindStyle(
+  element: ReactElementLike,
+  base: PartialStyle,
+  options: FromJsxOptions,
+) {
+  if (
+    !options.tailwindFn ||
+    typeof element.props !== "object" ||
+    element.props === null
+  )
+    return;
+
+  const classes = [];
+
+  if ("tw" in element.props && typeof element.props.tw === "string") {
+    classes.push(element.props.tw);
+  }
+
+  if (
+    "className" in element.props &&
+    typeof element.props.className === "string"
+  ) {
+    classes.push(element.props.className);
+  }
+
+  if ("class" in element.props && typeof element.props.class === "string") {
+    classes.push(element.props.class);
+  }
+
+  Object.assign(base, options.tailwindFn(...classes));
+}
+
+function extractStyle(
+  element: ReactElementLike,
+  options: FromJsxOptions,
+): PartialStyle {
   const base = {};
 
   if (typeof element.type === "string" && element.type in stylePresets) {
@@ -224,6 +278,8 @@ function extractStyle(element: ReactElementLike): PartialStyle {
       stylePresets[element.type as keyof typeof stylePresets],
     );
   }
+
+  processTailwindStyle(element, base, options);
 
   const style =
     typeof element.props === "object" &&
@@ -248,7 +304,10 @@ function extractStyle(element: ReactElementLike): PartialStyle {
   return base;
 }
 
-function collectChildren(element: ReactElementLike): Promise<Node[]> {
+function collectChildren(
+  element: ReactElementLike,
+  options: FromJsxOptions,
+): Promise<Node[]> {
   if (
     typeof element.props !== "object" ||
     element.props === null ||
@@ -256,11 +315,14 @@ function collectChildren(element: ReactElementLike): Promise<Node[]> {
   )
     return Promise.resolve([]);
 
-  return fromJsxInternal(element.props.children as ReactNode);
+  return fromJsxInternal(element.props.children as ReactNode, options);
 }
 
-function collectIterable(iterable: Iterable<ReactNode>): Promise<Node[]> {
-  return Promise.all(Array.from(iterable).map(fromJsxInternal)).then(
-    (results) => results.flat(),
-  );
+function collectIterable(
+  iterable: Iterable<ReactNode>,
+  options: FromJsxOptions,
+): Promise<Node[]> {
+  return Promise.all(
+    Array.from(iterable).map((element) => fromJsxInternal(element, options)),
+  ).then((results) => results.flat());
 }

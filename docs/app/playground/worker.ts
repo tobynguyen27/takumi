@@ -1,4 +1,5 @@
 import { fromJsx } from "@takumi-rs/helpers/jsx";
+import { createTailwindFn } from "@takumi-rs/helpers/jsx/create-tailwind-fn";
 import DocsTemplateV1 from "@takumi-rs/template/docs-template-v1";
 import initWasm, { collectNodeFetchTasks, Renderer } from "@takumi-rs/wasm";
 import wasmUrl from "@takumi-rs/wasm/takumi_wasm_bg.wasm?url";
@@ -21,6 +22,23 @@ const exportsSchema = z.object({
 });
 
 let renderer: Renderer | undefined;
+
+// Cache for fetched resources to avoid repeated network requests
+const fetchCache = new Map<string, ArrayBuffer>();
+
+async function cachedFetch(url: string): Promise<ArrayBuffer> {
+  const cached = fetchCache.get(url);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const response = await fetch(url);
+  const buffer = await response.arrayBuffer();
+
+  fetchCache.set(url, buffer);
+
+  return buffer;
+}
 
 (async () => {
   const [_, normalFont] = await Promise.all([
@@ -72,6 +90,9 @@ self.onmessage = async (event: MessageEvent) => {
           React.createElement(
             component as React.JSXElementConstructor<unknown>,
           ),
+          {
+            tailwindFn: createTailwindFn(),
+          },
         );
 
         const resourceUrls = collectNodeFetchTasks(node);
@@ -79,8 +100,7 @@ self.onmessage = async (event: MessageEvent) => {
         const fetchedResources = new Map(
           await Promise.all(
             resourceUrls.map(
-              async (url) =>
-                [url, await fetch(url).then((r) => r.arrayBuffer())] as const,
+              async (url) => [url, await cachedFetch(url)] as const,
             ),
           ),
         );

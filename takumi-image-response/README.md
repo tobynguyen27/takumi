@@ -84,6 +84,20 @@ const renderer = new Renderer();
 new ImageResponse(<OgImage />, { renderer });
 ```
 
+### Tailwind
+
+Takumi supports Tailwind classes as an optional feature.
+
+```tsx
+import { createTailwindFn } from "@takumi-rs/helpers/jsx/create-tailwind-fn";
+
+new ImageResponse(<div tw="text-2xl">Hello</div>, {
+  jsx: {
+    tailwindFn: createTailwindFn(),
+  }
+});
+```
+
 ---
 
 ## WASM Usage

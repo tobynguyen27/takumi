@@ -1,3 +1,4 @@
+import { createTailwindFn } from "@takumi-rs/helpers/jsx/create-tailwind-fn";
 import ImageResponse from "@takumi-rs/image-response/wasm";
 import DocsTemplateV1 from "@takumi-rs/template/docs-template-v1";
 import { type ByteBuf, initSync } from "@takumi-rs/wasm";
@@ -18,6 +19,8 @@ async function prepareResources() {
   return map;
 }
 
+const tailwindFn = createTailwindFn();
+
 export default {
   async fetch(request) {
     fetchedResources ??= prepareResources();
@@ -30,21 +33,15 @@ export default {
       <DocsTemplateV1
         title={`Hello, ${name}`}
         description="This is an example of rendering on Cloudflare Workers!"
-        icon={
-          <img
-            src={logoUrl}
-            alt="Logo"
-            style={{
-              width: "6rem",
-              borderRadius: "50%",
-            }}
-          />
-        }
+        icon={<img tw="w-24 rounded-full" src={logoUrl} alt="Logo" />}
         site="Takumi"
         primaryColor="#F48120"
         primaryTextColor="#fff"
       />,
       {
+        jsx: {
+          tailwindFn,
+        },
         fetchedResources: await fetchedResources,
         width: 1200,
         height: 630,
