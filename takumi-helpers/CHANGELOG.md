@@ -1,5 +1,13 @@
 # @takumi-rs/helpers
 
+## 0.43.1
+
+### Patch Changes
+
+- 4bd994f: ignore void elements (head/meta/link/style/script)
+- 4bd994f: handles `br` hard breaking
+- 4bd994f: fix pre/body/hr/center style preset
+
 ## 0.43.0
 
 ### Minor Changes
