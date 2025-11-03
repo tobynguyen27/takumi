@@ -12,6 +12,7 @@ import { serializeSvg } from "./svg";
 import {
   isFunctionComponent,
   isHtmlElement,
+  isHtmlVoidElement,
   isReactForwardRef,
   isReactFragment,
   isReactMemo,
@@ -173,6 +174,14 @@ async function processReactElement(
   if (isReactFragment(element)) {
     const children = await collectChildren(element, options);
     return children || [];
+  }
+
+  if (isHtmlVoidElement(element)) {
+    return [];
+  }
+
+  if (isHtmlElement(element, "br")) {
+    return [text("\n", stylePresets.span)];
   }
 
   if (isHtmlElement(element, "img")) {

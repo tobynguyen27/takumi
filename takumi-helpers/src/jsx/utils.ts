@@ -10,6 +10,18 @@ export type ReactElementLike = {
   $$typeof?: symbol;
 };
 
+const voidElements = new Set<string>([
+  "head",
+  "meta",
+  "link",
+  "style",
+  "script",
+]);
+
+export function isHtmlVoidElement(element: ReactElementLike) {
+  return voidElements.has(element.type as string);
+}
+
 export function isHtmlElement<T extends keyof JSX.IntrinsicElements>(
   element: ReactElementLike,
   type: T,

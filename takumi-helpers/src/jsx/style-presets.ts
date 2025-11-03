@@ -7,6 +7,9 @@ import type { PartialStyle } from "../types";
 export const stylePresets: Partial<
   Record<keyof JSX.IntrinsicElements, PartialStyle>
 > = {
+  body: {
+    margin: 8,
+  },
   // Generic block-level elements
   p: {
     marginTop: "1em",
@@ -22,7 +25,7 @@ export const stylePresets: Partial<
   },
   center: {
     textAlign: "center",
-    display: "inline",
+    display: "block",
   },
   hr: {
     marginTop: "0.5em",
@@ -30,6 +33,7 @@ export const stylePresets: Partial<
     marginLeft: "auto",
     marginRight: "auto",
     borderWidth: 1,
+    display: "block",
   },
   // Heading elements
   h1: {
@@ -115,12 +119,11 @@ export const stylePresets: Partial<
   },
   pre: {
     fontFamily: "monospace",
-    marginTop: "1em",
-    marginBottom: "1em",
-    display: "inline",
+    margin: "1em 0",
+    display: "block",
   },
   mark: {
-    backgroundColor: 0xffff00,
+    backgroundColor: "yellow",
     color: 0,
     display: "inline",
   },
