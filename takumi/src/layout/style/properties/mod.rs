@@ -19,7 +19,6 @@ mod font_feature_settings;
 mod font_style;
 mod font_variation_settings;
 mod font_weight;
-mod gap;
 mod gradient_utils;
 mod grid;
 mod length_unit;
@@ -31,14 +30,13 @@ mod overflow;
 mod overflow_wrap;
 mod percentage_number;
 mod radial_gradient;
-mod scale;
 mod sides;
+mod space_pair;
 mod text_decoration;
 mod text_overflow;
 mod text_shadow;
 mod text_stroke;
 mod transform;
-mod translate;
 mod white_space;
 mod word_break;
 
@@ -60,7 +58,6 @@ pub use font_feature_settings::*;
 pub use font_style::*;
 pub use font_variation_settings::*;
 pub use font_weight::*;
-pub use gap::*;
 pub use grid::*;
 pub use length_unit::*;
 pub use line_clamp::*;
@@ -71,14 +68,13 @@ pub use overflow::*;
 pub use overflow_wrap::*;
 pub use percentage_number::*;
 pub use radial_gradient::*;
-pub use scale::*;
 pub use sides::*;
+pub use space_pair::*;
 pub use text_decoration::*;
 pub use text_overflow::*;
 pub use text_shadow::*;
 pub use text_stroke::*;
 pub use transform::*;
-pub use translate::*;
 pub use white_space::*;
 pub use word_break::*;
 
@@ -87,6 +83,8 @@ use image::imageops::FilterType;
 use parley::{Alignment, FontStack};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
+
+use crate::layout::style::tw::TailwindPropertyParser;
 
 /// Parser result type alias for CSS property parsers.
 pub type ParseResult<'i, T> = Result<T, ParseError<'i, Cow<'i, str>>>;
@@ -142,6 +140,28 @@ pub enum ObjectFit {
   None,
 }
 
+impl<'i> FromCss<'i> for ObjectFit {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let location = input.current_source_location();
+    let token = input.expect_ident()?;
+
+    match_ignore_ascii_case! { token,
+      "fill" => Ok(ObjectFit::Fill),
+      "contain" => Ok(ObjectFit::Contain),
+      "cover" => Ok(ObjectFit::Cover),
+      "scale-down" => Ok(ObjectFit::ScaleDown),
+      "none" => Ok(ObjectFit::None),
+      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
+    }
+  }
+}
+
+impl TailwindPropertyParser for ObjectFit {
+  fn parse_tw(token: &str) -> Option<Self> {
+    Self::from_str(token).ok()
+  }
+}
+
 /// Defines how the width and height of an element are calculated.
 ///
 /// This enum determines whether the width and height properties include padding and border, or just the content area.
@@ -176,6 +196,29 @@ pub enum TextAlign {
   Start,
   /// Aligns inline content to the end edge of the line box (language-dependent)
   End,
+}
+
+impl<'i> FromCss<'i> for TextAlign {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let location = input.current_source_location();
+    let token = input.expect_ident()?;
+
+    match_ignore_ascii_case! { token,
+      "left" => Ok(TextAlign::Left),
+      "right" => Ok(TextAlign::Right),
+      "center" => Ok(TextAlign::Center),
+      "justify" => Ok(TextAlign::Justify),
+      "start" => Ok(TextAlign::Start),
+      "end" => Ok(TextAlign::End),
+      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
+    }
+  }
+}
+
+impl TailwindPropertyParser for TextAlign {
+  fn parse_tw(token: &str) -> Option<Self> {
+    Self::from_str(token).ok()
+  }
 }
 
 impl_from_taffy_enum!(
@@ -262,6 +305,33 @@ pub enum JustifyContent {
   SpaceAround,
 }
 
+impl<'i> FromCss<'i> for JustifyContent {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let location = input.current_source_location();
+    let token = input.expect_ident()?;
+
+    match_ignore_ascii_case! { token,
+      "normal" => Ok(JustifyContent::Normal),
+      "start" => Ok(JustifyContent::Start),
+      "end" => Ok(JustifyContent::End),
+      "flex-start" => Ok(JustifyContent::FlexStart),
+      "flex-end" => Ok(JustifyContent::FlexEnd),
+      "center" => Ok(JustifyContent::Center),
+      "stretch" => Ok(JustifyContent::Stretch),
+      "space-between" => Ok(JustifyContent::SpaceBetween),
+      "space-around" => Ok(JustifyContent::SpaceAround),
+      "space-evenly" => Ok(JustifyContent::SpaceEvenly),
+      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
+    }
+  }
+}
+
+impl TailwindPropertyParser for JustifyContent {
+  fn parse_tw(token: &str) -> Option<Self> {
+    Self::from_str(token).ok()
+  }
+}
+
 impl From<JustifyContent> for Option<taffy::JustifyContent> {
   fn from(value: JustifyContent) -> Self {
     match value {
@@ -283,6 +353,8 @@ impl From<JustifyContent> for Option<taffy::JustifyContent> {
 #[derive(Debug, Clone, Deserialize, Serialize, Copy, TS, PartialEq, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum Display {
+  /// The element is not displayed
+  None,
   /// The element generates a flex container and its children follow the flexbox layout algorithm
   #[default]
   Flex,
@@ -325,6 +397,7 @@ impl From<Display> for taffy::Display {
       Display::Flex => taffy::Display::Flex,
       Display::Grid => taffy::Display::Grid,
       Display::Block => taffy::Display::Block,
+      Display::None => taffy::Display::None,
       Display::Inline => unreachable!("Inline node should not be inserted into taffy context"),
     }
   }
@@ -354,6 +427,31 @@ pub enum AlignItems {
   Baseline,
   /// Items are stretched to fill the container in the cross axis
   Stretch,
+}
+
+impl<'i> FromCss<'i> for AlignItems {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let location = input.current_source_location();
+    let token = input.expect_ident()?;
+
+    match_ignore_ascii_case! {token,
+      "normal" => Ok(AlignItems::Normal),
+      "start" => Ok(AlignItems::Start),
+      "end" => Ok(AlignItems::End),
+      "flex-start" => Ok(AlignItems::FlexStart),
+      "flex-end" => Ok(AlignItems::FlexEnd),
+      "center" => Ok(AlignItems::Center),
+      "baseline" => Ok(AlignItems::Baseline),
+      "stretch" => Ok(AlignItems::Stretch),
+      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
+    }
+  }
+}
+
+impl TailwindPropertyParser for AlignItems {
+  fn parse_tw(token: &str) -> Option<Self> {
+    Self::from_str(token).ok()
+  }
 }
 
 impl From<AlignItems> for Option<taffy::AlignItems> {
@@ -408,6 +506,23 @@ pub enum TextTransform {
 #[derive(Debug, Clone, Deserialize, Serialize, TS, PartialEq)]
 #[serde(transparent)]
 pub struct FontFamily(String);
+
+impl TailwindPropertyParser for FontFamily {
+  fn parse_tw(token: &str) -> Option<Self> {
+    match_ignore_ascii_case! {token,
+      "sans" => Some(FontFamily("sans-serif".to_string())),
+      "serif" => Some(FontFamily("serif".to_string())),
+      "mono" => Some(FontFamily("monospace".to_string())),
+      _ => None,
+    }
+  }
+}
+
+impl<'i> FromCss<'i> for FontFamily {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    Ok(FontFamily(input.current_line().to_string()))
+  }
+}
 
 impl Default for FontFamily {
   fn default() -> Self {
@@ -488,32 +603,6 @@ impl<'i> FromCss<'i> for WhiteSpaceCollapse {
     }
   }
 }
-
-/// Represents the grid auto flow with serde support
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, TS, Default, PartialEq)]
-#[serde(rename_all = "kebab-case")]
-pub enum GridAutoFlow {
-  /// Places grid items by filling each row in turn, adding new rows as needed
-  #[default]
-  Row,
-  /// Places grid items by filling each column in turn, adding new columns as needed
-  Column,
-  /// Places grid items by filling each row in turn, using dense packing to fill gaps
-  #[serde(rename = "row dense")]
-  RowDense,
-  /// Places grid items by filling each column in turn, using dense packing to fill gaps
-  #[serde(rename = "column dense")]
-  ColumnDense,
-}
-
-impl_from_taffy_enum!(
-  GridAutoFlow,
-  taffy::style::GridAutoFlow,
-  Row,
-  Column,
-  RowDense,
-  ColumnDense
-);
 
 /// Defines how images should be scaled when rendered.
 #[derive(Default, Debug, Clone, Copy, Deserialize, Serialize, TS, PartialEq)]

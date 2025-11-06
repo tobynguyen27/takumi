@@ -5,7 +5,7 @@ use ts_rs::TS;
 use zeno::{Fill, Mask, PathBuilder, PathData, Placement};
 
 use crate::{
-  layout::style::{Affine, Axis, Color, FromCss, LengthUnit, ParseResult, Sides},
+  layout::style::{Affine, Axis, Color, FromCss, LengthUnit, ParseResult, Sides, SpacePair},
   rendering::{BorderProperties, RenderContext},
 };
 
@@ -47,20 +47,12 @@ pub enum ShapeRadius {
 }
 
 /// Represents a position for circle() and ellipse() functions.
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, TS, PartialEq)]
-pub struct ShapePosition {
-  /// X-axis position component
-  pub x: LengthUnit,
-  /// Y-axis position component
-  pub y: LengthUnit,
-}
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, TS)]
+pub struct ShapePosition(pub SpacePair<LengthUnit>);
 
 impl Default for ShapePosition {
   fn default() -> Self {
-    Self {
-      x: LengthUnit::Percentage(50.0),
-      y: LengthUnit::Percentage(50.0),
-    }
+    Self(SpacePair::from_single(LengthUnit::Percentage(50.0)))
   }
 }
 
@@ -100,14 +92,7 @@ pub struct EllipseShape {
 }
 
 /// Represents a single coordinate pair in a polygon.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "camelCase")]
-pub struct PolygonCoordinate {
-  /// X coordinate
-  pub x: LengthUnit,
-  /// Y coordinate
-  pub y: LengthUnit,
-}
+pub type PolygonCoordinate = SpacePair<LengthUnit>;
 
 /// Represents a polygon() shape.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -254,8 +239,8 @@ impl BasicShape {
       }
       BasicShape::Ellipse(shape) => {
         let distance = Size {
-          width: shape.position.x.resolve_to_px(context, size.width),
-          height: shape.position.y.resolve_to_px(context, size.height),
+          width: shape.position.0.x.resolve_to_px(context, size.width),
+          height: shape.position.0.y.resolve_to_px(context, size.height),
         };
 
         paths.add_ellipse(
@@ -340,19 +325,7 @@ impl<'i> FromCss<'i> for ShapePosition {
       .try_parse(LengthUnit::from_css)
       .unwrap_or(LengthUnit::Percentage(50.0));
 
-    Ok(ShapePosition {
-      x: first,
-      y: second,
-    })
-  }
-}
-
-impl<'i> FromCss<'i> for PolygonCoordinate {
-  fn from_css(parser: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let x = LengthUnit::from_css(parser)?;
-    let y = LengthUnit::from_css(parser)?;
-
-    Ok(PolygonCoordinate { x, y })
+    Ok(ShapePosition(SpacePair::from_pair(first, second)))
   }
 }
 
@@ -523,8 +496,8 @@ mod tests {
     if let BasicShape::Ellipse(circle) = result {
       assert_eq!(circle.radius_x, circle.radius_y);
       assert_eq!(circle.radius_x, ShapeRadius::Length(LengthUnit::Px(50.0)));
-      assert_eq!(circle.position.x, LengthUnit::Percentage(50.0));
-      assert_eq!(circle.position.y, LengthUnit::Percentage(50.0));
+      assert_eq!(circle.position.0.x, LengthUnit::Percentage(50.0));
+      assert_eq!(circle.position.0.y, LengthUnit::Percentage(50.0));
     } else {
       panic!("Expected circle shape");
     }
@@ -536,8 +509,8 @@ mod tests {
     if let BasicShape::Ellipse(circle) = result {
       assert_eq!(circle.radius_x, circle.radius_y);
       assert_eq!(circle.radius_x, ShapeRadius::Length(LengthUnit::Px(50.0)));
-      assert_eq!(circle.position.x, LengthUnit::Percentage(25.0));
-      assert_eq!(circle.position.y, LengthUnit::Percentage(75.0));
+      assert_eq!(circle.position.0.x, LengthUnit::Percentage(25.0));
+      assert_eq!(circle.position.0.y, LengthUnit::Percentage(75.0));
     } else {
       panic!("Expected circle shape");
     }
@@ -549,8 +522,8 @@ mod tests {
     if let BasicShape::Ellipse(circle) = result {
       assert_eq!(circle.radius_x, circle.radius_y);
       assert_eq!(circle.radius_x, ShapeRadius::ClosestSide);
-      assert_eq!(circle.position.x, LengthUnit::Percentage(25.0));
-      assert_eq!(circle.position.y, LengthUnit::Percentage(75.0));
+      assert_eq!(circle.position.0.x, LengthUnit::Percentage(25.0));
+      assert_eq!(circle.position.0.y, LengthUnit::Percentage(75.0));
     } else {
       panic!("Expected circle shape");
     }
@@ -562,8 +535,8 @@ mod tests {
     if let BasicShape::Ellipse(ellipse) = result {
       assert_eq!(ellipse.radius_x, ShapeRadius::Length(LengthUnit::Px(50.0)));
       assert_eq!(ellipse.radius_y, ShapeRadius::Length(LengthUnit::Px(30.0)));
-      assert_eq!(ellipse.position.x, LengthUnit::Percentage(50.0));
-      assert_eq!(ellipse.position.y, LengthUnit::Percentage(50.0));
+      assert_eq!(ellipse.position.0.x, LengthUnit::Percentage(50.0));
+      assert_eq!(ellipse.position.0.y, LengthUnit::Percentage(50.0));
     } else {
       panic!("Expected ellipse shape");
     }
@@ -575,8 +548,8 @@ mod tests {
     if let BasicShape::Ellipse(ellipse) = result {
       assert_eq!(ellipse.radius_x, ShapeRadius::Length(LengthUnit::Px(50.0)));
       assert_eq!(ellipse.radius_y, ShapeRadius::Length(LengthUnit::Px(30.0)));
-      assert_eq!(ellipse.position.x, LengthUnit::Percentage(25.0));
-      assert_eq!(ellipse.position.y, LengthUnit::Percentage(75.0));
+      assert_eq!(ellipse.position.0.x, LengthUnit::Percentage(25.0));
+      assert_eq!(ellipse.position.0.y, LengthUnit::Percentage(75.0));
     } else {
       panic!("Expected ellipse shape");
     }

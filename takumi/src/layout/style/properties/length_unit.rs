@@ -1,10 +1,15 @@
+use std::ops::Neg;
+
 use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
 use taffy::{CompactLength, Dimension, LengthPercentage, LengthPercentageAuto, Rect};
 use ts_rs::TS;
 
 use crate::{
-  layout::style::{FromCss, ParseResult},
+  layout::style::{
+    AspectRatio, FromCss, ParseResult,
+    tw::{TW_VAR_SPACING, TailwindPropertyParser},
+  },
   rendering::RenderContext,
 };
 
@@ -43,6 +48,42 @@ pub enum LengthUnit {
   Pc(f32),
   /// Specific pixel value
   Px(f32),
+}
+
+impl TailwindPropertyParser for LengthUnit {
+  fn parse_tw(token: &str) -> Option<Self> {
+    if let Ok(value) = token.parse::<f32>() {
+      return Some(LengthUnit::Rem(value * TW_VAR_SPACING));
+    }
+
+    match AspectRatio::from_str(token) {
+      Ok(AspectRatio::Ratio(ratio)) => return Some(LengthUnit::Percentage(ratio * 100.0)),
+      Ok(AspectRatio::Auto) => return Some(LengthUnit::Auto),
+      _ => {}
+    }
+
+    match_ignore_ascii_case! {token,
+      "auto" => Some(LengthUnit::Auto),
+      "dvw" => Some(LengthUnit::Vw(100.0)),
+      "dvh" => Some(LengthUnit::Vh(100.0)),
+      "px" => Some(LengthUnit::Px(1.0)),
+      "full" => Some(LengthUnit::Percentage(100.0)),
+      "3xs" => Some(LengthUnit::Rem(16.0)),
+      "2xs" => Some(LengthUnit::Rem(18.0)),
+      "xs" => Some(LengthUnit::Rem(20.0)),
+      "sm" => Some(LengthUnit::Rem(24.0)),
+      "md" => Some(LengthUnit::Rem(28.0)),
+      "lg" => Some(LengthUnit::Rem(32.0)),
+      "xl" => Some(LengthUnit::Rem(36.0)),
+      "2xl" => Some(LengthUnit::Rem(42.0)),
+      "3xl" => Some(LengthUnit::Rem(48.0)),
+      "4xl" => Some(LengthUnit::Rem(56.0)),
+      "5xl" => Some(LengthUnit::Rem(64.0)),
+      "6xl" => Some(LengthUnit::Rem(72.0)),
+      "7xl" => Some(LengthUnit::Rem(80.0)),
+      _ => None,
+    }
+  }
 }
 
 /// Proxy type for CSS `LengthUnit` serialization/deserialization.
@@ -131,6 +172,14 @@ impl From<LengthUnit> for LengthUnitValue {
       LengthUnit::Pc(v) => LengthUnitValue::Pc(v),
       LengthUnit::Px(v) => LengthUnitValue::Px(v),
     }
+  }
+}
+
+impl Neg for LengthUnit {
+  type Output = Self;
+
+  fn neg(self) -> Self::Output {
+    self.negative()
   }
 }
 

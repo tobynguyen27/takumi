@@ -7,6 +7,23 @@ use ts_rs::TS;
 #[ts(type = r#""normal" | "italic" | "oblique" | `oblique ${string}deg`"#)]
 pub struct FontStyle(ParleyFontStyle);
 
+impl FontStyle {
+  /// The normal font style.
+  pub const fn normal() -> Self {
+    Self(ParleyFontStyle::Normal)
+  }
+
+  /// The italic font style.
+  pub const fn italic() -> Self {
+    Self(ParleyFontStyle::Italic)
+  }
+
+  /// The oblique font style with a given angle.
+  pub const fn oblique(angle: f32) -> Self {
+    Self(ParleyFontStyle::Oblique(Some(angle)))
+  }
+}
+
 impl From<FontStyle> for ParleyFontStyle {
   fn from(value: FontStyle) -> Self {
     value.0

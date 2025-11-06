@@ -9,7 +9,7 @@ use crate::{
   layout::{
     Viewport,
     node::Node,
-    style::{Affine, Color, InheritedStyle, Overflow},
+    style::{Affine, Color, Display, InheritedStyle, Overflow},
     tree::NodeTree,
   },
   rendering::{BorderProperties, Canvas},
@@ -93,10 +93,12 @@ fn create_transform(style: &InheritedStyle, layout: &Layout, context: &RenderCon
 
   let center = Point {
     x: transform_origin
+      .0
       .x
       .to_length_unit()
       .resolve_to_px(context, layout.size.width),
     y: transform_origin
+      .0
       .y
       .to_length_unit()
       .resolve_to_px(context, layout.size.height),
@@ -110,7 +112,14 @@ fn create_transform(style: &InheritedStyle, layout: &Layout, context: &RenderCon
   }
 
   if let Some(scale) = *style.scale {
-    transform = transform * Affine::scale(scale.into(), center);
+    transform = transform
+      * Affine::scale(
+        Size {
+          width: scale.x.0,
+          height: scale.y.0,
+        },
+        center,
+      );
   }
 
   if let Some(rotate) = *style.rotate {
@@ -138,7 +147,7 @@ fn render_node<'g, Nodes: Node<Nodes>>(
   let mut layout = *taffy.layout(node_id).unwrap();
   let node_context = taffy.get_node_context_mut(node_id).unwrap();
 
-  if node_context.context.opacity == 0.0 {
+  if node_context.context.opacity == 0.0 || node_context.context.style.display == Display::None {
     return;
   }
 
@@ -205,12 +214,12 @@ fn render_node<'g, Nodes: Node<Nodes>>(
     let filters = node_context.context.style.filter.0.clone();
 
     let offset = Point {
-      x: if overflow.0 == Overflow::Visible {
+      x: if overflow.0.x == Overflow::Visible {
         layout.location.x
       } else {
         0.0
       },
-      y: if overflow.1 == Overflow::Visible {
+      y: if overflow.0.y == Overflow::Visible {
         layout.location.y
       } else {
         0.0
@@ -235,12 +244,12 @@ fn render_node<'g, Nodes: Node<Nodes>>(
     return canvas.overlay_image(
       &inner_canvas.into_inner(),
       Point {
-        x: if overflow.0 == Overflow::Visible {
+        x: if overflow.0.x == Overflow::Visible {
           0
         } else {
           layout.location.x as i32
         },
-        y: if overflow.1 == Overflow::Visible {
+        y: if overflow.0.y == Overflow::Visible {
           0
         } else {
           layout.location.y as i32

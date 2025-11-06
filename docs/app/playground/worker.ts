@@ -1,5 +1,4 @@
 import { fromJsx } from "@takumi-rs/helpers/jsx";
-import { createTailwindFn } from "@takumi-rs/helpers/jsx/create-tailwind-fn";
 import DocsTemplateV1 from "@takumi-rs/template/docs-template-v1";
 import initWasm, { collectNodeFetchTasks, Renderer } from "@takumi-rs/wasm";
 import wasmUrl from "@takumi-rs/wasm/takumi_wasm_bg.wasm?url";
@@ -90,9 +89,6 @@ self.onmessage = async (event: MessageEvent) => {
           React.createElement(
             component as React.JSXElementConstructor<unknown>,
           ),
-          {
-            tailwindFn: createTailwindFn(),
-          },
         );
 
         const resourceUrls = collectNodeFetchTasks(node);
@@ -116,6 +112,7 @@ self.onmessage = async (event: MessageEvent) => {
           type: "render-result",
           result: {
             status: "success",
+            id: payload.id,
             dataUrl,
             duration,
             node,
@@ -127,6 +124,7 @@ self.onmessage = async (event: MessageEvent) => {
           type: "render-result",
           result: {
             status: "error",
+            id: payload.id,
             message: error instanceof Error ? error.message : "Unknown error",
           },
         });

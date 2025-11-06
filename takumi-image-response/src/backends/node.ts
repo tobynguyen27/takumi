@@ -5,7 +5,7 @@ import {
   Renderer,
   type RenderOptions,
 } from "@takumi-rs/core";
-import { type FromJsxOptions, fromJsx } from "@takumi-rs/helpers/jsx";
+import { fromJsx } from "@takumi-rs/helpers/jsx";
 import type { ReactNode } from "react";
 
 let renderer: Renderer | undefined;
@@ -13,9 +13,15 @@ let renderer: Renderer | undefined;
 const fontLoadMarker = new WeakSet<Font>();
 const persistentImageLoadMarker = new WeakSet<PersistentImage>();
 
+declare module "react" {
+  // biome-ignore lint/correctness/noUnusedVariables: used for type inference
+  interface DOMAttributes<T> {
+    tw?: string;
+  }
+}
+
 type ImageResponseOptionsWithRenderer = ResponseInit &
   RenderOptions & {
-    jsx?: FromJsxOptions;
     renderer: Renderer;
     signal?: AbortSignal;
   };
@@ -23,7 +29,6 @@ type ImageResponseOptionsWithRenderer = ResponseInit &
 type ImageResponseOptionsWithoutRenderer = ResponseInit &
   RenderOptions &
   ConstructRendererOptions & {
-    jsx?: FromJsxOptions;
     signal?: AbortSignal;
   };
 
@@ -104,7 +109,7 @@ function createStream(component: ReactNode, options?: ImageResponseOptions) {
       try {
         const renderer = await getRenderer(options);
 
-        const node = await fromJsx(component, options?.jsx);
+        const node = await fromJsx(component);
         const image = await renderer.render(
           node,
           options ?? defaultOptions,
