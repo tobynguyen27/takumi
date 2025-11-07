@@ -63,15 +63,15 @@ make_parser!(parse_border_bottom_width, TwBorderWidth, BorderBottomWidth);
 make_parser!(parse_border_left_width, TwBorderWidth, BorderLeftWidth);
 make_parser!(parse_border_x_width, TwBorderWidth, BorderXWidth);
 make_parser!(parse_border_y_width, TwBorderWidth, BorderYWidth);
-make_parser!(parse_border_radius, TwRound, BorderRadius);
-make_parser!(parse_border_tl_radius, LengthUnit, BorderTopLeftRadius);
-make_parser!(parse_border_tr_radius, LengthUnit, BorderTopRightRadius);
-make_parser!(parse_border_br_radius, LengthUnit, BorderBottomRightRadius);
-make_parser!(parse_border_bl_radius, LengthUnit, BorderBottomLeftRadius);
-make_parser!(parse_rounded_t, LengthUnit, RoundedT);
-make_parser!(parse_rounded_r, LengthUnit, RoundedR);
-make_parser!(parse_rounded_b, LengthUnit, RoundedB);
-make_parser!(parse_rounded_l, LengthUnit, RoundedL);
+make_parser!(parse_border_radius, TwRounded, Rounded);
+make_parser!(parse_rounded_tl, TwRounded, RoundedTopLeft);
+make_parser!(parse_rounded_tr, TwRounded, RoundedTopRight);
+make_parser!(parse_rounded_br, TwRounded, RoundedBottomRight);
+make_parser!(parse_rounded_bl, TwRounded, RoundedBottomLeft);
+make_parser!(parse_rounded_t, TwRounded, RoundedTop);
+make_parser!(parse_rounded_r, TwRounded, RoundedRight);
+make_parser!(parse_rounded_b, TwRounded, RoundedBottom);
+make_parser!(parse_rounded_l, TwRounded, RoundedLeft);
 make_parser!(
   parse_grid_template_columns,
   TwGridTemplate,
@@ -211,10 +211,10 @@ pub static PREFIX_PARSERS: phf::Map<&str, &[PropertyParserFn]> = phf_map! {
   "rounded-r" => &[parse_rounded_r],
   "rounded-b" => &[parse_rounded_b],
   "rounded-l" => &[parse_rounded_l],
-  "rounded-tl" => &[parse_border_tl_radius],
-  "rounded-tr" => &[parse_border_tr_radius],
-  "rounded-br" => &[parse_border_br_radius],
-  "rounded-bl" => &[parse_border_bl_radius],
+  "rounded-tl" => &[parse_rounded_tl],
+  "rounded-tr" => &[parse_rounded_tr],
+  "rounded-br" => &[parse_rounded_br],
+  "rounded-bl" => &[parse_rounded_bl],
   "grid-cols" => &[parse_grid_template_columns],
   "grid-rows" => &[parse_grid_template_rows],
   "auto-cols" => &[parse_grid_auto_columns],

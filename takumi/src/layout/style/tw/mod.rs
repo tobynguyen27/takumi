@@ -207,23 +207,23 @@ pub enum TailwindProperty {
   /// `border-block-width` property.
   BorderYWidth(TwBorderWidth),
   /// `border-radius` property.
-  BorderRadius(TwRound),
+  Rounded(TwRounded),
   /// `border-top-left-radius` property.
-  BorderTopLeftRadius(LengthUnit),
+  RoundedTopLeft(TwRounded),
   /// `border-top-right-radius` property.
-  BorderTopRightRadius(LengthUnit),
+  RoundedTopRight(TwRounded),
   /// `border-bottom-right-radius` property.
-  BorderBottomRightRadius(LengthUnit),
+  RoundedBottomRight(TwRounded),
   /// `border-bottom-left-radius` property.
-  BorderBottomLeftRadius(LengthUnit),
+  RoundedBottomLeft(TwRounded),
   /// `border-top-left-radius`, `border-top-right-radius` property.
-  RoundedT(LengthUnit),
+  RoundedTop(TwRounded),
   /// `border-top-right-radius`, `border-bottom-right-radius` property.
-  RoundedR(LengthUnit),
+  RoundedRight(TwRounded),
   /// `border-bottom-left-radius`, `border-bottom-right-radius` property.
-  RoundedB(LengthUnit),
+  RoundedBottom(TwRounded),
   /// `border-top-left-radius`, `border-bottom-left-radius` property.
-  RoundedL(LengthUnit),
+  RoundedLeft(TwRounded),
   /// `font-size` property.
   FontSize(TwFontSize),
   /// `line-height` property.
@@ -550,36 +550,36 @@ impl TailwindProperty {
         style.border_top_width = CssOption::some(tw_border_width.0).into();
         style.border_bottom_width = CssOption::some(tw_border_width.0).into();
       }
-      TailwindProperty::BorderRadius(tw_round) => {
-        style.border_radius = Sides([tw_round.border_radius; 4]).into();
+      TailwindProperty::Rounded(rounded) => {
+        style.border_radius = Sides([rounded.0; 4]).into();
       }
-      TailwindProperty::BorderTopLeftRadius(length_unit) => {
-        style.border_top_left_radius = CssOption::some(length_unit).into();
+      TailwindProperty::RoundedTopLeft(rounded) => {
+        style.border_top_left_radius = CssOption::some(rounded.0).into();
       }
-      TailwindProperty::BorderTopRightRadius(length_unit) => {
-        style.border_top_right_radius = CssOption::some(length_unit).into();
+      TailwindProperty::RoundedTopRight(rounded) => {
+        style.border_top_right_radius = CssOption::some(rounded.0).into();
       }
-      TailwindProperty::BorderBottomRightRadius(length_unit) => {
-        style.border_bottom_right_radius = CssOption::some(length_unit).into();
+      TailwindProperty::RoundedBottomRight(rounded) => {
+        style.border_bottom_right_radius = CssOption::some(rounded.0).into();
       }
-      TailwindProperty::BorderBottomLeftRadius(length_unit) => {
-        style.border_bottom_left_radius = CssOption::some(length_unit).into();
+      TailwindProperty::RoundedBottomLeft(rounded) => {
+        style.border_bottom_left_radius = CssOption::some(rounded.0).into();
       }
-      TailwindProperty::RoundedT(length_unit) => {
-        style.border_top_left_radius = CssOption::some(length_unit).into();
-        style.border_top_right_radius = CssOption::some(length_unit).into();
+      TailwindProperty::RoundedTop(rounded) => {
+        style.border_top_left_radius = CssOption::some(rounded.0).into();
+        style.border_top_right_radius = CssOption::some(rounded.0).into();
       }
-      TailwindProperty::RoundedR(length_unit) => {
-        style.border_top_right_radius = CssOption::some(length_unit).into();
-        style.border_bottom_right_radius = CssOption::some(length_unit).into();
+      TailwindProperty::RoundedRight(rounded) => {
+        style.border_top_right_radius = CssOption::some(rounded.0).into();
+        style.border_bottom_right_radius = CssOption::some(rounded.0).into();
       }
-      TailwindProperty::RoundedB(length_unit) => {
-        style.border_bottom_left_radius = CssOption::some(length_unit).into();
-        style.border_bottom_right_radius = CssOption::some(length_unit).into();
+      TailwindProperty::RoundedBottom(rounded) => {
+        style.border_bottom_left_radius = CssOption::some(rounded.0).into();
+        style.border_bottom_right_radius = CssOption::some(rounded.0).into();
       }
-      TailwindProperty::RoundedL(length_unit) => {
-        style.border_top_left_radius = CssOption::some(length_unit).into();
-        style.border_bottom_left_radius = CssOption::some(length_unit).into();
+      TailwindProperty::RoundedLeft(rounded) => {
+        style.border_top_left_radius = CssOption::some(rounded.0).into();
+        style.border_bottom_left_radius = CssOption::some(rounded.0).into();
       }
       TailwindProperty::TextOverflow(ref text_overflow) => {
         style.text_overflow = text_overflow.clone().into();
@@ -848,16 +848,12 @@ mod tests {
   #[test]
   fn test_parse_border_radius() {
     assert_eq!(
-      TailwindProperty::parse("rounded-lg"),
-      Some(TailwindProperty::BorderRadius(TwRound::new(
-        LengthUnit::Rem(0.5)
-      )))
+      TailwindProperty::parse("rounded-xs"),
+      Some(TailwindProperty::Rounded(TwRounded(LengthUnit::Rem(0.125))))
     );
     assert_eq!(
       TailwindProperty::parse("rounded-full"),
-      Some(TailwindProperty::BorderRadius(TwRound::new(
-        LengthUnit::Px(9999.0)
-      )))
+      Some(TailwindProperty::Rounded(TwRounded(LengthUnit::Px(9999.0))))
     );
   }
 

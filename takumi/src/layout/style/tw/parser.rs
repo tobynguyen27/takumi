@@ -84,39 +84,6 @@ impl TwFontSize {
   }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct TwRound {
-  pub(crate) border_radius: LengthUnit,
-}
-
-impl<'i> FromCss<'i> for TwRound {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    Ok(Self::new(LengthUnit::from_css(input)?))
-  }
-}
-
-impl TailwindPropertyParser for TwRound {
-  fn parse_tw(token: &str) -> Option<Self> {
-    match_ignore_ascii_case! {token,
-      "none" => Some(Self::new(LengthUnit::Px(0.0))),
-      "sm" => Some(Self::new(LengthUnit::Rem(0.125))),
-      "md" => Some(Self::new(LengthUnit::Rem(0.375))),
-      "lg" => Some(Self::new(LengthUnit::Rem(0.5))),
-      "xl" => Some(Self::new(LengthUnit::Rem(0.75))),
-      "2xl" => Some(Self::new(LengthUnit::Rem(1.0))),
-      "3xl" => Some(Self::new(LengthUnit::Rem(1.5))),
-      "full" => Some(Self::new(LengthUnit::Px(9999.0))),
-      _ => None,
-    }
-  }
-}
-
-impl TwRound {
-  pub const fn new(border_radius: LengthUnit) -> Self {
-    Self { border_radius }
-  }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct TwGridTemplate(pub GridTemplateComponents);
 
@@ -213,7 +180,7 @@ impl<'i> FromCss<'i> for TwGridAutoSize {
 
 impl TailwindPropertyParser for TwGridAutoSize {
   fn parse_tw(token: &str) -> Option<Self> {
-    let track_size = match token {
+    let track_size = match_ignore_ascii_case! {token,
       "auto" => GridTrackSize::Fixed(GridLengthUnit::Unit(LengthUnit::Auto)),
       "min" => GridTrackSize::Fixed(GridLengthUnit::Unit(LengthUnit::Px(0.0))),
       "max" => GridTrackSize::Fixed(GridLengthUnit::Fr(1.0)),
@@ -243,7 +210,7 @@ impl Neg for TwLetterSpacing {
 
 impl TailwindPropertyParser for TwLetterSpacing {
   fn parse_tw(token: &str) -> Option<Self> {
-    match token {
+    match_ignore_ascii_case! {token,
       "tighter" => Some(TwLetterSpacing(LengthUnit::Em(-0.05))),
       "tight" => Some(TwLetterSpacing(LengthUnit::Em(-0.025))),
       "normal" => Some(TwLetterSpacing(LengthUnit::Em(0.0))),
@@ -266,10 +233,35 @@ impl<'i> FromCss<'i> for TwBorderWidth {
 
 impl TailwindPropertyParser for TwBorderWidth {
   fn parse_tw(token: &str) -> Option<Self> {
-    if let Ok(value) = token.parse::<f32>() {
-      Some(TwBorderWidth(LengthUnit::Px(value)))
-    } else {
-      None
+    let value = token.parse::<f32>().ok()?;
+
+    Some(TwBorderWidth(LengthUnit::Px(value)))
+  }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TwRounded(pub(crate) LengthUnit);
+
+impl<'i> FromCss<'i> for TwRounded {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    Ok(TwRounded(LengthUnit::from_css(input)?))
+  }
+}
+
+impl TailwindPropertyParser for TwRounded {
+  fn parse_tw(token: &str) -> Option<Self> {
+    match_ignore_ascii_case! {token,
+      "full" => Some(TwRounded(LengthUnit::Px(9999.0))),
+      "none" => Some(TwRounded(LengthUnit::Px(0.0))),
+      "xs" => Some(TwRounded(LengthUnit::Rem(0.125))),
+      "sm" => Some(TwRounded(LengthUnit::Rem(0.25))),
+      "md" => Some(TwRounded(LengthUnit::Rem(0.375))),
+      "lg" => Some(TwRounded(LengthUnit::Rem(0.5))),
+      "xl" => Some(TwRounded(LengthUnit::Rem(0.75))),
+      "2xl" => Some(TwRounded(LengthUnit::Rem(1.0))),
+      "3xl" => Some(TwRounded(LengthUnit::Rem(1.5))),
+      "4xl" => Some(TwRounded(LengthUnit::Rem(2.0))),
+      _ => None,
     }
   }
 }
