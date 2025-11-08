@@ -2,7 +2,7 @@ use cssparser::{Parser, Token, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::layout::style::{FromCss, ParseResult, tw::TailwindPropertyParser};
+use crate::layout::style::{FromCss, ParseResult};
 
 /// Per-axis repeat style.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, TS, PartialEq, Default)]
@@ -37,23 +37,15 @@ impl BackgroundRepeat {
       BackgroundRepeatStyle::NoRepeat,
     )
   }
-}
 
-impl TailwindPropertyParser for BackgroundRepeat {
-  fn parse_tw(token: &str) -> Option<Self> {
-    match token {
-      "repeat" => Some(BackgroundRepeat::repeat()),
-      "no-repeat" => Some(BackgroundRepeat::no_repeat()),
-      "repeat-x" => Some(BackgroundRepeat(
-        BackgroundRepeatStyle::Repeat,
-        BackgroundRepeatStyle::NoRepeat,
-      )),
-      "repeat-y" => Some(BackgroundRepeat(
-        BackgroundRepeatStyle::NoRepeat,
-        BackgroundRepeatStyle::Repeat,
-      )),
-      _ => None,
-    }
+  /// Returns a repeat value that distributes leftover space evenly between tiles; edges flush with sides.
+  pub const fn space() -> Self {
+    Self(BackgroundRepeatStyle::Space, BackgroundRepeatStyle::Space)
+  }
+
+  /// Returns a repeat value that scales tile so an integer number fits exactly.
+  pub const fn round() -> Self {
+    Self(BackgroundRepeatStyle::Round, BackgroundRepeatStyle::Round)
   }
 }
 

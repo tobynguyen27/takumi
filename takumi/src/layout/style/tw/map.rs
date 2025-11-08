@@ -36,7 +36,6 @@ make_parser!(parse_object_fit, ObjectFit, ObjectFit);
 make_parser!(parse_object_position, BackgroundPosition, ObjectPosition);
 make_parser!(parse_bg_position, BackgroundPosition, BackgroundPosition);
 make_parser!(parse_bg_size, BackgroundSize, BackgroundSize);
-make_parser!(parse_bg_repeat, BackgroundRepeat, BackgroundRepeat);
 make_parser!(parse_bg_image, BackgroundImage, BackgroundImage);
 make_parser!(parse_width, LengthUnit, Width);
 make_parser!(parse_height, LengthUnit, Height);
@@ -138,7 +137,9 @@ make_parser!(parse_left, LengthUnit, Left);
 
 pub static PREFIX_PARSERS: phf::Map<&str, &[PropertyParserFn]> = phf_map! {
   "object" => &[parse_object_fit, parse_object_position],
-  "bg" => &[parse_background_color, parse_bg_image, parse_bg_position, parse_bg_size, parse_bg_repeat],
+  "bg" => &[parse_background_color, parse_bg_image, parse_bg_position, parse_bg_size],
+  "bg-size" => &[parse_bg_size],
+  "bg-position" => &[parse_bg_position],
   "w" => &[parse_width],
   "h" => &[parse_height],
   "min-w" => &[parse_min_width],
@@ -238,6 +239,18 @@ pub static FIXED_PROPERTIES: phf::Map<&str, TailwindProperty> = phf_map! {
   "flex" => TailwindProperty::Display(Display::Flex),
   "grid" => TailwindProperty::Display(Display::Grid),
   "hidden" => TailwindProperty::Display(Display::None),
+  "bg-repeat" => TailwindProperty::BackgroundRepeat(BackgroundRepeat::repeat()),
+  "bg-no-repeat" => TailwindProperty::BackgroundRepeat(BackgroundRepeat::no_repeat()),
+  "bg-space" => TailwindProperty::BackgroundRepeat(BackgroundRepeat::space()),
+  "bg-round" => TailwindProperty::BackgroundRepeat(BackgroundRepeat::round()),
+  "bg-repeat-x" => TailwindProperty::BackgroundRepeat(BackgroundRepeat(
+    BackgroundRepeatStyle::Repeat,
+    BackgroundRepeatStyle::NoRepeat,
+  )),
+  "bg-repeat-y" => TailwindProperty::BackgroundRepeat(BackgroundRepeat(
+    BackgroundRepeatStyle::NoRepeat,
+    BackgroundRepeatStyle::Repeat,
+  )),
   "aspect-auto" => TailwindProperty::Aspect(AspectRatio::Auto),
   "aspect-square" => TailwindProperty::Aspect(AspectRatio::Ratio(1.0)),
   "aspect-video" => TailwindProperty::Aspect(AspectRatio::Ratio(16.0 / 9.0)),
