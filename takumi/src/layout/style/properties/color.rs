@@ -439,7 +439,7 @@ impl<'i> FromCss<'i> for Color {
           return Ok(Color::transparent());
         }
 
-        let Some([r, g, b]) = NAMED_COLORS.get(ident) else {
+        let Some([r, g, b]) = NAMED_COLORS.get(ident.as_ref().into()) else {
           return Err(
             location
               .new_basic_unexpected_token_error(token.clone())

@@ -12,7 +12,7 @@ rust-version = "1.88"
 
 [dependencies]
 cssparser = "0.35"
-csscolorparser = "0.7"
+csscolorparser = "0.8"
 zeno = "0.3"
 lru = "0.16"
 derive_builder = "0.20"
