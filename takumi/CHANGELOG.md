@@ -1,5 +1,7 @@
 # takumi
 
+## 0.46.2
+
 ## 0.46.1
 
 ### Patch Changes

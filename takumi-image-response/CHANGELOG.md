@@ -1,5 +1,14 @@
 # @takumi-rs/image-response
 
+## 0.46.2
+
+### Patch Changes
+
+- fc6d0cc: replace `peerDependencies` with `publishConfig`
+  - @takumi-rs/core@0.46.2
+  - @takumi-rs/wasm@0.46.2
+  - @takumi-rs/helpers@0.46.2
+
 ## 0.46.1
 
 ### Patch Changes
