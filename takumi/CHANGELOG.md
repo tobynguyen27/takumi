@@ -1,5 +1,11 @@
 # takumi
 
+## 0.46.1
+
+### Patch Changes
+
+- 9365705: fix `justify-between`, `around`, `evenly` tailwind parsing
+
 ## 0.46.0
 
 ### Minor Changes
