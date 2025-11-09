@@ -10,15 +10,12 @@
   "repository": {
     "url": "git+https://github.com/kane50613/takumi.git"
   },
-  "peerDependencies": {
-    "@takumi-rs/core": "0.46.1",
-    "@takumi-rs/wasm": "0.46.1",
-    "@takumi-rs/helpers": "0.46.1"
-  },
-  "devDependencies": {
+  "dependencies": {
     "@takumi-rs/core": "workspace:*",
     "@takumi-rs/helpers": "workspace:*",
-    "@takumi-rs/wasm": "workspace:*",
+    "@takumi-rs/wasm": "workspace:*"
+  },
+  "devDependencies": {
     "@types/bun": "catalog:",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
@@ -28,8 +25,14 @@
     "type-fest": "^5.2.0",
     "typescript": "catalog:"
   },
+  "publishConfig": {
+    "dependencies": {
+      "@takumi-rs/core": "0.46.1",
+      "@takumi-rs/helpers": "0.46.1",
+      "@takumi-rs/wasm": "0.46.1"
+    }
+  },
   "scripts": {
-    "version": "jq '.peerDependencies[\"@takumi-rs/core\"] = .version | .peerDependencies[\"@takumi-rs/helpers\"] = .version | .peerDependencies[\"@takumi-rs/wasm\"] = .version' package.json > tmp.json && mv tmp.json package.json",
     "build": "tsup-node src/backends/*.ts --clean --minify --dts --format esm,cjs --no-splitting"
   },
   "files": [
