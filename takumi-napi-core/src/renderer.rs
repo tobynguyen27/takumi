@@ -415,7 +415,6 @@ impl Renderer {
 }
 
 fn buffer_from_object(env: Env, value: Object) -> Result<Buffer> {
-  // Uint8Array has a `buffer` property that contains the underlying array buffer.
   if let Ok(buffer) = unsafe { ArrayBuffer::from_napi_value(env.raw(), value.raw()) } {
     return Ok((*buffer).into());
   }
@@ -423,28 +422,28 @@ fn buffer_from_object(env: Env, value: Object) -> Result<Buffer> {
   unsafe { Buffer::from_napi_value(env.raw(), value.raw()) }
 }
 
-enum MaybeOwnedBuffer<'env> {
-  Borrowed(ArrayBuffer<'env>),
-  Owned(Buffer),
+enum BufferOrSlice<'env> {
+  ArrayBuffer(ArrayBuffer<'env>),
+  Slice(BufferSlice<'env>),
 }
 
-impl<'env> Deref for MaybeOwnedBuffer<'env> {
+impl<'env> Deref for BufferOrSlice<'env> {
   type Target = [u8];
 
   fn deref(&self) -> &Self::Target {
     match self {
-      MaybeOwnedBuffer::Borrowed(buffer) => buffer,
-      MaybeOwnedBuffer::Owned(buffer) => buffer,
+      BufferOrSlice::ArrayBuffer(buffer) => buffer,
+      BufferOrSlice::Slice(buffer) => buffer,
     }
   }
 }
 
-fn buffer_slice_from_object<'env>(env: Env, value: Object) -> Result<MaybeOwnedBuffer<'env>> {
+fn buffer_slice_from_object<'env>(env: Env, value: Object) -> Result<BufferOrSlice<'env>> {
   if let Ok(buffer) = unsafe { ArrayBuffer::from_napi_value(env.raw(), value.raw()) } {
-    return Ok(MaybeOwnedBuffer::Borrowed(buffer));
+    return Ok(BufferOrSlice::ArrayBuffer(buffer));
   }
 
-  unsafe { Buffer::from_napi_value(env.raw(), value.raw()).map(MaybeOwnedBuffer::Owned) }
+  unsafe { BufferSlice::from_napi_value(env.raw(), value.raw()).map(BufferOrSlice::Slice) }
 }
 
 fn deserialize_with_tracing<T: DeserializeOwned>(value: Object) -> Result<T> {
