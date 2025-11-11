@@ -1,5 +1,11 @@
 # takumi
 
+## 0.47.0
+
+### Minor Changes
+
+- 7d3dbf1: replace `csscolorparser` with `color` crate to support more color functions
+
 ## 0.46.6
 
 ## 0.46.5
