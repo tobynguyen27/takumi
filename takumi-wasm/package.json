@@ -33,7 +33,7 @@
       "default": "./pkg/takumi_wasm.js"
     },
     "./takumi_wasm_bg.wasm": {
-      "types": "./pkg/takumi_wasm_bg.d.ts",
+      "types": "./pkg/takumi_wasm_bg.wasm.d.ts",
       "default": "./pkg/takumi_wasm_bg.wasm"
     }
   },
