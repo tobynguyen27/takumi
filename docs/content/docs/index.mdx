@@ -4,8 +4,6 @@ description: The fastest and simplest way to start using Takumi.
 icon: Axe
 ---
 
-import { Accordion, Accordions } from "../../app/components/accordion";
-
 Takumi is an **image rendering engine** written in Rust. The design is mainly inspired by [satori](https://github.com/vercel/satori), but with a focus on portability and performance (2-10x shown in [Image Bench](https://image-bench.kane.tw/)).
 
 You can try Takumi in [Playground](/playground) without any installation.
@@ -133,10 +131,7 @@ It comes with pre-bundled full axis (which means 100-900 weights available) [Gei
 
 <Tabs items={["Node.js", "WASM"]}>
 <Tab>
-```tsx twoslash
-/** @jsxImportSource react */
-// ---cut-before---
-
+```tsx
 import { ImageResponse } from "@takumi-rs/image-response";
 import { serve } from "bun";
 
@@ -194,10 +189,7 @@ If you don't have any idea about where to start, or just want quick and easy way
 npm i @takumi-rs/template
 ```
 
-```tsx twoslash
-/** @jsxImportSource react */
-// ---cut-before---
-
+```tsx
 import DocsTemplateV1 from "@takumi-rs/template/docs-template-v1";
 import { ImageResponse } from "@takumi-rs/image-response";
 import { Axe } from "lucide-react";

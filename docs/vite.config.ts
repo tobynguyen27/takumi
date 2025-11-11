@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   ssr: {
-    external: ["@takumi-rs/core"],
+    external: ["@takumi-rs/image-response"],
   },
   plugins: [mdx(MdxConfig), tailwindcss(), reactRouter(), tsconfigPaths()],
 });

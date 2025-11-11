@@ -1,11 +1,8 @@
-import { rehypeCodeDefaultOptions } from "fumadocs-core/mdx-plugins";
 import {
   defineConfig,
   defineDocs,
   frontmatterSchema,
 } from "fumadocs-mdx/config";
-import { transformerTwoslash } from "fumadocs-twoslash";
-import { createFileSystemTypesCache } from "fumadocs-twoslash/cache-fs";
 import z from "zod";
 
 export const docs = defineDocs({
@@ -22,24 +19,4 @@ export const docs = defineDocs({
 
 export default defineConfig({
   lastModifiedTime: "git",
-  mdxOptions: {
-    remarkCodeTabOptions: {
-      parseMdx: true,
-    },
-    rehypeCodeOptions: {
-      themes: {
-        light: "github-light",
-        dark: "github-dark",
-      },
-      transformers: [
-        ...(rehypeCodeDefaultOptions.transformers ?? []),
-        transformerTwoslash({
-          typesCache: createFileSystemTypesCache({
-            dir: ".react-router/cache/twoslash",
-            cwd: process.cwd(),
-          }),
-        }),
-      ],
-    },
-  },
 });

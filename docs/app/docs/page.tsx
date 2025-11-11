@@ -5,7 +5,6 @@ import {
 } from "fumadocs-core/page-tree";
 import type { TOCItemType } from "fumadocs-core/toc";
 import { toClientRenderer } from "fumadocs-mdx/runtime/vite";
-import * as Twoslash from "fumadocs-twoslash/ui";
 import { Card, Cards } from "fumadocs-ui/components/card";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
@@ -18,13 +17,14 @@ import {
 } from "fumadocs-ui/page";
 import { ArrowBigRight, BookOpen, Hand, Shovel } from "lucide-react";
 import { redirect } from "react-router";
+import { Accordion, Accordions } from "~/components/accordion";
+import { TypeTable } from "~/components/type-table";
 import { baseOptions } from "~/layout-config";
 import { source } from "~/source";
 import type { Route } from "./+types/page";
 
 const components = {
   ...defaultMdxComponents,
-  ...Twoslash,
   Hand,
   BookOpen,
   ArrowBigRight,
@@ -32,6 +32,9 @@ const components = {
   DocsCategory,
   Tabs,
   Tab,
+  Accordion,
+  Accordions,
+  TypeTable,
 };
 
 export function loader({ params }: Route.LoaderArgs) {

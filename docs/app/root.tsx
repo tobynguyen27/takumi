@@ -10,7 +10,6 @@ import {
 } from "react-router";
 import type { Route } from "./+types/root";
 import "./app.css";
-import SearchDialog from "./components/search";
 
 export const links: Route.LinksFunction = () => [
   { rel: "icon", type: "image/svg+xml", href: "/logo.svg" },
@@ -63,7 +62,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ReactRouterProvider>
           <RootProvider
             search={{
-              SearchDialog,
+              SearchDialog: () => <div />,
             }}
           >
             {children}

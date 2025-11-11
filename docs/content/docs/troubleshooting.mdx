@@ -4,18 +4,13 @@ description: Common issues and solutions when using Takumi.
 icon: Bug
 ---
 
-import { Accordion, Accordions } from "../../app/components/accordion";
-
 ## General Issues
 
 <Accordions type="single">
   <Accordion title="Layout is not correct">
 You can try to use the `drawDebugBorder` option to draw a border around the nodes.
 
-```tsx twoslash
-/** @jsxImportSource react */
-// ---cut-before---
-
+```tsx
 import { ImageResponse } from "@takumi-rs/image-response";
 
 export function GET() {

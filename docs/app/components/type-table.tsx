@@ -1,9 +1,7 @@
-"use client";
-
 import { cva } from "class-variance-authority";
 import Link from "fumadocs-core/link";
 import type { ReactNode } from "react";
-import { cn } from "~/lib/cn";
+import { cn } from "~/lib/utils";
 
 export interface ParameterNode {
   name: string;
