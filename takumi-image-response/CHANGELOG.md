@@ -1,5 +1,18 @@
 # @takumi-rs/image-response
 
+## 0.49.0
+
+### Minor Changes
+
+- 4fddbd2: export `initWasm`, `initWasmSync` method
+
+### Patch Changes
+
+- Updated dependencies [4fddbd2]
+  - @takumi-rs/wasm@0.49.0
+  - @takumi-rs/core@0.49.0
+  - @takumi-rs/helpers@0.49.0
+
 ## 0.48.0
 
 ### Patch Changes

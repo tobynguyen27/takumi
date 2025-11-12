@@ -1,5 +1,11 @@
 # @takumi-rs/wasm
 
+## 0.49.0
+
+### Minor Changes
+
+- 4fddbd2: add nextjs turbopack helper `@takumi-rs/wasm/next`
+
 ## 0.48.0
 
 ### Minor Changes
