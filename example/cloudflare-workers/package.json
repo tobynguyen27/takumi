@@ -8,9 +8,9 @@
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {
-    "@types/react": "^19.2.2",
+    "@types/react": "catalog:",
     "typescript": "catalog:",
-    "wrangler": "^4.46.0"
+    "wrangler": "^4.47.0"
   },
   "dependencies": {
     "@takumi-rs/helpers": "workspace:*",

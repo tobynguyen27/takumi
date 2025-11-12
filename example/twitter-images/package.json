@@ -5,8 +5,8 @@
   "private": true,
   "devDependencies": {
     "@types/bun": "catalog:",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
+    "@types/react": "catalog:",
+    "@types/react-dom": "^19.2.3",
     "typescript": "catalog:"
   },
   "dependencies": {

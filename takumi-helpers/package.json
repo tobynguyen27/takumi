@@ -11,8 +11,8 @@
   },
   "devDependencies": {
     "@types/bun": "catalog:",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
+    "@types/react": "catalog:",
+    "@types/react-dom": "^19.2.3",
     "bun-plugin-dts": "^0.3.0",
     "lucide-react": "catalog:",
     "react": "^19.2.0",
