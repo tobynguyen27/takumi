@@ -10,7 +10,7 @@ await init({
 
 describe("ImageResponse", () => {
   test("should not crash", async () => {
-    const response = new ImageResponse(<div>Hello</div>);
+    const response = new ImageResponse(<div tw="bg-black w-4 h-4" />);
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("image/webp");
@@ -19,7 +19,7 @@ describe("ImageResponse", () => {
   });
 
   test("should set content-type", async () => {
-    const response = new ImageResponse(<div>Hello</div>, {
+    const response = new ImageResponse(<div tw="bg-black w-4 h-4" />, {
       width: 100,
       height: 100,
       format: "png",

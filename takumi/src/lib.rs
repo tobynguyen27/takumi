@@ -133,6 +133,8 @@ pub enum Error {
   PngError(png::EncodingError),
   /// Represents an error that occurs from image crate.
   ImageError(image::ImageError),
+  /// Represents an error that occurs when the viewport is invalid, the width or height is 0.
+  InvalidViewport,
 }
 
 impl From<std::io::Error> for Error {
