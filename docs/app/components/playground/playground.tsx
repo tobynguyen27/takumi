@@ -54,9 +54,11 @@ export default function Playground() {
   const codeQuery = searchParams.get("code");
 
   useEffect(() => {
+    if (code) return;
+
     if (codeQuery) decompressCode(codeQuery).then(setCode);
     else setCode(defaultTemplate);
-  }, [codeQuery]);
+  }, [codeQuery, code]);
 
   useEffect(() => {
     if (!code) return;
