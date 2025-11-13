@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- d02bb3e: **drop `initWasm`**, add `module` option\*\*
+- d02bb3e: **drop `initWasm`**, add `module` option
 
 ### Patch Changes
 
