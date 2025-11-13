@@ -2,7 +2,7 @@ use std::ops::Neg;
 
 use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
 use serde::{Deserialize, Serialize};
-use taffy::{CompactLength, Dimension, LengthPercentage, LengthPercentageAuto, Rect};
+use taffy::{CompactLength, Dimension, LengthPercentage, LengthPercentageAuto};
 use ts_rs::TS;
 
 use crate::{
@@ -263,7 +263,9 @@ impl LengthUnit {
     match self {
       LengthUnit::Auto => CompactLength::auto(),
       LengthUnit::Percentage(value) => CompactLength::percent(value / 100.0),
-      LengthUnit::Rem(value) => CompactLength::length(value * context.viewport.font_size),
+      LengthUnit::Rem(value) => CompactLength::length(
+        value * context.viewport.font_size * context.viewport.device_pixel_ratio,
+      ),
       LengthUnit::Em(value) => CompactLength::length(value * context.font_size),
       LengthUnit::Vh(value) => {
         CompactLength::length(context.viewport.height.unwrap_or_default() as f32 * value / 100.0)
@@ -298,7 +300,7 @@ impl LengthUnit {
     const ONE_PT_IN_PX: f32 = ONE_IN_PX / 72.0;
     const ONE_PC_IN_PX: f32 = ONE_IN_PX / 6.0;
 
-    match self {
+    let value = match self {
       LengthUnit::Auto => 0.0,
       LengthUnit::Px(value) => value,
       LengthUnit::Percentage(value) => (value / 100.0) * percentage_full_px,
@@ -312,7 +314,20 @@ impl LengthUnit {
       LengthUnit::Q(value) => value * ONE_Q_IN_PX,
       LengthUnit::Pt(value) => value * ONE_PT_IN_PX,
       LengthUnit::Pc(value) => value * ONE_PC_IN_PX,
+    };
+
+    if matches!(
+      self,
+      LengthUnit::Auto
+        | LengthUnit::Percentage(_)
+        | LengthUnit::Vh(_)
+        | LengthUnit::Vw(_)
+        | LengthUnit::Em(_)
+    ) {
+      return value;
     }
+
+    value * context.viewport.device_pixel_ratio
   }
 
   /// Resolves the length unit to a `LengthPercentageAuto`.
@@ -328,21 +343,4 @@ impl LengthUnit {
   pub(crate) fn resolve_to_dimension(self, context: &RenderContext) -> Dimension {
     self.resolve_to_length_percentage_auto(context).into()
   }
-}
-/// Utility function to resolve a rect of length units to length percentages.
-#[inline]
-pub(crate) fn resolve_length_unit_rect_to_length_percentage(
-  context: &RenderContext,
-  value: Rect<LengthUnit>,
-) -> Rect<LengthPercentage> {
-  value.map(|unit| unit.resolve_to_length_percentage(context))
-}
-
-/// Utility function to resolve a rect of length units to length percentage auto.
-#[inline]
-pub(crate) fn resolve_length_unit_rect_to_length_percentage_auto(
-  context: &RenderContext,
-  value: Rect<LengthUnit>,
-) -> Rect<LengthPercentageAuto> {
-  value.map(|unit| unit.resolve_to_length_percentage_auto(context))
 }

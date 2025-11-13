@@ -1,3 +1,4 @@
+import { RotateCcwIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { PanelGroupProps } from "react-resizable-panels";
 import { useSearchParams } from "react-router";
@@ -10,6 +11,7 @@ import {
 } from "~/playground/schema";
 import { compressCode, decompressCode } from "~/playground/share";
 import TakumiWorker from "~/playground/worker?worker";
+import { Button } from "../ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -132,7 +134,22 @@ export default function Playground() {
     <div className="h-[calc(100dvh-3.5rem)]">
       <ResizablePanelGroup direction={direction}>
         <ResizablePanel defaultSize={50}>
-          {code && <ComponentEditor code={code} setCode={setCode} />}
+          {code && (
+            <>
+              <div className="flex justify-between items-center">
+                <p className="pl-8 text-sm">Component Editor</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCode(defaultTemplate)}
+                >
+                  <RotateCcwIcon />
+                  Reset
+                </Button>
+              </div>
+              <ComponentEditor code={code} setCode={setCode} />
+            </>
+          )}
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={50}>

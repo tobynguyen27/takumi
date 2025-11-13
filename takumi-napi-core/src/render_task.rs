@@ -7,7 +7,7 @@ use std::sync::Arc;
 use takumi::{
   GlobalContext,
   layout::{
-    Viewport,
+    DEFAULT_DEVICE_PIXEL_RATIO, DEFAULT_FONT_SIZE, Viewport,
     node::{Node, NodeKind},
   },
   rendering::{RenderOptionsBuilder, render, write_image},
@@ -96,7 +96,15 @@ impl<'g> RenderTask<'g> {
     Ok(RenderTask {
       node: Some(node),
       global,
-      viewport: Viewport::new(options.width, options.height),
+      viewport: Viewport {
+        width: options.width,
+        height: options.height,
+        font_size: DEFAULT_FONT_SIZE,
+        device_pixel_ratio: options
+          .device_pixel_ratio
+          .map(|ratio| ratio as f32)
+          .unwrap_or(DEFAULT_DEVICE_PIXEL_RATIO),
+      },
       format: options.format.unwrap_or(OutputFormat::png),
       quality: options.quality,
       draw_debug_border: options.draw_debug_border.unwrap_or_default(),

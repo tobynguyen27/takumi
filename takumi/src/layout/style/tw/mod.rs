@@ -159,8 +159,8 @@ impl Breakpoint {
     };
 
     let breakpoint_width = match self.0 {
-      LengthUnit::Rem(value) => value * viewport.font_size,
-      LengthUnit::Px(value) => value,
+      LengthUnit::Rem(value) => value * viewport.font_size * viewport.device_pixel_ratio,
+      LengthUnit::Px(value) => value * viewport.device_pixel_ratio,
       LengthUnit::Vw(value) => (value / 100.0) * viewport_width as f32,
       _ => 0.0,
     };

@@ -21,8 +21,11 @@ export default function Image() {
   );
 }
 
+const devicePixelRatio = 1.0;
+
 export const options: PlaygroundOptions = {
-  width: 1200,
-  height: 630,
+  width: 1200 * devicePixelRatio,
+  height: 630 * devicePixelRatio,
   format: "png",
+  devicePixelRatio,
 };

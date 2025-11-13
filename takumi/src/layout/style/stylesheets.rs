@@ -545,10 +545,18 @@ impl InheritedStyle {
         width: self.width.resolve_to_dimension(context),
         height: self.height.resolve_to_dimension(context),
       },
-      border: resolve_length_unit_rect_to_length_percentage(context, self.resolved_border_width()),
-      padding: resolve_length_unit_rect_to_length_percentage(context, self.resolved_padding()),
-      inset: resolve_length_unit_rect_to_length_percentage_auto(context, self.resolved_inset()),
-      margin: resolve_length_unit_rect_to_length_percentage_auto(context, self.resolved_margin()),
+      border: self
+        .resolved_border_width()
+        .map(|border| border.resolve_to_length_percentage(context)),
+      padding: self
+        .resolved_padding()
+        .map(|padding| padding.resolve_to_length_percentage(context)),
+      inset: self
+        .resolved_inset()
+        .map(|inset| inset.resolve_to_length_percentage_auto(context)),
+      margin: self
+        .resolved_margin()
+        .map(|margin| margin.resolve_to_length_percentage_auto(context)),
       display: self.display.into(),
       flex_direction: self.flex_direction.into(),
       position: self.position.into(),

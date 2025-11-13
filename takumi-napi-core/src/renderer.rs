@@ -47,6 +47,9 @@ pub struct RenderOptions<'env> {
   /// The fetch function to use to fetch resources.
   /// @default global fetch function
   pub fetch: Option<FetchFn<'env>>,
+  /// The device pixel ratio.
+  /// @default 1.0
+  pub device_pixel_ratio: Option<f64>,
 }
 
 #[napi(object)]

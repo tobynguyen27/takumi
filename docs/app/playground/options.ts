@@ -1,12 +1,10 @@
 declare type PlaygroundOptions = {
   /**
    * @description width of the render viewport.
-   * @default 1200
    */
   width?: number;
   /**
    * @description height of the render viewport.
-   * @default 630
    */
   height?: number;
   /**
@@ -19,4 +17,9 @@ declare type PlaygroundOptions = {
    * @default 75
    */
   quality?: number;
+  /**
+   * @description device pixel ratio.
+   * @default 1.0
+   */
+  devicePixelRatio?: number;
 };

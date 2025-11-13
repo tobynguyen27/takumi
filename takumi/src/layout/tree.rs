@@ -414,10 +414,6 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
   }
 
   fn inline_items_iter(&self) -> InlineItemIterator<'_, 'g, N> {
-    if self.context.style.display != Display::Block {
-      panic!("Root node must be display block");
-    }
-
     InlineItemIterator {
       stack: vec![(self, 0)], // (node, depth)
       current_node_content: None,
@@ -512,11 +508,6 @@ impl<'n, 'g, N: Node<N>> Iterator for InlineItemIterator<'n, 'g, N> {
 
       // Get the next node from the stack
       let (node, depth) = self.stack.pop()?;
-
-      // Validate display type for non-root nodes
-      if depth > 0 && node.context.style.display != Display::Inline {
-        panic!("Non-root nodes must be display inline");
-      }
 
       // Push children onto stack in reverse order (so they process in forward order)
       if let Some(children) = &node.children {

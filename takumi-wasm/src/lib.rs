@@ -12,7 +12,7 @@ use takumi::{
   GlobalContext,
   image::load_from_memory,
   layout::{
-    Viewport,
+    DEFAULT_DEVICE_PIXEL_RATIO, DEFAULT_FONT_SIZE, Viewport,
     node::{Node, NodeKind},
   },
   parley::{FontWeight, fontique::FontInfoOverride},
@@ -44,6 +44,7 @@ export type RenderOptions = {
   height?: number,
   /**
    * The format of the image.
+   * @default "png"
    */
   format?: "png" | "jpeg" | "webp",
   /**
@@ -58,6 +59,11 @@ export type RenderOptions = {
    * Whether to draw debug borders.
    */
   drawDebugBorder?: boolean,
+  /**
+   * Defines the ratio resolution of the image to the physical pixels.
+   * @default 1.0
+   */
+  devicePixelRatio?: number,
 };
 
 export type RenderAnimationOptions = {
@@ -108,6 +114,7 @@ struct RenderOptions {
   quality: Option<u8>,
   fetched_resources: Option<HashMap<Arc<str>, ByteBuf>>,
   draw_debug_border: Option<bool>,
+  device_pixel_ratio: Option<f32>,
 }
 
 #[derive(Deserialize)]
@@ -267,7 +274,14 @@ impl Renderer {
 
     let image = render(
       RenderOptionsBuilder::default()
-        .viewport(Viewport::new(options.width, options.height))
+        .viewport(Viewport {
+          width: options.width,
+          height: options.height,
+          font_size: DEFAULT_FONT_SIZE,
+          device_pixel_ratio: options
+            .device_pixel_ratio
+            .unwrap_or(DEFAULT_DEVICE_PIXEL_RATIO),
+        })
         .draw_debug_border(options.draw_debug_border.unwrap_or_default())
         .fetched_resources(fetched_resources)
         .node(node)

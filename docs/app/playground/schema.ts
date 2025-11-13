@@ -7,6 +7,9 @@ export const optionsSchema = z.object({
     z.int().check(z.positive(), z.minimum(1), z.maximum(100)),
   ),
   format: z.enum(["png", "jpeg", "webp"]),
+  devicePixelRatio: z.optional(
+    z.number().check(z.positive(), z.minimum(0.1), z.maximum(10.0)),
+  ),
 });
 
 const renderSuccessSchema = z.object({
