@@ -18,6 +18,11 @@ export const Route = createFileRoute("/")({
             primaryTextColor="hsl(354, 90%, 60%)"
             site="Takumi"
           />,
+          {
+            width: 1200,
+            height: 630,
+            format: "webp",
+          },
         );
       },
     },
