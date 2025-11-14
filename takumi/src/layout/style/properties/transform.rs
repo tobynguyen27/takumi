@@ -1,14 +1,10 @@
-use std::{
-  fmt::Display,
-  ops::{Mul, MulAssign},
-};
+use std::ops::{Deref, DerefMut};
 
 use cssparser::{Parser, Token, match_ignore_ascii_case};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeSeq};
 use smallvec::SmallVec;
 use taffy::{Point, Size};
 use ts_rs::TS;
-use zeno::{Command, Vector};
 
 use crate::{
   layout::style::{Angle, FromCss, LengthUnit, ParseResult, PercentageNumber},
@@ -33,6 +29,111 @@ pub enum Transform {
   Matrix(Affine),
 }
 
+/// | a c x |
+/// | b d y |
+/// | 0 0 1 |
+#[derive(Debug, Clone, Copy, TS, Default)]
+#[ts(type = "string")]
+pub struct Affine(zeno::Transform);
+
+impl Affine {
+  /// Returns the identity transform
+  pub const fn identity() -> Self {
+    Self(zeno::Transform::IDENTITY)
+  }
+
+  /// Returns true if the transform is the identity transform
+  pub fn is_identity(self) -> bool {
+    self == Self::identity()
+  }
+
+  /// Decomposes the translation part of the transform
+  pub fn decompose_translation(self) -> Point<f32> {
+    Point {
+      x: self.x,
+      y: self.y,
+    }
+  }
+
+  /// Returns true if the transform is only a translation
+  pub(crate) fn only_translation(self) -> bool {
+    self.xx == Self::identity().xx
+      && self.xy == Self::identity().xy
+      && self.yx == Self::identity().yx
+      && self.yy == Self::identity().yy
+  }
+}
+
+impl Deref for Affine {
+  type Target = zeno::Transform;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl DerefMut for Affine {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0
+  }
+}
+
+impl PartialEq for Affine {
+  fn eq(&self, other: &Self) -> bool {
+    self.xx == other.xx
+      && self.xy == other.xy
+      && self.yx == other.yx
+      && self.yy == other.yy
+      && self.x == other.x
+      && self.y == other.y
+  }
+}
+
+impl<'de> Deserialize<'de> for Affine {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    let seq = String::deserialize(deserializer)?;
+    Affine::from_str(&seq).map_err(|e| serde::de::Error::custom(e.to_string()))
+  }
+}
+
+impl Serialize for Affine {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    let mut seq = serializer.serialize_seq(Some(6))?;
+    seq.serialize_element(&self.0.xx)?;
+    seq.serialize_element(&self.0.xy)?;
+    seq.serialize_element(&self.0.yx)?;
+    seq.serialize_element(&self.0.yy)?;
+    seq.serialize_element(&self.0.x)?;
+    seq.serialize_element(&self.0.y)?;
+    seq.end()
+  }
+}
+
+impl<'i> FromCss<'i> for Affine {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    let a = input.expect_number()?;
+    let b = input.expect_number()?;
+    let c = input.expect_number()?;
+    let d = input.expect_number()?;
+    let x = input.expect_number()?;
+    let y = input.expect_number()?;
+
+    Ok(Affine(zeno::Transform::new(a, b, c, d, x, y)))
+  }
+}
+
+impl From<zeno::Transform> for Affine {
+  fn from(transform: zeno::Transform) -> Self {
+    Affine(transform)
+  }
+}
+
 /// A collection of transform operations that can be applied together
 #[derive(Debug, Clone, Deserialize, Serialize, TS, Default, PartialEq)]
 #[ts(as = "TransformsValue")]
@@ -42,32 +143,32 @@ pub struct Transforms(pub SmallVec<[Transform; 4]>);
 impl Transforms {
   /// Converts the transforms to a [`Affine`] instance
   pub(crate) fn to_affine(&self, context: &RenderContext, border_box: Size<f32>) -> Affine {
-    let mut instance = Affine::identity();
+    let mut instance = zeno::Transform::IDENTITY;
 
-    for transform in self.0.iter().rev() {
+    for transform in self.0.iter() {
       match *transform {
         Transform::Translate(x_length, y_length) => {
-          instance *= Affine::translation(
+          instance = instance.then_translate(
             x_length.resolve_to_px(context, border_box.width),
             y_length.resolve_to_px(context, border_box.height),
           );
         }
         Transform::Scale(x_scale, y_scale) => {
-          instance *= Affine::scale(x_scale, y_scale);
+          instance = instance.then_scale(x_scale, y_scale);
         }
         Transform::Rotate(angle) => {
-          instance *= Affine::rotation(angle);
+          instance = instance.then_rotate(angle.into());
         }
         Transform::Skew(x_angle, y_angle) => {
-          instance *= Affine::skew(x_angle, y_angle);
+          instance = instance.then(&zeno::Transform::skew(x_angle.into(), y_angle.into()));
         }
         Transform::Matrix(affine) => {
-          instance *= affine;
+          instance = instance.then(&affine);
         }
       }
     }
 
-    instance
+    instance.into()
   }
 }
 
@@ -175,272 +276,6 @@ impl<'i> FromCss<'i> for Transform {
       ))),
       _ => Err(location.new_basic_unexpected_token_error(token.clone()).into()),
     }
-  }
-}
-
-/// Represents an affine transform matrix
-/// | a c x |
-/// | b d y |
-/// | 0 0 1 |
-#[derive(PartialEq, Deserialize, Serialize, Debug, Clone, Copy, TS)]
-pub struct Affine {
-  /// Horizontal scaling / cosine of rotation
-  pub a: f32,
-  /// Vertical shear / sine of rotation
-  pub b: f32,
-  /// Horizontal shear / negative sine of rotation
-  pub c: f32,
-  /// Vertical scaling / cosine of rotation
-  pub d: f32,
-  /// Horizontal translation (always orthogonal regardless of rotation)
-  pub x: f32,
-  /// Vertical translation (always orthogonal regardless of rotation)
-  pub y: f32,
-}
-
-impl<'i> FromCss<'i> for Affine {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let a = input.expect_number()?;
-    let b = input.expect_number()?;
-    let c = input.expect_number()?;
-    let d = input.expect_number()?;
-    let x = input.expect_number()?;
-    let y = input.expect_number()?;
-
-    Ok(Self { a, b, c, d, x, y })
-  }
-}
-
-impl Default for Affine {
-  fn default() -> Self {
-    Self::identity()
-  }
-}
-
-impl MulAssign<Affine> for Affine {
-  fn mul_assign(&mut self, rhs: Affine) {
-    *self = *self * rhs;
-  }
-}
-
-impl Mul for Affine {
-  type Output = Self;
-
-  #[inline]
-  fn mul(self, rhs: Self) -> Self {
-    Self {
-      a: self.a * rhs.a + self.b * rhs.c,
-      b: self.a * rhs.b + self.b * rhs.d,
-      c: self.c * rhs.a + self.d * rhs.c,
-      d: self.c * rhs.b + self.d * rhs.d,
-      x: self.x * rhs.a + self.y * rhs.c + rhs.x,
-      y: self.x * rhs.b + self.y * rhs.d + rhs.y,
-    }
-  }
-}
-
-impl Mul<Affine> for Point<f32> {
-  type Output = Point<f32>;
-
-  #[inline]
-  fn mul(self, m: Affine) -> Point<f32> {
-    Point {
-      x: self.x * m.a + self.y * m.c + m.x,
-      y: self.x * m.b + self.y * m.d + m.y,
-    }
-  }
-}
-
-impl Mul<Affine> for Vector {
-  type Output = Vector;
-
-  #[inline]
-  fn mul(self, m: Affine) -> Vector {
-    Vector {
-      x: self.x * m.a + self.y * m.c + m.x,
-      y: self.x * m.b + self.y * m.d + m.y,
-    }
-  }
-}
-
-impl Affine {
-  /// Checks if the transform is the identity transform
-  pub fn is_identity(self) -> bool {
-    self == Self::identity()
-  }
-
-  /// Creates a new identity transform
-  pub const fn identity() -> Self {
-    Self {
-      a: 1.0,
-      b: 0.0,
-      c: 0.0,
-      d: 1.0,
-      x: 0.0,
-      y: 0.0,
-    }
-  }
-
-  /// Applies the transform on the paths
-  pub fn apply_on_paths(self, mask: &mut [Command]) {
-    if self.is_identity() {
-      return;
-    }
-
-    for command in mask {
-      match command {
-        Command::MoveTo(target) => {
-          let point = (*target) * self;
-
-          *command = Command::MoveTo(point);
-        }
-        Command::LineTo(target) => {
-          let point = (*target) * self;
-
-          *command = Command::LineTo(point);
-        }
-        Command::CurveTo(target1, target2, target3) => {
-          let point1 = (*target1) * self;
-          let point2 = (*target2) * self;
-          let point3 = (*target3) * self;
-
-          *command = Command::CurveTo(point1, point2, point3);
-        }
-        Command::QuadTo(target1, target2) => {
-          let point1 = (*target1) * self;
-          let point2 = (*target2) * self;
-
-          *command = Command::QuadTo(point1, point2);
-        }
-        Command::Close => {}
-      }
-    }
-  }
-
-  /// Creates a new rotation transform
-  pub fn rotation(angle: Angle) -> Self {
-    let angle = angle.to_radians();
-    let (sin, cos) = angle.sin_cos();
-
-    Self {
-      a: cos,
-      b: sin,
-      c: -sin,
-      d: cos,
-      x: 0.0,
-      y: 0.0,
-    }
-  }
-
-  /// Creates a new translation transform
-  pub const fn translation(x: f32, y: f32) -> Self {
-    Self {
-      x,
-      y,
-      ..Self::identity()
-    }
-  }
-
-  /// Creates a new scale transform
-  pub const fn scale(x: f32, y: f32) -> Self {
-    Self {
-      a: x,
-      b: 0.0,
-      c: 0.0,
-      d: y,
-      x: 0.0,
-      y: 0.0,
-    }
-  }
-
-  /// Creates a new skew transform
-  pub fn skew(x: Angle, y: Angle) -> Self {
-    let tanx = x.to_radians().tan();
-    let tany = y.to_radians().tan();
-
-    Self {
-      a: 1.0,
-      b: tany,
-      c: tanx,
-      d: 1.0,
-      x: 0.0,
-      y: 0.0,
-    }
-  }
-
-  /// Calculates the determinant of the transform
-  pub fn determinant(self) -> f32 {
-    self.a * self.d - self.b * self.c
-  }
-
-  /// Inverts the transform, returns `None` if the transform is not invertible
-  pub fn invert(self) -> Option<Self> {
-    let det = self.determinant();
-    if det.abs() < f32::EPSILON {
-      return None;
-    }
-
-    Some(Self {
-      a: self.d / det,
-      b: self.b / -det,
-      c: self.c / -det,
-      d: self.a / det,
-      x: (self.d * self.x - self.c * self.y) / -det,
-      y: (self.b * self.x - self.a * self.y) / det,
-    })
-  }
-
-  /// Zero the translation
-  pub fn zero_translation(&mut self) {
-    self.x = 0.0;
-    self.y = 0.0;
-  }
-
-  /// Decomposes the transform into a scale, rotation, and translation
-  pub(crate) fn decompose(self) -> DecomposedTransform {
-    DecomposedTransform {
-      scale: Size {
-        width: (self.a * self.a + self.c * self.c).sqrt(),
-        height: (self.b * self.b + self.d * self.d).sqrt(),
-      },
-      rotation: Angle::new(self.b.atan2(self.d).to_degrees()),
-      translation: Size {
-        width: self.x,
-        height: self.y,
-      },
-    }
-  }
-}
-
-pub(crate) struct DecomposedTransform {
-  pub scale: Size<f32>,
-  pub rotation: Angle,
-  pub translation: Size<f32>,
-}
-
-impl Display for DecomposedTransform {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(
-      f,
-      "DecomposedTransform(scale={:?}, rotation={:?}, translation={:?})",
-      self.scale, self.rotation, self.translation
-    )
-  }
-}
-
-impl DecomposedTransform {
-  /// Checks if the transform is rotated
-  pub fn is_rotated(&self) -> bool {
-    self.rotation != Angle::zero()
-  }
-
-  /// Checks if the transform is scaled
-  pub fn is_scaled(&self) -> bool {
-    self.scale
-      != Size {
-        width: 1.0,
-        height: 1.0,
-      }
   }
 }
 

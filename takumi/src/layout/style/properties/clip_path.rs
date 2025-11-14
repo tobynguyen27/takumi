@@ -275,12 +275,11 @@ impl BasicShape {
       }
     }
 
-    context.transform.apply_on_paths(&mut paths);
-
     Mask::new(&paths)
       .style(Fill::from(
         self.fill_rule().unwrap_or(context.style.clip_rule),
       ))
+      .transform(Some(*context.transform))
       .render()
   }
 }

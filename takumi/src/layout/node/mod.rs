@@ -246,11 +246,10 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
         border_radius
           .expand_by(shadow.spread_radius)
           .append_mask_commands(&mut paths);
-        border_radius.transform.apply_on_paths(&mut paths);
 
-        context.transform.apply_on_paths(&mut paths);
-
-        let (mask, placement) = Mask::new(&paths).render();
+        let (mask, placement) = Mask::new(&paths)
+          .transform(Some(border_radius.transform.then(&context.transform)))
+          .render();
 
         shadow.draw_outset(canvas, mask.into(), placement, layout.location);
       }

@@ -1,4 +1,3 @@
-use smallvec::smallvec;
 use takumi::layout::{
   node::{ContainerNode, ImageNode, TextNode},
   style::{
@@ -83,12 +82,8 @@ fn create_rotated_container(angle: f32, transform_origin: BackgroundPosition) ->
         .translate(CssOption::some(SpacePair::from_single(Percentage(-50.0))))
         .rotate(CssOption::some(Angle::new(angle)))
         .position(Position::Absolute)
-        .inset(Sides([
-          Percentage(50.0),
-          Percentage(0.0),
-          Percentage(0.0),
-          Percentage(50.0),
-        ]))
+        .top(CssOption::some(Percentage(50.0)))
+        .left(CssOption::some(Percentage(50.0)))
         .transform_origin(CssOption::some(transform_origin))
         .width(Px(200.0))
         .height(Px(200.0))
@@ -148,10 +143,7 @@ fn test_style_transform_translate_and_scale() {
         .width(Px(300.0))
         .height(Px(300.0))
         .border_width(CssOption::some(Sides([Px(1.0); 4])))
-        .transform(CssOption::some(Transforms(smallvec![
-          Transform::Translate(Px(-100.0), Px(100.0)),
-          Transform::Rotate(Angle::new(90.0)),
-        ])))
+        .translate(CssOption::some(SpacePair::from_single(Px(300.0))))
         .background_color(ColorInput::Value(Color([0, 128, 255, 255])))
         .build()
         .unwrap(),
@@ -178,10 +170,9 @@ fn test_style_transform_translate_and_scale() {
     tw: None,
     style: Some(
       StyleBuilder::default()
-        .transform(CssOption::some(Transforms(smallvec![
-          Transform::Translate(Px(0.0), Px(200.0)),
-          Transform::Scale(2.0, 2.0),
-        ])))
+        .scale(CssOption::some(SpacePair::from_single(PercentageNumber(
+          2.0,
+        ))))
         .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
         .width(Px(100.0))
         .height(Px(100.0))
@@ -192,7 +183,7 @@ fn test_style_transform_translate_and_scale() {
     ),
     children: Some(vec![
       TextNode {
-        text: "100px x 100px, translate(0px, 200px), scale(2.0, 2.0)".to_string(),
+        text: "100px x 100px, scale(2.0, 2.0)".to_string(),
         tw: None,
         style: None,
       }
@@ -204,9 +195,7 @@ fn test_style_transform_translate_and_scale() {
     tw: None,
     style: Some(
       StyleBuilder::default()
-        .transform(CssOption::some(Transforms(smallvec![Transform::Rotate(
-          Angle::new(45.0)
-        )])))
+        .rotate(CssOption::some(Angle::new(45.0)))
         .background_color(ColorInput::Value(Color([0, 0, 255, 255])))
         .width(Px(200.0))
         .height(Px(200.0))

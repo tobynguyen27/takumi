@@ -104,13 +104,12 @@ pub(crate) fn draw_inline_box<N: Node<N>>(
     return;
   }
 
-  let translated = Affine::translation(inline_box.x, inline_box.y) * context.transform;
+  let translated = Affine::from(context.transform.pre_translate(inline_box.x, inline_box.y));
 
-  let translation_diff = translated.decompose().translation
-    + context.transform.decompose().translation.map(|axis| -axis);
+  let translation_diff = translated.decompose_translation()
+    + context.transform.decompose_translation().map(|axis| -axis);
 
-  layout.location.x += translation_diff.width;
-  layout.location.y += translation_diff.height;
+  layout.location = layout.location + translation_diff;
 
   node.draw_on_canvas(
     context,

@@ -110,31 +110,29 @@ fn create_transform(
   let center_x = LengthUnit::from(transform_origin.0.x).resolve_to_px(context, border_box.width);
   let center_y = LengthUnit::from(transform_origin.0.y).resolve_to_px(context, border_box.height);
 
-  let mut transform = Affine::translation(-center_x, -center_y);
+  let mut transform = zeno::Transform::translation(-center_x, -center_y);
 
-  // According to https://www.w3.org/TR/css-transforms-2/#ctm
-  // the order is `translate` -> `rotate` -> `scale` -> `transform`.
-  // But we need to invert the order because of matrix multiplication.
+  // https://github.com/servo/servo/blob/9dfd6990ba381cbb7b7f9faa63d3425656ceac0a/components/layout/display_list/stacking_context.rs#L1717-L1720
   if let Some(node_transform) = &*style.transform {
-    transform *= node_transform.to_affine(context, border_box);
-  }
-
-  if let Some(scale) = *style.scale {
-    transform *= Affine::scale(scale.x.0, scale.y.0);
+    transform = transform.then(&node_transform.to_affine(context, border_box));
   }
 
   if let Some(rotate) = *style.rotate {
-    transform *= Affine::rotation(rotate);
+    transform = transform.then_rotate(rotate.into());
+  }
+
+  if let Some(scale) = *style.scale {
+    transform = transform.then_scale(scale.x.0, scale.y.0);
   }
 
   if let Some(translate) = *style.translate {
-    transform *= Affine::translation(
+    transform = transform.then_translate(
       translate.x.resolve_to_px(context, border_box.width),
       translate.y.resolve_to_px(context, border_box.height),
     );
   }
 
-  transform * Affine::translation(center_x, center_y)
+  transform.then_translate(center_x, center_y).into()
 }
 
 fn render_node<'g, Nodes: Node<Nodes>>(
@@ -154,18 +152,24 @@ fn render_node<'g, Nodes: Node<Nodes>>(
 
   layout.location = layout.location + offset;
 
-  transform *= create_transform(
-    &node_context.context.style,
-    layout.size,
-    &node_context.context,
-  );
+  transform = transform
+    .then(&create_transform(
+      &node_context.context.style,
+      layout.size,
+      &node_context.context,
+    ))
+    .into();
 
   node_context.context.transform = transform;
 
   if let Some(clip) = &node_context.context.style.clip_path.0 {
-    let translation = node_context.context.transform.decompose().translation;
+    let translation = node_context.context.transform.decompose_translation();
 
-    node_context.context.transform.zero_translation();
+    node_context.context.transform = node_context
+      .context
+      .transform
+      .pre_translate(-translation.x, -translation.y)
+      .into();
 
     let (mask, mut placement) = clip.render_mask(&node_context.context, layout.size);
 
@@ -199,8 +203,8 @@ fn render_node<'g, Nodes: Node<Nodes>>(
       }
     }
 
-    placement.left += (layout.location.x + translation.width) as i32;
-    placement.top += (layout.location.y + translation.height) as i32;
+    placement.left += (layout.location.x + translation.x) as i32;
+    placement.top += (layout.location.y + translation.y) as i32;
 
     return canvas.draw_mask(
       &mask,

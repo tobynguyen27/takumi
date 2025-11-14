@@ -266,6 +266,12 @@ impl<'i> FromCss<'i> for GradientStop {
 #[ts(type = "number | string")]
 pub struct Angle(f32);
 
+impl From<Angle> for zeno::Angle {
+  fn from(angle: Angle) -> Self {
+    zeno::Angle::from_degrees(angle.0)
+  }
+}
+
 impl TailwindPropertyParser for Angle {
   fn parse_tw(token: &str) -> Option<Self> {
     if token.eq_ignore_ascii_case("none") {

@@ -13,7 +13,7 @@ use taffy::{Point, Size};
 use zeno::{Mask, Placement};
 
 use crate::{
-  layout::style::{Affine, Angle, Color, Filters, ImageScalingAlgorithm},
+  layout::style::{Affine, Color, Filters, ImageScalingAlgorithm},
   rendering::BorderProperties,
 };
 
@@ -153,23 +153,18 @@ pub(crate) fn fill_color<C: Into<Rgba<u8>>>(
     return;
   }
 
-  let transform_part = transform.decompose();
-  let can_direct_draw = transform_part.rotation == Angle::zero() && radius.is_zero();
+  let translation = transform.decompose_translation();
+  let can_direct_draw = transform.only_translation() && radius.is_zero();
 
   // Fast path: if no sub-pixel interpolation is needed, we can just draw the color directly
   if can_direct_draw {
-    let transformed_size = Size {
-      width: (size.width as f32 * transform_part.scale.width).round() as u32,
-      height: (size.height as f32 * transform_part.scale.height).round() as u32,
-    };
-
     let transformed_offset = Point {
-      x: (offset.x as f32 + transform_part.translation.width).round() as i32,
-      y: (offset.y as f32 + transform_part.translation.height).round() as i32,
+      x: (offset.x as f32 + translation.x).round() as i32,
+      y: (offset.y as f32 + translation.y).round() as i32,
     };
 
-    for y in 0..transformed_size.height {
-      for x in 0..transformed_size.width {
+    for y in 0..size.height {
+      for x in 0..size.width {
         let dest_x = x as i32 + transformed_offset.x;
         let dest_y = y as i32 + transformed_offset.y;
 
@@ -187,9 +182,8 @@ pub(crate) fn fill_color<C: Into<Rgba<u8>>>(
   let mut paths = Vec::new();
 
   radius.append_mask_commands(&mut paths);
-  transform.apply_on_paths(&mut paths);
 
-  let (mask, mut placement) = Mask::new(&paths).render();
+  let (mask, mut placement) = Mask::new(&paths).transform(Some(*transform)).render();
 
   placement.left += offset.x;
   placement.top += offset.y;
@@ -244,9 +238,8 @@ pub(crate) fn overlay_image(
   algorithm: ImageScalingAlgorithm,
   filters: Option<&Filters>,
 ) {
-  let transform_part = transform.decompose();
-  let can_direct_draw =
-    !transform_part.is_rotated() && !transform_part.is_scaled() && border.is_zero();
+  let translation = transform.decompose_translation();
+  let can_direct_draw = transform.only_translation() && border.is_zero();
 
   let mut image = Cow::Borrowed(image);
 
@@ -262,8 +255,8 @@ pub(crate) fn overlay_image(
 
   if can_direct_draw {
     let transformed_offset = Point {
-      x: (offset.x as f32 + transform_part.translation.width).round() as i32,
-      y: (offset.y as f32 + transform_part.translation.height).round() as i32,
+      x: (offset.x as f32 + translation.x).round() as i32,
+      y: (offset.y as f32 + translation.y).round() as i32,
     };
 
     for y in 0..image.height() {
@@ -289,9 +282,8 @@ pub(crate) fn overlay_image(
   let mut paths = Vec::new();
 
   border.append_mask_commands(&mut paths);
-  transform.apply_on_paths(&mut paths);
 
-  let (mask, placement) = Mask::new(&paths).render();
+  let (mask, placement) = Mask::new(&paths).transform(Some(*transform)).render();
 
   let mut i = 0;
 
@@ -311,10 +303,13 @@ pub(crate) fn overlay_image(
         continue;
       }
 
-      let point = Point {
-        x: x as f32 + placement.left as f32,
-        y: y as f32 + placement.top as f32,
-      } * inverse;
+      let point = inverse.transform_point(
+        (
+          x as f32 + placement.left as f32,
+          y as f32 + placement.top as f32,
+        )
+          .into(),
+      );
 
       let sampled_pixel = match algorithm {
         ImageScalingAlgorithm::Pixelated => interpolate_nearest(&*image, point.x, point.y),

@@ -208,9 +208,10 @@ pub(crate) fn draw_border(
     .inset_by_border_width()
     .append_mask_commands(&mut paths);
 
-  border.transform.apply_on_paths(&mut paths);
-
-  let (mask, mut placement) = Mask::new(&paths).style(Fill::EvenOdd).render();
+  let (mask, mut placement) = Mask::new(&paths)
+    .style(Fill::EvenOdd)
+    .transform(Some(*border.transform))
+    .render();
 
   placement.left += border.offset.x as i32 + canvas_offset.x as i32;
   placement.top += border.offset.y as i32 + canvas_offset.y as i32;

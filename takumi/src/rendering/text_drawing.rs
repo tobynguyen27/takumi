@@ -26,10 +26,12 @@ pub(crate) fn draw_decoration(
   layout: Layout,
   transform: Affine,
 ) {
-  let transform = Affine::translation(
-    layout.border.left + layout.padding.left + glyph_run.offset(),
-    layout.border.top + layout.padding.top + offset,
-  ) * transform;
+  let transform = transform
+    .pre_translate(
+      layout.border.left + layout.padding.left + glyph_run.offset(),
+      layout.border.top + layout.padding.top + offset,
+    )
+    .into();
 
   canvas.fill_color(
     Point {
@@ -57,10 +59,12 @@ pub(crate) fn draw_glyph(
   transform: Affine,
   text_style: &parley::Style<InlineBrush>,
 ) {
-  let transform = Affine::translation(
-    layout.border.left + layout.padding.left + glyph.x,
-    layout.border.top + layout.padding.top + glyph.y,
-  ) * transform;
+  let transform = transform
+    .pre_translate(
+      layout.border.left + layout.padding.left + glyph.x,
+      layout.border.top + layout.padding.top + glyph.y,
+    )
+    .into();
 
   if let ResolvedGlyph::Image(bitmap) = glyph_content {
     let border = BorderProperties {
@@ -147,7 +151,7 @@ pub(crate) fn draw_glyph(
 
   if let ResolvedGlyph::Outline(outline) = glyph_content {
     // have to invert the y coordinate from y-up to y-down first
-    let mut paths = outline
+    let paths = outline
       .path()
       .commands()
       .map(|command| match command {
@@ -165,9 +169,7 @@ pub(crate) fn draw_glyph(
       })
       .collect::<Vec<_>>();
 
-    transform.apply_on_paths(&mut paths);
-
-    let (mask, mut placement) = Mask::new(&paths).render();
+    let (mask, mut placement) = Mask::new(&paths).transform(Some(*transform)).render();
 
     if let Some(ref shadows) = style.text_shadow {
       for shadow in shadows.iter() {
@@ -209,7 +211,10 @@ pub(crate) fn draw_glyph(
       stroke.scale = false;
       stroke.join = Join::Bevel;
 
-      let (stroke_mask, mut stroke_placement) = Mask::new(&paths).style(stroke).render();
+      let (stroke_mask, mut stroke_placement) = Mask::new(&paths)
+        .transform(Some(*transform))
+        .style(stroke)
+        .render();
 
       stroke_placement.left += layout.location.x as i32;
       stroke_placement.top += layout.location.y as i32;
