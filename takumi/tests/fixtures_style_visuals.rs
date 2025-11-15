@@ -388,30 +388,15 @@ fn test_style_border_radius_circle_avatar() {
 #[test]
 fn test_style_border_width_on_image_node() {
   let avatar = json!({
-    "type": "container",
-    "children": [
-      {
-        "type": "image",
-        "src": "assets/images/yeecord.png",
-        "style": {
-          "borderRadius": "100%",
-          "borderWidth": 2,
-          "borderStyle": "solid",
-          "borderColor": "#cacaca",
-          "width": 128,
-          "height": 128
-        }
-      }
-    ],
+    "type": "image",
+    "src": "assets/images/yeecord.png",
     "style": {
-      "display": "flex",
-      "marginLeft": 52,
-      "marginTop": 38,
-      "marginRight": 52,
-      "flexDirection": "row",
-      "gap": 26,
-      "position": "relative",
-      "alignItems": "center"
+      "borderRadius": "100%",
+      "borderWidth": 2,
+      "borderStyle": "solid",
+      "borderColor": "#cacaca",
+      "width": 128,
+      "height": 128
     }
   });
 

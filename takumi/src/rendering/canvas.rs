@@ -209,8 +209,6 @@ pub(crate) fn overlay_image(
   filters: Option<&Filters>,
   offset: Point<f32>,
 ) {
-  let can_direct_draw = transform.only_translation() && border.is_zero();
-
   let mut image = Cow::Borrowed(image);
 
   if let Some(filters) = filters
@@ -223,7 +221,8 @@ pub(crate) fn overlay_image(
     image = Cow::Owned(owned_image);
   }
 
-  if can_direct_draw {
+  // Fast path: if no sub-pixel interpolation is needed, we can just draw the image directly
+  if transform.only_translation() && border.is_zero() {
     let transformed_offset = transform.decompose_translation() + offset;
 
     return overlay_area(
@@ -280,7 +279,11 @@ pub(crate) fn overlay_image(
 
   overlay_area(
     canvas,
-    offset,
+    offset
+      + Point {
+        x: placement.left as f32,
+        y: placement.top as f32,
+      },
     Size {
       width: image.width(),
       height: image.height(),
