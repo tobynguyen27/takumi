@@ -139,23 +139,23 @@ impl Canvas {
 ///
 /// If the color is fully transparent (alpha = 0), no operation is performed.
 /// Otherwise, the pixel is blended with the existing canvas pixel using alpha blending.
-#[inline]
-pub(crate) fn draw_pixel(canvas: &mut RgbaImage, x: u32, y: u32, color: Rgba<u8>) {
+#[inline(always)]
+fn draw_pixel(canvas: &mut RgbaImage, x: u32, y: u32, color: Rgba<u8>) {
   if color.0[3] == 0 {
     return;
   }
 
   // image-rs blend will skip the operation if the source color is fully transparent
-  if let Some(pixel) = canvas.get_pixel_mut_checked(x, y) {
-    if pixel.0[3] == 0 {
-      // If the destination pixel is fully transparent, we directly assign the new color.
-      // This is a performance optimization: blending with a fully transparent pixel is
-      // equivalent to assignment, so we skip the blend operation. This deviates from the
-      // standard alpha blending approach for efficiency.
-      *pixel = color;
-    } else {
-      pixel.blend(&color);
-    }
+  let pixel = canvas.get_pixel_mut(x, y);
+
+  if pixel.0[3] == 0 {
+    // If the destination pixel is fully transparent, we directly assign the new color.
+    // This is a performance optimization: blending with a fully transparent pixel is
+    // equivalent to assignment, so we skip the blend operation. This deviates from the
+    // standard alpha blending approach for efficiency.
+    *pixel = color;
+  } else {
+    pixel.blend(&color);
   }
 }
 
@@ -300,35 +300,35 @@ pub(crate) fn overlay_area(
   top_size: Size<u32>,
   f: impl Fn(u32, u32) -> Rgba<u8>,
 ) {
-  for y in 0..top_size.height {
-    let dest_y = y as i32 + offset.y as i32;
+  let offset_x = offset.x as i32;
+  let offset_y = offset.y as i32;
+  let bottom_width = bottom.width() as i32;
+  let bottom_height = bottom.height() as i32;
 
-    if dest_y < 0 {
-      continue;
-    }
+  // Calculate the valid range in the destination image
+  let dest_y_min = offset_y.max(0);
+  let dest_y_max = (offset_y + top_size.height as i32).min(bottom_height);
 
-    let dest_y = dest_y as u32;
+  if dest_y_min >= dest_y_max {
+    return; // No overlap
+  }
 
-    if dest_y >= bottom.height() {
-      break;
-    }
+  let dest_x_min = offset_x.max(0);
+  let dest_x_max = (offset_x + top_size.width as i32).min(bottom_width);
 
-    for x in 0..top_size.width {
-      let dest_x = x as i32 + offset.x as i32;
+  if dest_x_min >= dest_x_max {
+    return; // No horizontal overlap on this row
+  }
 
-      if dest_x < 0 {
-        continue;
-      }
+  // For each destination y, calculate corresponding source y
+  for dest_y in dest_y_min..dest_y_max {
+    let src_y = (dest_y - offset_y) as u32;
 
-      let dest_x = dest_x as u32;
+    for dest_x in dest_x_min..dest_x_max {
+      let src_x = (dest_x - offset_x) as u32;
+      let pixel = f(src_x, src_y);
 
-      if dest_x >= bottom.width() {
-        break;
-      }
-
-      let pixel = f(x, y);
-
-      draw_pixel(bottom, dest_x, dest_y, pixel);
+      draw_pixel(bottom, dest_x as u32, dest_y as u32, pixel);
     }
   }
 }
