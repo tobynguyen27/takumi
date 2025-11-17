@@ -60,6 +60,7 @@ impl<'i> FromCss<'i> for Overflow {
 /// Can be either a single value applied to both axes, or separate values
 /// for horizontal and vertical overflow.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, TS, PartialEq)]
+#[serde(transparent)]
 pub struct Overflows(pub SpacePair<Overflow>);
 
 impl Default for Overflows {
@@ -93,5 +94,27 @@ impl Overflows {
     }
 
     Some(Canvas::new(inner_size))
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use serde_json;
+
+  use super::*;
+
+  #[test]
+  fn test_overflow_deserialize() {
+    // Test deserialization from string (single value)
+    let overflow_json = r#""hidden""#;
+    let overflow: Overflows = serde_json::from_str(overflow_json).unwrap();
+    assert_eq!(overflow.0.x, Overflow::Hidden);
+    assert_eq!(overflow.0.y, Overflow::Hidden);
+
+    // Test deserialization from object (pair of values)
+    let overflow_json = r#"{"x": "visible", "y": "hidden"}"#;
+    let overflow: Overflows = serde_json::from_str(overflow_json).unwrap();
+    assert_eq!(overflow.0.x, Overflow::Visible);
+    assert_eq!(overflow.0.y, Overflow::Hidden);
   }
 }

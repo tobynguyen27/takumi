@@ -1,18 +1,32 @@
+use std::{
+  fs::File,
+  io::Read,
+  path::{Path, PathBuf},
+};
+
 use takumi::{GlobalContext, resources::font::FontError};
 
-// Include test font data using include_bytes!
-static TTF_FONT: &[u8] =
-  include_bytes!("../../assets/fonts/noto-sans/NotoSansTC-VariableFont_wght.ttf");
-static WOFF2_FONT: &[u8] = include_bytes!("../../assets/fonts/geist/Geist[wght].woff2");
+fn font_path(path: &str) -> PathBuf {
+  Path::new(env!("CARGO_MANIFEST_DIR"))
+    .join("../assets/fonts/")
+    .join(path)
+    .to_path_buf()
+}
 
 #[test]
 fn test_ttf_font_loading() {
   let mut context = GlobalContext::default();
 
+  let mut font_data = Vec::new();
+  File::open(font_path("noto-sans/NotoSansTC-VariableFont_wght.ttf"))
+    .unwrap()
+    .read_to_end(&mut font_data)
+    .unwrap();
+
   assert!(
     context
       .font_context
-      .load_and_store(TTF_FONT, None, None)
+      .load_and_store(&font_data, None, None)
       .is_ok()
   );
 }
@@ -21,10 +35,16 @@ fn test_ttf_font_loading() {
 fn test_woff2_font_loading() {
   let mut context = GlobalContext::default();
 
+  let mut font_data = Vec::new();
+  File::open(font_path("geist/Geist[wght].woff2"))
+    .unwrap()
+    .read_to_end(&mut font_data)
+    .unwrap();
+
   assert!(
     context
       .font_context
-      .load_and_store(WOFF2_FONT, None, None)
+      .load_and_store(&font_data, None, None)
       .is_ok()
   );
 }

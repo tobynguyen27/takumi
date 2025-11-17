@@ -1,4 +1,9 @@
-use std::{fs::File, io::BufWriter, path::Path, sync::Arc};
+use std::{
+  fs::File,
+  io::{BufWriter, Read},
+  path::{Path, PathBuf},
+  sync::Arc,
+};
 
 use image::load_from_memory;
 use parley::{GenericFamily, fontique::FontInfoOverride};
@@ -13,19 +18,26 @@ use takumi::{
   resources::image::{ImageSource, parse_svg_str},
 };
 
-const TEST_FONTS: &[(&[u8], &str, GenericFamily)] = &[
+fn assets_path(path: &str) -> PathBuf {
+  Path::new(env!("CARGO_MANIFEST_DIR"))
+    .join("../assets/")
+    .join(path)
+    .to_path_buf()
+}
+
+const TEST_FONTS: &[(&str, &str, GenericFamily)] = &[
   (
-    include_bytes!("../../assets/fonts/geist/Geist[wght].woff2"),
+    "fonts/geist/Geist[wght].woff2",
     "Geist",
     GenericFamily::SansSerif,
   ),
   (
-    include_bytes!("../../assets/fonts/geist/GeistMono[wght].woff2"),
+    "fonts/geist/GeistMono[wght].woff2",
     "Geist Mono",
     GenericFamily::Monospace,
   ),
   (
-    include_bytes!("../../assets/fonts/noto-sans/NotoColorEmoji.ttf"),
+    "fonts/noto-sans/NotoColorEmoji.ttf",
     "Noto Color Emoji",
     GenericFamily::Emoji,
   ),
@@ -34,25 +46,41 @@ const TEST_FONTS: &[(&[u8], &str, GenericFamily)] = &[
 fn create_test_context() -> GlobalContext {
   let mut context = GlobalContext::default();
 
+  let mut yeecord_image_data = Vec::new();
+  File::open(assets_path("images/yeecord.png"))
+    .unwrap()
+    .read_to_end(&mut yeecord_image_data)
+    .unwrap();
+
+  let mut luma_image_data = String::new();
+  File::open(assets_path("images/luma.svg"))
+    .unwrap()
+    .read_to_string(&mut luma_image_data)
+    .unwrap();
+
   context.persistent_image_store.insert(
     "assets/images/yeecord.png".to_string(),
     Arc::new(ImageSource::Bitmap(
-      load_from_memory(include_bytes!("../../assets/images/yeecord.png"))
-        .unwrap()
-        .into_rgba8(),
+      load_from_memory(&yeecord_image_data).unwrap().into_rgba8(),
     )),
   );
 
   context.persistent_image_store.insert(
     "assets/images/luma.svg".to_string(),
-    parse_svg_str(include_str!("../../assets/images/luma.svg")).unwrap(),
+    parse_svg_str(&luma_image_data).unwrap(),
   );
 
   for (font, name, generic) in TEST_FONTS {
+    let mut font_data = Vec::new();
+    File::open(assets_path(font))
+      .unwrap()
+      .read_to_end(&mut font_data)
+      .unwrap();
+
     context
       .font_context
       .load_and_store(
-        font,
+        &font_data,
         Some(FontInfoOverride {
           family_name: Some(name),
           ..Default::default()

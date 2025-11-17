@@ -48,6 +48,7 @@ pub enum ShapeRadius {
 
 /// Represents a position for circle() and ellipse() functions.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, TS)]
+#[serde(transparent)]
 pub struct ShapePosition(pub SpacePair<LengthUnit>);
 
 impl Default for ShapePosition {

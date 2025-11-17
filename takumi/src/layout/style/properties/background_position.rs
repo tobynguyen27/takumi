@@ -62,6 +62,7 @@ impl From<PositionComponent> for LengthUnit {
 
 /// Parsed `background-position` value for one layer.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, TS, PartialEq)]
+#[serde(transparent)]
 pub struct BackgroundPosition(pub SpacePair<PositionComponent>);
 
 impl TailwindPropertyParser for BackgroundPosition {
