@@ -1,4 +1,4 @@
-import { create, docs } from ".source";
+import { docs } from ".source/server";
 import { loader } from "fumadocs-core/source";
 import defaultAttributes from "lucide-react/dist/esm/defaultAttributes";
 import { __iconNode as arrowBigRightIconNode } from "lucide-react/dist/esm/icons/arrow-big-right";
@@ -44,6 +44,6 @@ export const source = loader({
       );
     }
   },
-  source: await create.sourceAsync(docs.doc, docs.meta),
+  source: docs.toFumadocsSource(),
   baseUrl: "/docs",
 });

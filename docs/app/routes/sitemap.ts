@@ -15,10 +15,9 @@ export function loader() {
   ];
 
   pages.push(
-    ...source.getPages().map(({ url, data: { lastModified } }) =>
+    ...source.getPages().map(({ url }) =>
       page({
         path: `${url}/`,
-        lastModified,
         priority: 0.5,
         change: "daily",
       }),
