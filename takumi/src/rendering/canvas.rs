@@ -468,11 +468,6 @@ pub(crate) fn overlay_image(
 
     let point = inverse.transform_point(transformed_point);
 
-    println!(
-      "({}, {}) -> ({}, {})",
-      transformed_point.x, transformed_point.y, point.x, point.y
-    );
-
     let sampled_pixel = match algorithm {
       ImageScalingAlgorithm::Pixelated => interpolate_nearest(&*image, point.x, point.y),
       _ => interpolate_bilinear(&*image, point.x, point.y),
