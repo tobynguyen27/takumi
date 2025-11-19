@@ -47,19 +47,27 @@ export function loader({ params }: Route.LoaderArgs) {
     path: page.path,
     url: page.url,
     tree: source.pageTree,
+    lastModified: page.data.lastModified,
     slugs,
   };
 }
 
 const clientLoader = browserCollections.docs.createClientLoader({
   component(
-    { default: Mdx, toc, lastModified, frontmatter },
+    { default: Mdx, toc, frontmatter },
     {
       tree,
       url,
       slugs,
       path,
-    }: { tree: PageTreeRoot; url: string; slugs: string[]; path: string },
+      lastModified,
+    }: {
+      tree: PageTreeRoot;
+      url: string;
+      slugs: string[];
+      path: string;
+      lastModified: Date | undefined;
+    },
   ) {
     const title = `${frontmatter.title} - Takumi`;
 
@@ -102,7 +110,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
 });
 
 export default function Page(props: Route.ComponentProps) {
-  const { tree, path, url, slugs } = props.loaderData;
+  const { tree, path, url, slugs, lastModified } = props.loaderData;
 
   const Content = clientLoader.getComponent(path);
 
@@ -123,6 +131,7 @@ export default function Page(props: Route.ComponentProps) {
         url={url}
         slugs={slugs}
         path={path}
+        lastModified={lastModified}
       />
     </DocsLayout>
   );

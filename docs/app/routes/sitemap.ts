@@ -15,11 +15,12 @@ export function loader() {
   ];
 
   pages.push(
-    ...source.getPages().map(({ url }) =>
+    ...source.getPages().map(({ url, data }) =>
       page({
         path: `${url}/`,
         priority: 0.5,
         change: "daily",
+        lastModified: data.lastModified,
       }),
     ),
   );
