@@ -1,5 +1,11 @@
 # takumi
 
+## 0.52.1
+
+### Patch Changes
+
+- 3fa5c55: optimize tailwind parser function size
+
 ## 0.52.0
 
 ### Minor Changes
