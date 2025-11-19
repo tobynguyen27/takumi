@@ -454,11 +454,21 @@ pub(crate) fn overlay_image(
 
   let (mask, placement) = Mask::new(&paths).transform(Some(transform.into())).render();
 
+  let is_identity = transform.is_identity();
+
   let get_original_pixel = |x, y| {
     let alpha = mask[mask_index_from_coord(x, y, placement.width)];
 
     if alpha == 0 {
       return Color::transparent().into();
+    }
+
+    // Fast path: If only border radius is applied, we can just map the pixel directly
+    if is_identity && placement.left >= 0 && placement.top >= 0 {
+      return apply_mask_alpha_to_pixel(
+        *image.get_pixel(x + placement.left as u32, y + placement.top as u32),
+        alpha,
+      );
     }
 
     let point = inverse.transform_point(Point {
