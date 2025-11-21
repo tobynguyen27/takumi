@@ -1,5 +1,11 @@
 # takumi
 
+## 0.53.1
+
+### Patch Changes
+
+- 29a575c: optimize `CssValue` deserialize implementation to reduce generated `Visitor` variant
+
 ## 0.53.0
 
 ### Minor Changes
