@@ -4,7 +4,7 @@ use derive_builder::Builder;
 use parley::{FontSettings, FontStack, FontWidth, TextStyle};
 use serde::Deserialize;
 use smallvec::SmallVec;
-use taffy::{Size, prelude::FromLength};
+use taffy::{Point, Size, prelude::FromLength};
 
 use crate::{
   layout::{
@@ -103,16 +103,16 @@ define_style!(
   mask_position: Option<BackgroundPositions>,
   mask_repeat: Option<BackgroundRepeats>,
   gap: SpacePair<LengthUnit<false>>,
-  column_gap: Option<LengthUnit>,
-  row_gap: Option<LengthUnit>,
+  column_gap: Option<LengthUnit<false>>,
+  row_gap: Option<LengthUnit<false>>,
   flex: Option<Flex>,
   flex_grow: Option<FlexGrow>,
   flex_shrink: Option<FlexGrow>,
   border_radius: Sides<LengthUnit<false>>,
-  border_top_left_radius: Option<LengthUnit>,
-  border_top_right_radius: Option<LengthUnit>,
-  border_bottom_right_radius: Option<LengthUnit>,
-  border_bottom_left_radius: Option<LengthUnit>,
+  border_top_left_radius: Option<LengthUnit<false>>,
+  border_top_right_radius: Option<LengthUnit<false>>,
+  border_bottom_right_radius: Option<LengthUnit<false>>,
+  border_bottom_left_radius: Option<LengthUnit<false>>,
   border_width: Option<Sides<LengthUnit>>,
   border_inline_width: Option<SpacePair<LengthUnit>>,
   border_block_width: Option<SpacePair<LengthUnit>>,
@@ -122,7 +122,7 @@ define_style!(
   border_left_width: Option<LengthUnit>,
   border: Border,
   object_fit: ObjectFit,
-  overflow: Overflows,
+  overflow: SpacePair<Overflow>,
   overflow_x: Option<Overflow>,
   overflow_y: Option<Overflow>,
   object_position: BackgroundPosition where "inherit",
@@ -171,7 +171,7 @@ define_style!(
   white_space: WhiteSpace where "inherit",
   white_space_collapse: Option<WhiteSpaceCollapse> where "inherit",
   text_wrap_mode: Option<TextWrapMode> where "inherit",
-  text_wrap: TextWrapMode where "inherit",
+  text_wrap: Option<TextWrapMode> where "inherit",
 );
 
 /// Sized font style with resolved font size and line height.
@@ -257,7 +257,6 @@ impl<'s> SizedFontStyle<'s> {
     if let Some(clamp) = &self
       .parent
       .line_clamp
-      .0
       .as_ref()
       .and_then(|clamp| clamp.ellipsis.as_deref())
     {
@@ -269,18 +268,18 @@ impl<'s> SizedFontStyle<'s> {
 }
 
 impl InheritedStyle {
-  pub(crate) fn resolve_overflows(&self) -> Overflows {
-    Overflows(SpacePair::from_pair(
+  pub(crate) fn resolve_overflows(&self) -> SpacePair<Overflow> {
+    SpacePair::from_pair(
       self.overflow_x.unwrap_or(self.overflow.x),
       self.overflow_y.unwrap_or(self.overflow.y),
-    ))
+    )
   }
 
   pub(crate) fn white_space(&self) -> WhiteSpace {
     WhiteSpace {
       text_wrap_mode: self
         .text_wrap_mode
-        .or(self.text_wrap.0)
+        .or(self.text_wrap)
         .unwrap_or(self.white_space.text_wrap_mode),
       white_space_collapse: self
         .white_space_collapse
@@ -353,37 +352,37 @@ impl InheritedStyle {
   }
 
   #[inline]
-  fn resolve_rect_with_longhands(
-    base: Sides<LengthUnit>,
-    inline: Option<SpacePair<LengthUnit>>,
-    block: Option<SpacePair<LengthUnit>>,
-    top: Option<LengthUnit>,
-    right: Option<LengthUnit>,
-    bottom: Option<LengthUnit>,
-    left: Option<LengthUnit>,
-  ) -> taffy::Rect<LengthUnit> {
+  fn resolve_rect_with_longhands<const DEFAULT_AUTO: bool>(
+    base: Sides<LengthUnit<DEFAULT_AUTO>>,
+    inline: Option<SpacePair<LengthUnit<DEFAULT_AUTO>>>,
+    block: Option<SpacePair<LengthUnit<DEFAULT_AUTO>>>,
+    top: Option<LengthUnit<DEFAULT_AUTO>>,
+    right: Option<LengthUnit<DEFAULT_AUTO>>,
+    bottom: Option<LengthUnit<DEFAULT_AUTO>>,
+    left: Option<LengthUnit<DEFAULT_AUTO>>,
+  ) -> taffy::Rect<LengthUnit<DEFAULT_AUTO>> {
     let mut values = base.0;
 
-    if let Some(pair) = *inline {
+    if let Some(pair) = inline {
       values[3] = pair.x; // left
       values[1] = pair.y; // right
     }
 
-    if let Some(pair) = *block {
+    if let Some(pair) = block {
       values[0] = pair.x; // top
       values[2] = pair.y; // bottom
     }
 
-    if let Some(v) = *top {
+    if let Some(v) = top {
       values[0] = v;
     }
-    if let Some(v) = *right {
+    if let Some(v) = right {
       values[1] = v;
     }
-    if let Some(v) = *bottom {
+    if let Some(v) = bottom {
       values[2] = v;
     }
-    if let Some(v) = *left {
+    if let Some(v) = left {
       values[3] = v;
     }
     taffy::Rect {
@@ -395,7 +394,7 @@ impl InheritedStyle {
   }
 
   #[inline]
-  fn resolved_padding(&self) -> taffy::Rect<LengthUnit> {
+  fn resolved_padding(&self) -> taffy::Rect<LengthUnit<false>> {
     Self::resolve_rect_with_longhands(
       self.padding,
       self.padding_inline,
@@ -408,7 +407,7 @@ impl InheritedStyle {
   }
 
   #[inline]
-  fn resolved_margin(&self) -> taffy::Rect<LengthUnit> {
+  fn resolved_margin(&self) -> taffy::Rect<LengthUnit<false>> {
     Self::resolve_rect_with_longhands(
       self.margin,
       self.margin_inline,
@@ -434,7 +433,7 @@ impl InheritedStyle {
   }
 
   #[inline]
-  fn resolved_gap(&self) -> SpacePair<LengthUnit, true> {
+  fn resolved_gap(&self) -> SpacePair<LengthUnit<false>, true> {
     SpacePair::from_pair(
       self.column_gap.unwrap_or(self.gap.y),
       self.row_gap.unwrap_or(self.gap.x),
@@ -458,11 +457,11 @@ impl InheritedStyle {
   }
 
   #[inline]
-  pub(crate) fn resolved_border_radius(&self) -> taffy::Rect<LengthUnit> {
+  pub(crate) fn resolved_border_radius(&self) -> taffy::Rect<LengthUnit<false>> {
     Self::resolve_rect_with_longhands(
       self.border_radius,
-      Option::none(),
-      Option::none(),
+      None,
+      None,
       self.border_top_left_radius,
       self.border_top_right_radius,
       self.border_bottom_right_radius,
@@ -598,7 +597,7 @@ impl InheritedStyle {
       aspect_ratio: self.aspect_ratio.into(),
       align_self: self.align_self.into(),
       justify_self: self.justify_self.into(),
-      overflow: self.resolve_overflows().into(),
+      overflow: Point::from(self.resolve_overflows()).map(Into::into),
       dummy: PhantomData,
       item_is_table: false,
       item_is_replaced: false,

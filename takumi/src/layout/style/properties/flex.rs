@@ -1,14 +1,10 @@
 use cssparser::{Parser, match_ignore_ascii_case};
-use serde::Deserialize;
-use ts_rs::TS;
 
 use crate::layout::style::{
   AspectRatio, FromCss, LengthUnit, ParseResult, tw::TailwindPropertyParser,
 };
 
-#[derive(Debug, Clone, Copy, Deserialize, TS, PartialEq)]
-#[serde(try_from = "FlexValue")]
-#[ts(as = "FlexValue")]
+#[derive(Debug, Clone, Copy, PartialEq)]
 /// Represents a flex shorthand property for flex-grow, flex-shrink, and flex-basis.
 pub struct Flex {
   /// The flex-grow value.
@@ -74,8 +70,7 @@ impl Flex {
   }
 }
 
-#[derive(Debug, Clone, Deserialize, TS)]
-#[serde(untagged)]
+#[derive(Debug, Clone)]
 pub(crate) enum FlexValue {
   Structured {
     grow: Option<f32>,
@@ -83,7 +78,6 @@ pub(crate) enum FlexValue {
     basis: Option<LengthUnit>,
   },
   Number(f32),
-  #[ts(type = "'auto' | 'none' | string")]
   Css(String),
 }
 

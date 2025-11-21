@@ -1,17 +1,14 @@
 use std::sync::Arc;
 
 use cssparser::{Parser, match_ignore_ascii_case};
-use serde::Deserialize;
 use smallvec::SmallVec;
-use ts_rs::TS;
 
 use crate::layout::style::{
   FromCss, LinearGradient, NoiseV1, ParseResult, RadialGradient, tw::TailwindPropertyParser,
 };
 
 /// Background image variants supported by Takumi.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BackgroundImage {
   /// CSS linear-gradient(...)
   Linear(LinearGradient),
@@ -51,21 +48,17 @@ impl<'i> FromCss<'i> for BackgroundImage {
 }
 
 /// Proxy type to deserialize CSS background images as either a list or CSS string
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum BackgroundImagesValue {
   /// Structured variant: explicit list of background images
-  #[ts(as = "Vec<BackgroundImage>")]
   Images(SmallVec<[BackgroundImage; 4]>),
   /// CSS string variant
   Css(String),
 }
 
 /// A collection of background images.
-#[derive(Debug, Deserialize, Clone, PartialEq, TS)]
-#[ts(as = "BackgroundImagesValue")]
-#[serde(try_from = "BackgroundImagesValue")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BackgroundImages(pub SmallVec<[BackgroundImage; 4]>);
 
 impl<'i> FromCss<'i> for BackgroundImages {

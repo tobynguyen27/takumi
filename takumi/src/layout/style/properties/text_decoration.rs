@@ -1,16 +1,12 @@
 use cssparser::{Parser, Token, match_ignore_ascii_case};
-use serde::Deserialize;
 use smallvec::SmallVec;
-use ts_rs::TS;
 
 use crate::layout::style::{FromCss, ParseResult, properties::ColorInput};
 
 /// Represents the `text-decoration` shorthand which accepts a line style and an optional color.
-#[derive(Debug, Clone, PartialEq, Deserialize, TS)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum TextDecorationValue {
   /// Structured representation when provided as JSON.
-  #[serde(rename_all = "camelCase")]
   Structured {
     line: TextDecorationLines,
     style: Option<TextDecorationStyle>,
@@ -21,8 +17,7 @@ pub(crate) enum TextDecorationValue {
 }
 
 /// Represents text decoration line options.
-#[derive(Debug, Clone, Copy, PartialEq, Deserialize, TS)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TextDecorationLine {
   /// Underline text decoration.
   Underline,
@@ -33,15 +28,11 @@ pub enum TextDecorationLine {
 }
 
 /// Represents a collection of text decoration lines.
-#[derive(Debug, Clone, Default, PartialEq, Deserialize, TS)]
-#[ts(as = "TextDecorationLinesValue")]
-#[serde(try_from = "TextDecorationLinesValue")]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct TextDecorationLines(pub SmallVec<[TextDecorationLine; 3]>);
 
-#[derive(Debug, Clone, PartialEq, Deserialize, TS)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 enum TextDecorationLinesValue {
-  #[ts(as = "Vec<TextDecorationLine>")]
   Lines(SmallVec<[TextDecorationLine; 3]>),
   Css(String),
 }
@@ -80,17 +71,14 @@ impl TextDecorationLines {
 }
 
 /// Represents text decoration style options (currently only solid is supported).
-#[derive(Debug, Clone, Copy, PartialEq, Deserialize, TS)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TextDecorationStyle {
   /// Solid text decoration style.
   Solid,
 }
 
 /// Parsed `text-decoration` value.
-#[derive(Debug, Default, Clone, PartialEq, Deserialize, TS)]
-#[serde(try_from = "TextDecorationValue")]
-#[ts(as = "TextDecorationValue")]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct TextDecoration {
   /// Text decoration line style.
   pub line: TextDecorationLines,

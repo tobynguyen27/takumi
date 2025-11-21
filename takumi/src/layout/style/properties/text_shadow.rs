@@ -1,16 +1,12 @@
 use std::{borrow::Cow, fmt::Debug};
 
 use cssparser::{BasicParseErrorKind, ParseError, Parser};
-use serde::Deserialize;
 use smallvec::SmallVec;
-use ts_rs::TS;
 
 use crate::layout::style::{Color, ColorInput, FromCss, LengthUnit, ParseResult};
 
 /// Represents a text shadow with all its properties.
-#[derive(Debug, Clone, PartialEq, Copy, Deserialize, TS)]
-#[ts(as = "TextShadowValue")]
-#[serde(try_from = "TextShadowValue")]
+#[derive(Debug, Clone, PartialEq, Copy)]
 pub struct TextShadow {
   /// Horizontal offset of the shadow.
   pub offset_x: LengthUnit,
@@ -23,11 +19,9 @@ pub struct TextShadow {
 }
 
 /// Proxy type for `TextShadow` Css deserialization.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum TextShadowValue {
   /// Represents a structured box shadow.
-  #[serde(rename_all = "camelCase")]
   Structured {
     /// Horizontal offset of the shadow.
     offset_x: LengthUnit,
@@ -64,15 +58,11 @@ impl TryFrom<TextShadowValue> for TextShadow {
 }
 
 /// Represents a collection of text shadows; has custom `FromCss` implementation for comma-separated values.
-#[derive(Debug, Clone, PartialEq, Deserialize, TS)]
-#[ts(as = "TextShadowsValue")]
-#[serde(try_from = "TextShadowsValue")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TextShadows(pub SmallVec<[TextShadow; 4]>);
 
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum TextShadowsValue {
-  #[ts(as = "Vec<TextShadow>")]
   Structured(SmallVec<[TextShadow; 4]>),
   Css(String),
 }

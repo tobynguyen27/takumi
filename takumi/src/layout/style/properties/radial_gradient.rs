@@ -1,7 +1,5 @@
 use cssparser::{Parser, Token, match_ignore_ascii_case};
-use serde::Deserialize;
 use smallvec::SmallVec;
-use ts_rs::TS;
 
 use super::gradient_utils::{color_from_stops, resolve_stops_along_axis};
 use crate::{
@@ -13,7 +11,7 @@ use crate::{
 };
 
 /// Represents a radial gradient.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RadialGradient {
   /// The radial gradient shape
   pub shape: RadialShape,
@@ -26,8 +24,7 @@ pub struct RadialGradient {
 }
 
 /// Supported shapes for radial gradients
-#[derive(Debug, Clone, Copy, PartialEq, TS, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum RadialShape {
   /// A circle shape where radii are equal
   Circle,
@@ -37,8 +34,7 @@ pub enum RadialShape {
 }
 
 /// Supported size keywords for radial gradients
-#[derive(Debug, Clone, Copy, PartialEq, TS, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum RadialSize {
   /// The gradient end stops at the nearest side from the center
   ClosestSide,
@@ -267,8 +263,7 @@ impl<'i> FromCss<'i> for RadialSize {
 }
 
 /// Proxy type for `RadialGradient` Css deserialization.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum RadialGradientValue {
   /// Represents a radial gradient.
   Structured {

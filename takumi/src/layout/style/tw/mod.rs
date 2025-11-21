@@ -268,11 +268,11 @@ pub enum TailwindProperty {
   /// `background-image` property.
   BackgroundImage(BackgroundImage),
   /// `gap` property.
-  Gap(LengthUnit),
+  Gap(LengthUnit<false>),
   /// `column-gap` property.
-  GapX(LengthUnit),
+  GapX(LengthUnit<false>),
   /// `row-gap` property.
-  GapY(LengthUnit),
+  GapY(LengthUnit<false>),
   /// `grid-auto-flow` property.
   GridAutoFlow(GridAutoFlow),
   /// `grid-auto-columns` property.
@@ -358,33 +358,33 @@ pub enum TailwindProperty {
   /// `transform-origin` property.
   TransformOrigin(BackgroundPosition),
   /// `margin` property.
-  Margin(LengthUnit),
+  Margin(LengthUnit<false>),
   /// `margin-inline` property.
-  MarginX(LengthUnit),
+  MarginX(LengthUnit<false>),
   /// `margin-block` property.
-  MarginY(LengthUnit),
+  MarginY(LengthUnit<false>),
   /// `margin-top` property.
-  MarginTop(LengthUnit),
+  MarginTop(LengthUnit<false>),
   /// `margin-right` property.
-  MarginRight(LengthUnit),
+  MarginRight(LengthUnit<false>),
   /// `margin-bottom` property.
-  MarginBottom(LengthUnit),
+  MarginBottom(LengthUnit<false>),
   /// `margin-left` property.
-  MarginLeft(LengthUnit),
+  MarginLeft(LengthUnit<false>),
   /// `padding` property.
-  Padding(LengthUnit),
+  Padding(LengthUnit<false>),
   /// `padding-inline` property.
-  PaddingX(LengthUnit),
+  PaddingX(LengthUnit<false>),
   /// `padding-block` property.
-  PaddingY(LengthUnit),
+  PaddingY(LengthUnit<false>),
   /// `padding-top` property.
-  PaddingTop(LengthUnit),
+  PaddingTop(LengthUnit<false>),
   /// `padding-right` property.
-  PaddingRight(LengthUnit),
+  PaddingRight(LengthUnit<false>),
   /// `padding-bottom` property.
-  PaddingBottom(LengthUnit),
+  PaddingBottom(LengthUnit<false>),
   /// `padding-left` property.
-  PaddingLeft(LengthUnit),
+  PaddingLeft(LengthUnit<false>),
   /// `inset` property.
   Inset(LengthUnit),
   /// `inset-inline` property.
@@ -537,7 +537,7 @@ impl TailwindProperty {
         style.flex_basis = Some(flex_basis).into();
       }
       TailwindProperty::Overflow(overflow) => {
-        style.overflow = Overflows(SpacePair::from_single(overflow)).into();
+        style.overflow = SpacePair::from_single(overflow).into();
       }
       TailwindProperty::Position(position) => {
         style.position = position.into();
@@ -700,7 +700,7 @@ impl TailwindProperty {
           white_space_collapse: WhiteSpaceCollapse::Collapse,
         }
         .into();
-        style.overflow = Overflows(SpacePair::from_single(Overflow::Hidden)).into();
+        style.overflow = SpacePair::from_single(Overflow::Hidden).into();
       }
       TailwindProperty::TextWrap(text_wrap_mode) => {
         style.text_wrap_mode = Some(text_wrap_mode).into();

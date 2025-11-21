@@ -5,15 +5,12 @@ use image::{
   Pixel, RgbaImage,
   imageops::colorops::{contrast_in_place, huerotate_in_place},
 };
-use serde::Deserialize;
 use smallvec::SmallVec;
-use ts_rs::TS;
 
 use crate::layout::style::{Angle, FromCss, ParseResult, PercentageNumber};
 
 /// Represents a single CSS filter operation
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, TS)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Filter {
   /// Brightness multiplier (1 = unchanged). Accepts number or percentage
   Brightness(f32),
@@ -32,19 +29,15 @@ pub enum Filter {
 }
 
 /// A list of filters
-#[derive(Debug, Clone, Deserialize, PartialEq, TS)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum FiltersValue {
   /// Structured set of filters
-  #[ts(as = "Vec<Filter>")]
   Structured(SmallVec<[Filter; 4]>),
   /// Raw CSS string to be parsed
   Css(String),
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, TS, Default)]
-#[ts(as = "FiltersValue")]
-#[serde(try_from = "FiltersValue")]
+#[derive(Debug, Clone, PartialEq, Default)]
 /// A list of filter operations
 pub struct Filters(SmallVec<[Filter; 4]>);
 

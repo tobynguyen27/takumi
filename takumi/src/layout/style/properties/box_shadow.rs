@@ -1,9 +1,7 @@
 use std::{borrow::Cow, fmt::Debug};
 
 use cssparser::{BasicParseErrorKind, ParseError, Parser};
-use serde::Deserialize;
 use smallvec::SmallVec;
-use ts_rs::TS;
 
 use crate::layout::style::{Color, ColorInput, FromCss, LengthUnit, ParseResult};
 
@@ -14,9 +12,7 @@ use crate::layout::style::{Color, ColorInput, FromCss, LengthUnit, ParseResult};
 /// - Blur radius (optional, defaults to 0)
 /// - Spread radius (optional, defaults to 0)
 /// - Color (optional, defaults to transparent)
-#[derive(Debug, Clone, PartialEq, Copy, Deserialize, TS)]
-#[ts(as = "BoxShadowValue")]
-#[serde(try_from = "BoxShadowValue")]
+#[derive(Debug, Clone, PartialEq, Copy)]
 pub struct BoxShadow {
   /// Whether the shadow is inset (inside the element) or outset (outside the element).
   pub inset: bool,
@@ -33,11 +29,9 @@ pub struct BoxShadow {
 }
 
 /// Proxy type for `BoxShadow` Css deserialization.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum BoxShadowValue {
   /// Represents a structured box shadow.
-  #[serde(rename_all = "camelCase")]
   Structured {
     /// Whether the shadow is inset (inside the element) or outset (outside the element).
     inset: bool,
@@ -82,15 +76,11 @@ impl TryFrom<BoxShadowValue> for BoxShadow {
 }
 
 /// Represents a collection of box shadows, have custom `FromCss` implementation for comma-separated values.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[ts(as = "BoxShadowsValue")]
-#[serde(try_from = "BoxShadowsValue")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BoxShadows(pub SmallVec<[BoxShadow; 4]>);
 
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum BoxShadowsValue {
-  #[ts(as = "Vec<BoxShadow>")]
   Structured(SmallVec<[BoxShadow; 4]>),
   Css(String),
 }

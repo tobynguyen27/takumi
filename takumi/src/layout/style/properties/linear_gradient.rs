@@ -1,10 +1,7 @@
 use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
 use image::RgbaImage;
-use serde::{Deserialize, Deserializer};
-use serde_untagged::UntaggedEnumVisitor;
 use smallvec::SmallVec;
 use std::ops::{Deref, Neg};
-use ts_rs::TS;
 
 use super::gradient_utils::{color_from_stops, resolve_stops_along_axis};
 use crate::{
@@ -40,9 +37,7 @@ pub(crate) trait Gradient: Send + Sync {
 }
 
 /// Represents a linear gradient.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(try_from = "LinearGradientValue")]
-#[ts(as = "LinearGradientValue")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LinearGradient {
   /// The angle of the gradient.
   pub angle: Angle,
@@ -51,15 +46,13 @@ pub struct LinearGradient {
 }
 
 /// Proxy type for `LinearGradient` Css deserialization.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum LinearGradientValue {
   /// Represents a linear gradient.
   Structured {
     /// The angle of the gradient.
     angle: Angle,
     /// The steps of the gradient.
-    #[ts(as = "Vec<GradientStop>")]
     stops: SmallVec<[GradientStop; 4]>,
   },
   /// Represents a CSS string.
@@ -168,14 +161,11 @@ impl LinearGradientDrawContext {
 
 /// Represents a gradient stop position.
 /// If a percentage or number (0.0-1.0) is provided, it is treated as a percentage.
-#[derive(Debug, Clone, Copy, PartialEq, TS, Deserialize)]
-#[ts(as = "StopPositionValue")]
-#[serde(try_from = "StopPositionValue")]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct StopPosition(pub LengthUnit);
 
 /// Proxy type for `StopPosition` Css deserialization.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum StopPositionValue {
   /// Length value, percentage or number (0.0-1.0) is treated as a percentage.
   Length(LengthUnit),
@@ -184,15 +174,13 @@ pub(crate) enum StopPositionValue {
 }
 
 /// Represents a gradient stop.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GradientStop {
   /// A color gradient stop.
   ColorHint {
     /// The color of the gradient stop.
     color: ColorInput,
     /// The position of the gradient stop.
-    #[ts(optional)]
     hint: Option<StopPosition>,
   },
   /// A numeric gradient stop.
@@ -261,8 +249,7 @@ impl<'i> FromCss<'i> for GradientStop {
 }
 
 /// Represents an angle value in degrees.
-#[derive(Debug, Default, Clone, Copy, PartialEq, TS)]
-#[ts(type = "number | string")]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Angle(f32);
 
 impl From<Angle> for zeno::Angle {
@@ -288,19 +275,6 @@ impl Neg for Angle {
 
   fn neg(self) -> Self::Output {
     Angle::new(-self.0)
-  }
-}
-
-impl<'de> Deserialize<'de> for Angle {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    UntaggedEnumVisitor::new()
-      .i32(|num| Ok(Angle::new(num as f32)))
-      .f32(|num| Ok(Angle::new(num)))
-      .string(|str| Angle::from_str(str).map_err(|e| serde::de::Error::custom(e.to_string())))
-      .deserialize(deserializer)
   }
 }
 

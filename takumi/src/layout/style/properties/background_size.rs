@@ -1,11 +1,9 @@
 use cssparser::Parser;
-use serde::Deserialize;
-use ts_rs::TS;
 
 use crate::layout::style::{FromCss, LengthUnit, ParseResult, tw::TailwindPropertyParser};
 
 /// Parsed `background-size` for one layer.
-#[derive(Debug, Clone, Copy, Deserialize, TS, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BackgroundSize {
   /// Scale the image to cover the container (may crop).
   Cover,
@@ -71,8 +69,7 @@ impl<'i> FromCss<'i> for BackgroundSize {
 }
 
 /// A value representing either a list of parsed sizes or a raw CSS string.
-#[derive(Debug, Clone, PartialEq, TS, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum BackgroundSizesValue {
   /// Parsed sizes for one or more layers.
   Sizes(Vec<BackgroundSize>),
@@ -81,9 +78,7 @@ pub(crate) enum BackgroundSizesValue {
 }
 
 /// A list of `background-size` values (one per layer).
-#[derive(Debug, Default, Deserialize, Clone, PartialEq, TS)]
-#[ts(as = "BackgroundSizesValue")]
-#[serde(try_from = "BackgroundSizesValue")]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct BackgroundSizes(pub Vec<BackgroundSize>);
 
 impl<'i> FromCss<'i> for BackgroundSizes {
