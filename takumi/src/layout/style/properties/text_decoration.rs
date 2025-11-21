@@ -3,19 +3,6 @@ use smallvec::SmallVec;
 
 use crate::layout::style::{FromCss, ParseResult, properties::ColorInput};
 
-/// Represents the `text-decoration` shorthand which accepts a line style and an optional color.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum TextDecorationValue {
-  /// Structured representation when provided as JSON.
-  Structured {
-    line: TextDecorationLines,
-    style: Option<TextDecorationStyle>,
-    color: Option<ColorInput>,
-  },
-  /// Raw CSS string representation.
-  Css(String),
-}
-
 /// Represents text decoration line options.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TextDecorationLine {
@@ -31,12 +18,6 @@ pub enum TextDecorationLine {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct TextDecorationLines(pub SmallVec<[TextDecorationLine; 3]>);
 
-#[derive(Debug, Clone, PartialEq)]
-enum TextDecorationLinesValue {
-  Lines(SmallVec<[TextDecorationLine; 3]>),
-  Css(String),
-}
-
 impl<'i> FromCss<'i> for TextDecorationLines {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
     let mut lines = SmallVec::new();
@@ -47,19 +28,6 @@ impl<'i> FromCss<'i> for TextDecorationLines {
     }
 
     Ok(TextDecorationLines(lines))
-  }
-}
-
-impl TryFrom<TextDecorationLinesValue> for TextDecorationLines {
-  type Error = String;
-
-  fn try_from(value: TextDecorationLinesValue) -> Result<Self, Self::Error> {
-    match value {
-      TextDecorationLinesValue::Lines(lines) => Ok(TextDecorationLines(lines)),
-      TextDecorationLinesValue::Css(css) => {
-        TextDecorationLines::from_str(&css).map_err(|e| e.to_string())
-      }
-    }
   }
 }
 
@@ -86,19 +54,6 @@ pub struct TextDecoration {
   pub style: Option<TextDecorationStyle>,
   /// Optional text decoration color.
   pub color: Option<ColorInput>,
-}
-
-impl TryFrom<TextDecorationValue> for TextDecoration {
-  type Error = String;
-
-  fn try_from(value: TextDecorationValue) -> Result<Self, Self::Error> {
-    match value {
-      TextDecorationValue::Structured { line, style, color } => {
-        Ok(TextDecoration { line, style, color })
-      }
-      TextDecorationValue::Css(s) => Ok(TextDecoration::from_str(&s).map_err(|e| e.to_string())?),
-    }
-  }
 }
 
 impl<'i> FromCss<'i> for TextDecoration {

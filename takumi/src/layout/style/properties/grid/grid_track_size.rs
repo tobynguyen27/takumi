@@ -10,16 +10,6 @@ use crate::{
 #[derive(Debug, Clone, PartialEq)]
 pub struct GridTrackSizes(pub Vec<GridTrackSize>);
 
-/// Serializable input for `GridTrackSizes` that accepts either a list of
-/// pre-parsed `GridTrackSize` values or a CSS string to parse.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum GridTrackSizesValue {
-  /// Explicit list of track sizes.
-  Components(Vec<GridTrackSize>),
-  /// CSS value to parse (e.g. "minmax(10px, 1fr) 2fr").
-  Css(String),
-}
-
 impl<'i> FromCss<'i> for GridTrackSizes {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
     let mut components: Vec<GridTrackSize> = Vec::new();
@@ -28,17 +18,6 @@ impl<'i> FromCss<'i> for GridTrackSizes {
     }
 
     Ok(GridTrackSizes(components))
-  }
-}
-
-impl TryFrom<GridTrackSizesValue> for GridTrackSizes {
-  type Error = String;
-
-  fn try_from(value: GridTrackSizesValue) -> Result<Self, Self::Error> {
-    match value {
-      GridTrackSizesValue::Components(components) => Ok(GridTrackSizes(components)),
-      GridTrackSizesValue::Css(css) => GridTrackSizes::from_str(&css).map_err(|e| e.to_string()),
-    }
   }
 }
 

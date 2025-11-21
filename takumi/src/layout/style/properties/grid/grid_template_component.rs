@@ -11,29 +11,6 @@ use super::{GridRepeatTrack, GridRepetitionCount, GridTrackSize};
 #[derive(Debug, Clone, PartialEq)]
 pub struct GridTemplateComponents(pub Vec<GridTemplateComponent>);
 
-/// Serializable input for `GridTemplateComponents` that accepts either a
-/// pre-parsed component list or a CSS string to be parsed at runtime.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum GridTemplateComponentsValue {
-  /// Explicit list of template components.
-  Components(Vec<GridTemplateComponent>),
-  /// CSS value to parse (e.g. "\[a\] 1fr \[b\] 2fr" or "repeat(3, 1fr)").
-  Css(String),
-}
-
-impl TryFrom<GridTemplateComponentsValue> for GridTemplateComponents {
-  type Error = String;
-
-  fn try_from(value: GridTemplateComponentsValue) -> Result<Self, Self::Error> {
-    match value {
-      GridTemplateComponentsValue::Components(components) => Ok(GridTemplateComponents(components)),
-      GridTemplateComponentsValue::Css(css) => {
-        GridTemplateComponents::from_str(&css).map_err(|e| e.to_string())
-      }
-    }
-  }
-}
-
 /// Represents a track sizing function or a list of line names between tracks
 #[derive(Debug, Clone, PartialEq)]
 pub enum GridTemplateComponent {

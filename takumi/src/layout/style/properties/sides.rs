@@ -111,8 +111,8 @@ mod tests {
 
   #[test]
   fn deserialize_axis_pair_numbers() {
-    let json = "10, 20";
-    let sides: Sides<LengthUnit> = Sides::from_str(json).expect("should deserialize");
+    let sides: Sides<LengthUnit> = Sides::from_str("10 20").unwrap();
+
     assert_eq!(
       sides,
       Sides([
@@ -126,15 +126,15 @@ mod tests {
 
   #[test]
   fn deserialize_css_single_value() {
-    let json = "\"10px\"";
-    let sides: Sides<LengthUnit> = Sides::from_str(json).expect("should deserialize");
+    let sides: Sides<LengthUnit> = Sides::from_str("10px").unwrap();
+
     assert_eq!(sides, Sides([LengthUnit::Px(10.0); 4]));
   }
 
   #[test]
   fn deserialize_css_multi_values() {
-    let json = "\"1px 2px 3px 4px\"";
-    let sides: Sides<LengthUnit> = Sides::from_str(json).expect("should deserialize");
+    let sides: Sides<LengthUnit> = Sides::from_str("1px 2px 3px 4px").unwrap();
+
     assert_eq!(
       sides,
       Sides([

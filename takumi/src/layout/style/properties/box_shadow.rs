@@ -28,62 +28,9 @@ pub struct BoxShadow {
   pub color: ColorInput,
 }
 
-/// Proxy type for `BoxShadow` Css deserialization.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum BoxShadowValue {
-  /// Represents a structured box shadow.
-  Structured {
-    /// Whether the shadow is inset (inside the element) or outset (outside the element).
-    inset: bool,
-    /// Horizontal offset of the shadow.
-    offset_x: LengthUnit,
-    /// Vertical offset of the shadow.
-    offset_y: LengthUnit,
-    /// Blur radius of the shadow. Higher values create a more blurred shadow.
-    blur_radius: LengthUnit,
-    /// Spread radius of the shadow. Positive values expand the shadow, negative values shrink it.
-    spread_radius: LengthUnit,
-    /// Color of the shadow.
-    color: ColorInput,
-  },
-  /// Represents a CSS string.
-  Css(String),
-}
-
-impl TryFrom<BoxShadowValue> for BoxShadow {
-  type Error = String;
-
-  fn try_from(value: BoxShadowValue) -> Result<Self, Self::Error> {
-    match value {
-      BoxShadowValue::Structured {
-        inset,
-        offset_x,
-        offset_y,
-        blur_radius,
-        spread_radius,
-        color,
-      } => Ok(BoxShadow {
-        inset,
-        offset_x,
-        offset_y,
-        blur_radius,
-        spread_radius,
-        color,
-      }),
-      BoxShadowValue::Css(css) => BoxShadow::from_str(&css).map_err(|e| e.to_string()),
-    }
-  }
-}
-
 /// Represents a collection of box shadows, have custom `FromCss` implementation for comma-separated values.
 #[derive(Debug, Clone, PartialEq)]
 pub struct BoxShadows(pub SmallVec<[BoxShadow; 4]>);
-
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum BoxShadowsValue {
-  Structured(SmallVec<[BoxShadow; 4]>),
-  Css(String),
-}
 
 impl<'i> FromCss<'i> for BoxShadows {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
@@ -103,17 +50,6 @@ impl<'i> FromCss<'i> for BoxShadows {
     }
 
     Ok(BoxShadows(shadows))
-  }
-}
-
-impl TryFrom<BoxShadowsValue> for BoxShadows {
-  type Error = String;
-
-  fn try_from(value: BoxShadowsValue) -> Result<Self, Self::Error> {
-    match value {
-      BoxShadowsValue::Structured(shadows) => Ok(BoxShadows(shadows)),
-      BoxShadowsValue::Css(css) => BoxShadows::from_str(&css).map_err(|e| e.to_string()),
-    }
   }
 }
 

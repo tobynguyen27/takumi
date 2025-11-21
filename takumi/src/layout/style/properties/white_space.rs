@@ -71,7 +71,7 @@ impl WhiteSpace {
 impl<'i> FromCss<'i> for WhiteSpace {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
     // Try parsing as a keyword first
-    if let Ok(ident) = input.try_parse(|input| input.expect_ident_cloned()) {
+    if let Ok(ident) = input.try_parse(Parser::expect_ident_cloned) {
       return match_ignore_ascii_case! {&ident,
         "normal" => Ok(WhiteSpace::normal()),
         "pre" => Ok(WhiteSpace::pre()),

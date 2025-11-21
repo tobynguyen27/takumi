@@ -11,35 +11,6 @@ use crate::layout::style::{FromCss, ParseResult};
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct GridTemplateAreas(pub Vec<Vec<String>>);
 
-/// Serde helper that accepts either a matrix or a CSS string
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum GridTemplateAreasValue {
-  /// A 2D matrix representation (use "." for empty)
-  Matrix(Vec<Vec<String>>),
-  /// A CSS string representation
-  Css(String),
-}
-
-impl TryFrom<GridTemplateAreasValue> for GridTemplateAreas {
-  type Error = String;
-
-  fn try_from(value: GridTemplateAreasValue) -> Result<Self, Self::Error> {
-    match value {
-      GridTemplateAreasValue::Matrix(matrix) => {
-        // Validate consistent row lengths
-        let width = matrix.first().map_or(0, Vec::len);
-        if width > 0 && matrix.iter().any(|r| r.len() != width) {
-          return Err("Inconsistent row lengths in grid-template-areas matrix".to_string());
-        }
-        Ok(GridTemplateAreas(matrix))
-      }
-      GridTemplateAreasValue::Css(css) => {
-        GridTemplateAreas::from_str(&css).map_err(|e| e.to_string())
-      }
-    }
-  }
-}
-
 impl From<GridTemplateAreas> for Vec<taffy::GridTemplateArea<String>> {
   fn from(value: GridTemplateAreas) -> Self {
     if value.0.is_empty() {

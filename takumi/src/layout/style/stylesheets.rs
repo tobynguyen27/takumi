@@ -16,7 +16,7 @@ use crate::{
 
 /// Helper macro to define the `Style` struct and `InheritedStyle` struct.
 macro_rules! define_style {
-  ($( $property:ident: $type:ty $(where $default_behavior:literal)? ),* $(,)?) => {
+  ($( $property:ident: $type:ty $(where inherit = $inherit:expr)? ),* $(,)?) => {
     /// Defines the style of an element.
     #[derive(Debug, Default, Clone, Deserialize, Builder, PartialEq)]
     #[serde(default, rename_all = "camelCase")]
@@ -24,7 +24,7 @@ macro_rules! define_style {
     pub struct Style {
       $(
         #[allow(missing_docs)]
-        pub $property: CssValue<$type $(, { $default_behavior == "inherit" } )?>,
+        pub $property: CssValue<$type, $($inherit)?>,
       )*
     }
 
@@ -48,7 +48,7 @@ macro_rules! define_style {
 // property: type = node default value => viewport default value
 define_style!(
   // For convenience, we default to border-box
-  box_sizing: BoxSizing where "inherit",
+  box_sizing: BoxSizing where inherit = true,
   opacity: PercentageNumber,
   display: Display,
   width: LengthUnit,
@@ -125,7 +125,7 @@ define_style!(
   overflow: SpacePair<Overflow>,
   overflow_x: Option<Overflow>,
   overflow_y: Option<Overflow>,
-  object_position: BackgroundPosition where "inherit",
+  object_position: BackgroundPosition where inherit = true,
   background_image: Option<BackgroundImages>,
   background_position: Option<BackgroundPositions>,
   background_size: Option<BackgroundSizes>,
@@ -140,38 +140,38 @@ define_style!(
   grid_template_columns: Option<GridTemplateComponents>,
   grid_template_rows: Option<GridTemplateComponents>,
   grid_template_areas: Option<GridTemplateAreas>,
-  text_overflow: TextOverflow where "inherit",
-  text_transform: TextTransform where "inherit",
-  font_style: FontStyle where "inherit",
+  text_overflow: TextOverflow where inherit = true,
+  text_transform: TextTransform where inherit = true,
+  font_style: FontStyle where inherit = true,
   border_color: Option<ColorInput>,
-  color: ColorInput where "inherit",
+  color: ColorInput where inherit = true,
   filter: Option<Filters>,
-  font_size: Option<LengthUnit> where "inherit",
-  font_family: Option<FontFamily> where "inherit",
-  line_height: LineHeight where "inherit",
-  font_weight: FontWeight where "inherit",
-  font_variation_settings: Option<FontVariationSettings> where "inherit",
-  font_feature_settings: Option<FontFeatureSettings> where "inherit",
-  line_clamp: Option<LineClamp> where "inherit",
-  text_align: TextAlign where "inherit",
-  text_stroke_width: LengthUnit<false> where "inherit",
-  text_stroke_color: Option<ColorInput> where "inherit",
-  text_stroke: Option<TextStroke> where "inherit",
-  text_shadow: Option<TextShadows> where "inherit",
+  font_size: Option<LengthUnit> where inherit = true,
+  font_family: Option<FontFamily> where inherit = true,
+  line_height: LineHeight where inherit = true,
+  font_weight: FontWeight where inherit = true,
+  font_variation_settings: Option<FontVariationSettings> where inherit = true,
+  font_feature_settings: Option<FontFeatureSettings> where inherit = true,
+  line_clamp: Option<LineClamp> where inherit = true,
+  text_align: TextAlign where inherit = true,
+  text_stroke_width: LengthUnit<false> where inherit = true,
+  text_stroke_color: Option<ColorInput> where inherit = true,
+  text_stroke: Option<TextStroke> where inherit = true,
+  text_shadow: Option<TextShadows> where inherit = true,
   text_decoration: TextDecoration,
-  text_decoration_line: Option<TextDecorationLines> where "inherit",
-  text_decoration_color: Option<ColorInput> where "inherit",
-  letter_spacing: Option<LengthUnit> where "inherit",
-  word_spacing: Option<LengthUnit> where "inherit",
-  image_rendering: ImageScalingAlgorithm where "inherit",
-  overflow_wrap: OverflowWrap where "inherit",
-  word_break: WordBreak where "inherit",
-  clip_path: Option<BasicShape> where "inherit",
-  clip_rule: FillRule where "inherit",
-  white_space: WhiteSpace where "inherit",
-  white_space_collapse: Option<WhiteSpaceCollapse> where "inherit",
-  text_wrap_mode: Option<TextWrapMode> where "inherit",
-  text_wrap: Option<TextWrapMode> where "inherit",
+  text_decoration_line: Option<TextDecorationLines> where inherit = true,
+  text_decoration_color: Option<ColorInput> where inherit = true,
+  letter_spacing: Option<LengthUnit> where inherit = true,
+  word_spacing: Option<LengthUnit> where inherit = true,
+  image_rendering: ImageScalingAlgorithm where inherit = true,
+  overflow_wrap: OverflowWrap where inherit = true,
+  word_break: WordBreak where inherit = true,
+  clip_path: Option<BasicShape> where inherit = true,
+  clip_rule: FillRule where inherit = true,
+  white_space: WhiteSpace where inherit = true,
+  white_space_collapse: Option<WhiteSpaceCollapse> where inherit = true,
+  text_wrap_mode: Option<TextWrapMode> where inherit = true,
+  text_wrap: Option<TextWrapMode> where inherit = true,
 );
 
 /// Sized font style with resolved font size and line height.

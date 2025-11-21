@@ -116,42 +116,6 @@ pub enum BasicShape {
   Path(PathShape),
 }
 
-/// Proxy type for CSS deserialization that accepts either structured data or CSS strings.
-#[derive(Debug, Clone)]
-pub(crate) enum BasicShapeValue {
-  /// inset() function
-  Inset(InsetShape),
-  /// circle() function
-  Circle(CircleShape),
-  /// ellipse() function
-  Ellipse(EllipseShape),
-  /// polygon() function
-  Polygon(PolygonShape),
-  /// path() function
-  Path(PathShape),
-  /// Raw CSS string to be parsed
-  Css(String),
-}
-
-impl TryFrom<BasicShapeValue> for BasicShape {
-  type Error = String;
-
-  fn try_from(value: BasicShapeValue) -> Result<Self, Self::Error> {
-    match value {
-      BasicShapeValue::Inset(shape) => Ok(BasicShape::Inset(shape)),
-      BasicShapeValue::Circle(shape) => Ok(BasicShape::Ellipse(EllipseShape {
-        radius_x: shape.radius,
-        radius_y: shape.radius,
-        position: shape.position,
-      })),
-      BasicShapeValue::Ellipse(shape) => Ok(BasicShape::Ellipse(shape)),
-      BasicShapeValue::Polygon(shape) => Ok(BasicShape::Polygon(shape)),
-      BasicShapeValue::Path(shape) => Ok(BasicShape::Path(shape)),
-      BasicShapeValue::Css(css) => BasicShape::from_str(&css).map_err(|e| e.to_string()),
-    }
-  }
-}
-
 fn resolve_radius(
   radius: ShapeRadius,
   distance: Size<f32>,

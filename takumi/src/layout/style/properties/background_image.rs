@@ -47,16 +47,6 @@ impl<'i> FromCss<'i> for BackgroundImage {
   }
 }
 
-/// Proxy type to deserialize CSS background images as either a list or CSS string
-#[derive(Debug, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
-pub(crate) enum BackgroundImagesValue {
-  /// Structured variant: explicit list of background images
-  Images(SmallVec<[BackgroundImage; 4]>),
-  /// CSS string variant
-  Css(String),
-}
-
 /// A collection of background images.
 #[derive(Debug, Clone, PartialEq)]
 pub struct BackgroundImages(pub SmallVec<[BackgroundImage; 4]>);
@@ -71,16 +61,5 @@ impl<'i> FromCss<'i> for BackgroundImages {
     }
 
     Ok(Self(images))
-  }
-}
-
-impl TryFrom<BackgroundImagesValue> for BackgroundImages {
-  type Error = String;
-
-  fn try_from(value: BackgroundImagesValue) -> Result<Self, Self::Error> {
-    match value {
-      BackgroundImagesValue::Images(images) => Ok(Self(images)),
-      BackgroundImagesValue::Css(css) => Self::from_str(&css).map_err(|e| e.to_string()),
-    }
   }
 }

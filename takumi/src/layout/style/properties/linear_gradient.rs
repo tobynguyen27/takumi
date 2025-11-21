@@ -1,4 +1,4 @@
-use cssparser::{Parser, ParserInput, Token, match_ignore_ascii_case};
+use cssparser::{Parser, Token, match_ignore_ascii_case};
 use image::RgbaImage;
 use smallvec::SmallVec;
 use std::ops::{Deref, Neg};
@@ -43,31 +43,6 @@ pub struct LinearGradient {
   pub angle: Angle,
   /// The steps of the gradient.
   pub stops: SmallVec<[GradientStop; 4]>,
-}
-
-/// Proxy type for `LinearGradient` Css deserialization.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum LinearGradientValue {
-  /// Represents a linear gradient.
-  Structured {
-    /// The angle of the gradient.
-    angle: Angle,
-    /// The steps of the gradient.
-    stops: SmallVec<[GradientStop; 4]>,
-  },
-  /// Represents a CSS string.
-  Css(String),
-}
-
-impl TryFrom<LinearGradientValue> for LinearGradient {
-  type Error = String;
-
-  fn try_from(value: LinearGradientValue) -> Result<Self, Self::Error> {
-    match value {
-      LinearGradientValue::Structured { angle, stops } => Ok(LinearGradient { angle, stops }),
-      LinearGradientValue::Css(css) => LinearGradient::from_str(&css).map_err(|e| e.to_string()),
-    }
-  }
 }
 
 impl Gradient for LinearGradient {
@@ -164,15 +139,6 @@ impl LinearGradientDrawContext {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct StopPosition(pub LengthUnit);
 
-/// Proxy type for `StopPosition` Css deserialization.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum StopPositionValue {
-  /// Length value, percentage or number (0.0-1.0) is treated as a percentage.
-  Length(LengthUnit),
-  /// CSS string
-  Css(String),
-}
-
 /// Represents a gradient stop.
 #[derive(Debug, Clone, PartialEq)]
 pub enum GradientStop {
@@ -213,24 +179,6 @@ impl<'i> FromCss<'i> for StopPosition {
     };
 
     Ok(StopPosition(length))
-  }
-}
-
-impl TryFrom<StopPositionValue> for StopPosition {
-  type Error = &'static str;
-
-  fn try_from(value: StopPositionValue) -> Result<Self, Self::Error> {
-    match value {
-      StopPositionValue::Length(length) => Ok(StopPosition(length)),
-      StopPositionValue::Css(s) => {
-        let mut input = ParserInput::new(&s);
-        let mut parser = Parser::new(&mut input);
-
-        StopPosition::from_css(&mut parser).map_err(
-          |_| "Failed to parse stop position, expected a number, percentage, or length unit",
-        )
-      }
-    }
   }
 }
 
@@ -480,13 +428,12 @@ mod tests {
 
   #[test]
   fn test_parse_linear_gradient() {
-    let mut input = ParserInput::new("linear-gradient(to top right, #ff0000, #0000ff)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser);
+    let gradient =
+      LinearGradient::from_str("linear-gradient(to top right, #ff0000, #0000ff)").unwrap();
 
     assert_eq!(
       gradient,
-      Ok(LinearGradient {
+      LinearGradient {
         angle: Angle::new(45.0),
         stops: smallvec![
           GradientStop::ColorHint {
@@ -498,144 +445,99 @@ mod tests {
             hint: None,
           },
         ]
-      })
+      }
     );
   }
 
   #[test]
   fn test_parse_angle() {
-    let mut input = ParserInput::new("45deg");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-    assert_eq!(angle, Ok(Angle::new(45.0)));
+    let angle = Angle::from_str("45deg").unwrap();
+    assert_eq!(angle, Angle::new(45.0));
   }
 
   #[test]
   fn test_parse_angle_grad() {
-    let mut input = ParserInput::new("200grad");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
+    let angle = Angle::from_str("200grad").unwrap();
     // 200 grad = 200 * (π/200) = π radians = 180 degrees
-    assert_eq!(angle, Ok(Angle::new(180.0)));
+    assert_eq!(angle, Angle::new(180.0));
   }
 
   #[test]
   fn test_parse_angle_turn() {
-    let mut input = ParserInput::new("0.5turn");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
+    let angle = Angle::from_str("0.5turn").unwrap();
     // 0.5 turn = 0.5 * 2π = π radians = 180 degrees
-    assert_eq!(angle, Ok(Angle::new(180.0)));
+    assert_eq!(angle, Angle::new(180.0));
   }
 
   #[test]
   fn test_parse_angle_rad() {
-    let mut input = ParserInput::new("3.14159rad");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
+    let angle = Angle::from_str("3.14159rad").unwrap();
     // π radians = 180 degrees
     // Use approximate equality due to floating point precision
-    if let Ok(angle) = angle {
-      assert!((*angle - 180.0).abs() < 0.001);
-    } else {
-      panic!("Expected Ok(Angle(180.0)), got {:?}", angle);
-    }
+    assert!((angle.0 - 180.0).abs() < 0.001);
   }
 
   #[test]
   fn test_parse_angle_number() {
-    let mut input = ParserInput::new("90");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
-    assert_eq!(angle, Ok(Angle::new(90.0)));
+    let angle = Angle::from_str("90").unwrap();
+    assert_eq!(angle, Angle::new(90.0));
   }
 
   #[test]
   fn test_parse_direction_keywords_top() {
-    let mut input = ParserInput::new("to top");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
-    assert_eq!(angle, Ok(Angle::new(0.0)));
+    let angle = Angle::from_str("to top").unwrap();
+    assert_eq!(angle, Angle::new(0.0));
   }
 
   #[test]
   fn test_parse_direction_keywords_right() {
-    let mut input = ParserInput::new("to right");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
-    assert_eq!(angle, Ok(Angle::new(90.0))); // "to right" = 90deg
+    let angle = Angle::from_str("to right").unwrap();
+    assert_eq!(angle, Angle::new(90.0)); // "to right" = 90deg
   }
 
   #[test]
   fn test_parse_direction_keywords_bottom() {
-    let mut input = ParserInput::new("to bottom");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
-    assert_eq!(angle, Ok(Angle::new(180.0)));
+    let angle = Angle::from_str("to bottom").unwrap();
+    assert_eq!(angle, Angle::new(180.0));
   }
 
   #[test]
   fn test_parse_direction_keywords_left() {
-    let mut input = ParserInput::new("to left");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
-    assert_eq!(angle, Ok(Angle::new(270.0)));
+    let angle = Angle::from_str("to left").unwrap();
+    assert_eq!(angle, Angle::new(270.0));
   }
 
   #[test]
   fn test_parse_direction_keywords_top_right() {
-    let mut input = ParserInput::new("to top right");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
-    assert_eq!(angle, Ok(Angle::new(45.0)));
+    let angle = Angle::from_str("to top right").unwrap();
+    assert_eq!(angle, Angle::new(45.0));
   }
 
   #[test]
   fn test_parse_direction_keywords_bottom_left() {
-    let mut input = ParserInput::new("to bottom left");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
+    let angle = Angle::from_str("to bottom left").unwrap();
     // 45 + 180 = 225 degrees
-    assert_eq!(angle, Ok(Angle::new(225.0)));
+    assert_eq!(angle, Angle::new(225.0));
   }
 
   #[test]
   fn test_parse_direction_keywords_top_left() {
-    let mut input = ParserInput::new("to top left");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
-    assert_eq!(angle, Ok(Angle::new(315.0)));
+    let angle = Angle::from_str("to top left").unwrap();
+    assert_eq!(angle, Angle::new(315.0));
   }
 
   #[test]
   fn test_parse_direction_keywords_bottom_right() {
-    let mut input = ParserInput::new("to bottom right");
-    let mut parser = Parser::new(&mut input);
-    let angle = Angle::from_css(&mut parser);
-
-    assert_eq!(angle, Ok(Angle::new(135.0)));
+    let angle = Angle::from_str("to bottom right").unwrap();
+    assert_eq!(angle, Angle::new(135.0));
   }
 
   #[test]
   fn test_parse_linear_gradient_with_angle() {
-    let mut input = ParserInput::new("linear-gradient(45deg, #ff0000, #0000ff)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser);
-
+    let gradient = LinearGradient::from_str("linear-gradient(45deg, #ff0000, #0000ff)").unwrap();
     assert_eq!(
       gradient,
-      Ok(LinearGradient {
+      LinearGradient {
         angle: Angle::new(45.0),
         stops: smallvec![
           GradientStop::ColorHint {
@@ -647,19 +549,18 @@ mod tests {
             hint: None,
           },
         ]
-      })
-    );
+      }
+    )
   }
 
   #[test]
   fn test_parse_linear_gradient_with_stops() {
-    let mut input = ParserInput::new("linear-gradient(to right, #ff0000 0%, #0000ff 100%)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser);
+    let gradient =
+      LinearGradient::from_str("linear-gradient(to right, #ff0000 0%, #0000ff 100%)").unwrap();
 
     assert_eq!(
       gradient,
-      Ok(LinearGradient {
+      LinearGradient {
         angle: Angle::new(90.0), // "to right" = 90deg
         stops: smallvec![
           GradientStop::ColorHint {
@@ -671,19 +572,18 @@ mod tests {
             hint: Some(StopPosition(LengthUnit::Percentage(100.0))),
           },
         ]
-      })
+      }
     );
   }
 
   #[test]
   fn test_parse_linear_gradient_with_hint() {
-    let mut input = ParserInput::new("linear-gradient(to right, #ff0000, 50%, #0000ff)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser);
+    let gradient =
+      LinearGradient::from_str("linear-gradient(to right, #ff0000, 50%, #0000ff)").unwrap();
 
     assert_eq!(
       gradient,
-      Ok(LinearGradient {
+      LinearGradient {
         angle: Angle::new(90.0), // "to right" = 90deg
         stops: smallvec![
           GradientStop::ColorHint {
@@ -696,38 +596,34 @@ mod tests {
             hint: None,
           },
         ]
-      })
+      }
     );
   }
 
   #[test]
   fn test_parse_linear_gradient_single_color() {
-    let mut input = ParserInput::new("linear-gradient(to bottom, #ff0000)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser);
+    let gradient = LinearGradient::from_str("linear-gradient(to bottom, #ff0000)").unwrap();
 
     assert_eq!(
       gradient,
-      Ok(LinearGradient {
+      LinearGradient {
         angle: Angle::new(180.0),
         stops: smallvec![GradientStop::ColorHint {
           color: ColorInput::Value(Color([255, 0, 0, 255])),
           hint: None,
         },]
-      })
+      }
     );
   }
 
   #[test]
   fn test_parse_linear_gradient_default_angle() {
-    let mut input = ParserInput::new("linear-gradient(#ff0000, #0000ff)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser);
+    let gradient = LinearGradient::from_str("linear-gradient(#ff0000, #0000ff)").unwrap();
 
     // Default angle is 180 degrees (to bottom)
     assert_eq!(
       gradient,
-      Ok(LinearGradient {
+      LinearGradient {
         angle: Angle::new(180.0),
         stops: smallvec![
           GradientStop::ColorHint {
@@ -739,36 +635,30 @@ mod tests {
             hint: None,
           },
         ]
-      })
+      }
     );
   }
 
   #[test]
   fn test_parse_gradient_hint_color() {
-    let mut input = ParserInput::new("#ff0000");
-    let mut parser = Parser::new(&mut input);
-    let gradient_hint = GradientStop::from_css(&mut parser);
+    let gradient_hint = GradientStop::from_str("#ff0000").unwrap();
 
     assert_eq!(
       gradient_hint,
-      Ok(GradientStop::ColorHint {
+      GradientStop::ColorHint {
         color: ColorInput::Value(Color([255, 0, 0, 255])),
         hint: None,
-      })
+      }
     );
   }
 
   #[test]
   fn test_parse_gradient_hint_numeric() {
-    let mut input = ParserInput::new("50%");
-    let mut parser = Parser::new(&mut input);
-    let gradient_hint = GradientStop::from_css(&mut parser);
+    let gradient_hint = GradientStop::from_str("50%").unwrap();
 
     assert_eq!(
       gradient_hint,
-      Ok(GradientStop::Hint(StopPosition(LengthUnit::Percentage(
-        50.0
-      ))))
+      GradientStop::Hint(StopPosition(LengthUnit::Percentage(50.0)))
     );
   }
 
@@ -821,13 +711,12 @@ mod tests {
 
   #[test]
   fn test_parse_linear_gradient_mixed_hints_and_colors() {
-    let mut input = ParserInput::new("linear-gradient(45deg, #ff0000, 25%, #00ff00, 75%, #0000ff)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser);
-
+    let gradient =
+      LinearGradient::from_str("linear-gradient(45deg, #ff0000, 25%, #00ff00, 75%, #0000ff)")
+        .unwrap();
     assert_eq!(
       gradient,
-      Ok(LinearGradient {
+      LinearGradient {
         angle: Angle::new(45.0),
         stops: smallvec![
           GradientStop::ColorHint {
@@ -845,7 +734,7 @@ mod tests {
             hint: None,
           },
         ]
-      })
+      }
     );
   }
 
@@ -949,9 +838,8 @@ mod tests {
 
   #[test]
   fn test_linear_gradient_px_stops_crisp_line() {
-    let mut input = ParserInput::new("linear-gradient(to right, grey 1px, transparent 1px)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser).unwrap();
+    let gradient =
+      LinearGradient::from_str("linear-gradient(to right, grey 1px, transparent 1px)").unwrap();
 
     let context = GlobalContext::default();
     let dummy_context = RenderContext::new(&context, (40, 40).into(), Default::default());
@@ -972,9 +860,8 @@ mod tests {
 
   #[test]
   fn test_linear_gradient_vertical_px_stops_top_pixel() {
-    let mut input = ParserInput::new("linear-gradient(to bottom, grey 1px, transparent 1px)");
-    let mut parser = Parser::new(&mut input);
-    let gradient = LinearGradient::from_css(&mut parser).unwrap();
+    let gradient =
+      LinearGradient::from_str("linear-gradient(to bottom, grey 1px, transparent 1px)").unwrap();
 
     let context = GlobalContext::default();
     let dummy_context = RenderContext::new(&context, (40, 40).into(), Default::default());
@@ -986,37 +873,29 @@ mod tests {
 
   #[test]
   fn test_stop_position_parsing_fraction_number() {
-    let mut input = ParserInput::new("0.25");
-    let mut parser = Parser::new(&mut input);
-    let pos = StopPosition::from_css(&mut parser).unwrap();
+    let pos = StopPosition::from_str("0.25").unwrap();
     assert_eq!(pos, StopPosition(LengthUnit::Percentage(25.0)));
   }
 
   #[test]
   fn test_stop_position_parsing_percentage() {
-    let mut input = ParserInput::new("75%");
-    let mut parser = Parser::new(&mut input);
-    let pos = StopPosition::from_css(&mut parser).unwrap();
+    let pos = StopPosition::from_str("75%").unwrap();
     assert_eq!(pos, StopPosition(LengthUnit::Percentage(75.0)));
   }
 
   #[test]
   fn test_stop_position_parsing_length_px() {
-    let mut input = ParserInput::new("12px");
-    let mut parser = Parser::new(&mut input);
-    let pos = StopPosition::from_css(&mut parser).unwrap();
+    let pos = StopPosition::from_str("12px").unwrap();
     assert_eq!(pos, StopPosition(LengthUnit::Px(12.0)));
   }
 
   #[test]
   fn test_stop_position_value_css_roundtrip() {
-    let value = StopPositionValue::Css("50%".to_string());
-    let parsed: StopPosition = value.try_into().unwrap();
-    assert_eq!(parsed, StopPosition(LengthUnit::Percentage(50.0)));
+    let value = StopPosition::from_str("50%").unwrap();
+    assert_eq!(value, StopPosition(LengthUnit::Percentage(50.0)));
 
-    let value = StopPositionValue::Css("8px".to_string());
-    let parsed: StopPosition = value.try_into().unwrap();
-    assert_eq!(parsed, StopPosition(LengthUnit::Px(8.0)));
+    let value = StopPosition::from_str("8px").unwrap();
+    assert_eq!(value, StopPosition(LengthUnit::Px(8.0)));
   }
 
   #[test]

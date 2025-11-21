@@ -262,45 +262,6 @@ impl<'i> FromCss<'i> for RadialSize {
   }
 }
 
-/// Proxy type for `RadialGradient` Css deserialization.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum RadialGradientValue {
-  /// Represents a radial gradient.
-  Structured {
-    /// The shape of the gradient.
-    shape: RadialShape,
-    /// The size keyword of the gradient.
-    size: RadialSize,
-    /// The center of the gradient supporting keywords and length units.
-    center: BackgroundPosition,
-    /// The steps of the gradient.
-    stops: Vec<GradientStop>,
-  },
-  /// Represents a CSS string.
-  Css(String),
-}
-
-impl TryFrom<RadialGradientValue> for RadialGradient {
-  type Error = String;
-
-  fn try_from(value: RadialGradientValue) -> Result<Self, Self::Error> {
-    match value {
-      RadialGradientValue::Structured {
-        shape,
-        size,
-        center,
-        stops,
-      } => Ok(RadialGradient {
-        shape,
-        size,
-        center,
-        stops,
-      }),
-      RadialGradientValue::Css(css) => RadialGradient::from_str(&css).map_err(|e| e.to_string()),
-    }
-  }
-}
-
 #[cfg(test)]
 mod tests {
   use super::*;

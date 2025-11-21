@@ -28,15 +28,6 @@ pub enum Filter {
   Opacity(f32),
 }
 
-/// A list of filters
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum FiltersValue {
-  /// Structured set of filters
-  Structured(SmallVec<[Filter; 4]>),
-  /// Raw CSS string to be parsed
-  Css(String),
-}
-
 #[derive(Debug, Clone, PartialEq, Default)]
 /// A list of filter operations
 pub struct Filters(SmallVec<[Filter; 4]>);
@@ -115,17 +106,6 @@ impl<'i> FromCss<'i> for Filters {
     }
 
     Ok(Filters(filters))
-  }
-}
-
-impl TryFrom<FiltersValue> for Filters {
-  type Error = String;
-
-  fn try_from(value: FiltersValue) -> Result<Self, Self::Error> {
-    match value {
-      FiltersValue::Structured(filters) => Ok(Filters(filters)),
-      FiltersValue::Css(css) => Filters::from_str(&css).map_err(|e| e.to_string()),
-    }
   }
 }
 

@@ -30,31 +30,6 @@ impl From<u32> for LineClamp {
   }
 }
 
-#[derive(Debug, Clone)]
-pub(crate) enum LineClampValue {
-  Structured {
-    count: u32,
-    ellipsis: Option<String>,
-  },
-  Number(u32),
-  Css(String),
-}
-
-impl TryFrom<LineClampValue> for LineClamp {
-  type Error = String;
-
-  fn try_from(value: LineClampValue) -> Result<Self, Self::Error> {
-    match value {
-      LineClampValue::Structured { count, ellipsis } => Ok(LineClamp { count, ellipsis }),
-      LineClampValue::Number(count) => Ok(LineClamp {
-        count,
-        ellipsis: None,
-      }),
-      LineClampValue::Css(css) => LineClamp::from_str(&css).map_err(|e| e.to_string()),
-    }
-  }
-}
-
 impl<'i> FromCss<'i> for LineClamp {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
     let count = input.try_parse(Parser::expect_integer)?;

@@ -70,37 +70,6 @@ impl Flex {
   }
 }
 
-#[derive(Debug, Clone)]
-pub(crate) enum FlexValue {
-  Structured {
-    grow: Option<f32>,
-    shrink: Option<f32>,
-    basis: Option<LengthUnit>,
-  },
-  Number(f32),
-  Css(String),
-}
-
-impl TryFrom<FlexValue> for Flex {
-  type Error = String;
-
-  fn try_from(value: FlexValue) -> Result<Self, Self::Error> {
-    match value {
-      FlexValue::Structured {
-        grow,
-        shrink,
-        basis,
-      } => Ok(Flex {
-        grow: grow.unwrap_or(0.0),
-        shrink: shrink.unwrap_or(1.0),
-        basis: basis.unwrap_or(LengthUnit::Auto),
-      }),
-      FlexValue::Number(grow) => Ok(Flex::from_number(grow)),
-      FlexValue::Css(css) => Flex::from_str(&css).map_err(|e| e.to_string()),
-    }
-  }
-}
-
 impl<'i> FromCss<'i> for Flex {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
     // https://developer.mozilla.org/en-US/docs/Web/CSS/flex#values

@@ -163,29 +163,9 @@ impl<'i> FromCss<'i> for PositionComponent {
   }
 }
 
-/// A value representing either a list of parsed positions or a raw CSS string.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum BackgroundPositionsValue {
-  /// Parsed positions for one or more layers.
-  Positions(Vec<BackgroundPosition>),
-  /// Raw CSS to be parsed at runtime.
-  Css(String),
-}
-
 /// A list of `background-position` values (one per layer).
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct BackgroundPositions(pub Vec<BackgroundPosition>);
-
-impl TryFrom<BackgroundPositionsValue> for BackgroundPositions {
-  type Error = String;
-
-  fn try_from(value: BackgroundPositionsValue) -> Result<Self, Self::Error> {
-    match value {
-      BackgroundPositionsValue::Positions(v) => Ok(Self(v)),
-      BackgroundPositionsValue::Css(css) => Self::from_str(&css).map_err(|e| e.to_string()),
-    }
-  }
-}
 
 impl<'i> FromCss<'i> for BackgroundPositions {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {

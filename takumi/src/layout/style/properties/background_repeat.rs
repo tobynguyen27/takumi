@@ -97,29 +97,9 @@ impl<'i> FromCss<'i> for BackgroundRepeat {
   }
 }
 
-/// Proxy type to deserialize CSS background-repeat as either a list or CSS string.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum BackgroundRepeatsValue {
-  /// Parsed repeats for one or more layers.
-  Repeats(Vec<BackgroundRepeat>),
-  /// Raw CSS to be parsed at runtime.
-  Css(String),
-}
-
 /// A list of background-repeat values (layered).
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct BackgroundRepeats(pub Vec<BackgroundRepeat>);
-
-impl TryFrom<BackgroundRepeatsValue> for BackgroundRepeats {
-  type Error = String;
-
-  fn try_from(value: BackgroundRepeatsValue) -> Result<Self, Self::Error> {
-    match value {
-      BackgroundRepeatsValue::Repeats(v) => Ok(Self(v)),
-      BackgroundRepeatsValue::Css(css) => Self::from_str(&css).map_err(|e| e.to_string()),
-    }
-  }
-}
 
 impl<'i> FromCss<'i> for BackgroundRepeats {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
