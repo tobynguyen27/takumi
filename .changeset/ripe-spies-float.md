@@ -2,4 +2,4 @@
 "takumi": minor
 ---
 
-refactor `TakumiError` struct and enlimate `unwrap()` calls
+refactor `TakumiError` struct and eliminate `unwrap()` calls
