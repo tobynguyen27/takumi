@@ -467,11 +467,7 @@ mod tests {
   fn test_parse_angle_rad() {
     // π radians = 180 degrees
     // Use approximate equality due to floating point precision
-    assert!(
-      Angle::from_str("3.14159rad")
-        .map(|angle| (angle.0 - 180.0).abs() < 0.001)
-        .is_ok()
-    );
+    assert!(Angle::from_str("3.14159rad").is_ok_and(|angle| (angle.0 - 180.0).abs() < 0.001));
   }
 
   #[test]
