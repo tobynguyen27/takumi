@@ -1,4 +1,4 @@
-use crate::resources::image::ImageResourceError;
+use crate::resources::{font::FontError, image::ImageResourceError};
 use thiserror::Error;
 
 /// The main error type for the Takumi crate.
@@ -26,15 +26,11 @@ pub enum TakumiError {
 
   /// Error related to font processing.
   #[error("Font error: {0}")]
-  FontError(String),
+  FontError(#[from] FontError),
 
   /// Error during layout computation.
   #[error("Layout error: {0}")]
   LayoutError(#[from] taffy::TaffyError),
-
-  /// Error parsing CSS.
-  #[error("CSS parse error: {0}")]
-  CssParseError(String),
 }
 
 /// A specialized Result type for Takumi operations.

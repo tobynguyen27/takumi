@@ -2,17 +2,23 @@
   html_logo_url = "https://raw.githubusercontent.com/kane50613/takumi/master/assets/images/takumi.svg",
   html_favicon_url = "https://raw.githubusercontent.com/kane50613/takumi/master/assets/images/takumi.svg"
 )]
-#![deny(missing_docs)]
-#![deny(clippy::all)]
-#![deny(clippy::redundant_closure_for_method_calls)]
-#![deny(clippy::unwrap_used)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::missing_panics_doc)]
-#![allow(clippy::use_self)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::missing_const_for_fn)]
+#![deny(
+  missing_docs,
+  clippy::unwrap_used,
+  clippy::expect_used,
+  clippy::panic,
+  clippy::all,
+  clippy::redundant_closure_for_method_calls
+)]
+#![allow(
+  clippy::module_name_repetitions,
+  clippy::missing_errors_doc,
+  clippy::missing_panics_doc,
+  clippy::use_self,
+  clippy::doc_markdown,
+  clippy::must_use_candidate,
+  clippy::missing_const_for_fn
+)]
 
 //! Takumi is a library with different parts to render your React components to images. This crate contains the core logic for layout, rendering.
 //!

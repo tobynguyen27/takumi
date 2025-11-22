@@ -213,7 +213,7 @@ mod tests {
 
     let resolved = resolve_stops_along_axis(
       &stops,
-      render_context.viewport.width.unwrap() as f32,
+      render_context.viewport.width.unwrap_or_default() as f32,
       &render_context,
     );
 

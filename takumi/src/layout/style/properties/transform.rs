@@ -363,16 +363,17 @@ mod tests {
   #[test]
   fn test_transform_invert() {
     let transform = Affine::rotation(Angle::new(45.0));
-    let inverse = transform.invert().expect("Failed to invert");
 
-    let random_point = Point {
-      x: 1234.0,
-      y: -5678.0,
-    };
+    assert!(transform.invert().is_some_and(|inverse| {
+      let random_point = Point {
+        x: 1234.0,
+        y: -5678.0,
+      };
 
-    let processed_point = inverse.transform_point(transform.transform_point(random_point));
+      let processed_point = inverse.transform_point(transform.transform_point(random_point));
 
-    assert!((random_point.x - processed_point.x).abs() < 1.0);
-    assert!((random_point.y - processed_point.y).abs() < 1.0);
+      (random_point.x - processed_point.x).abs() < 1.0
+        && (random_point.y - processed_point.y).abs() < 1.0
+    }));
   }
 }

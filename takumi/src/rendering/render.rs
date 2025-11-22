@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use derive_builder::Builder;
 use image::RgbaImage;
-use taffy::{AvailableSpace, NodeId, TaffyTree, geometry::Size};
+use taffy::{AvailableSpace, NodeId, TaffyError, TaffyTree, geometry::Size};
 
 use crate::{
   GlobalContext,
@@ -138,8 +138,9 @@ fn render_node<'g, Nodes: Node<Nodes>>(
   mut transform: Affine,
 ) -> Result<(), crate::Error> {
   let layout = *taffy.layout(node_id)?;
+
   let Some(node) = taffy.get_node_context_mut(node_id) else {
-    unreachable!()
+    return Err(TaffyError::InvalidInputNode(node_id).into());
   };
 
   if node.context.opacity == 0.0 || node.context.style.display == Display::None {

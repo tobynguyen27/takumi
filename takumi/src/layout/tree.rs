@@ -193,9 +193,11 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     mut self,
     tree: &mut TaffyTree<NodeTree<'g, N>>,
   ) -> Result<NodeId> {
-    if self.context.style.display == Display::Inline {
-      unreachable!("Inline nodes should be wrapped in anonymous block boxes");
-    }
+    assert_ne!(
+      self.context.style.display,
+      Display::Inline,
+      "Inline nodes should be wrapped in anonymous block boxes"
+    );
 
     if self.should_create_inline_layout() {
       return Ok(
@@ -299,9 +301,11 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
       };
     }
 
-    if self.context.style.display == Display::Inline {
-      unreachable!("Inline nodes should be wrapped in anonymous block boxes");
-    }
+    assert_ne!(
+      self.context.style.display,
+      Display::Inline,
+      "Inline nodes should be wrapped in anonymous block boxes"
+    );
 
     let Some(node) = &self.node else {
       return Size::zero();
