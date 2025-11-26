@@ -18,7 +18,7 @@ fn test_ttf_font_loading() {
   let mut context = GlobalContext::default();
 
   let mut font_data = Vec::new();
-  File::open(font_path("noto-sans/NotoSansTC-VariableFont_wght.ttf"))
+  File::open(font_path("noto-sans/NotoColorEmoji.ttf"))
     .unwrap()
     .read_to_end(&mut font_data)
     .unwrap();
