@@ -3,7 +3,10 @@
 //! This module provides performance-optimized canvas operations including
 //! fast image blending and pixel manipulation operations.
 
-use std::{borrow::Cow, mem::take};
+use std::{
+  borrow::Cow,
+  cell::{RefCell, RefMut},
+};
 
 use image::{
   GenericImageView, Pixel, Rgba, RgbaImage, SubImage,
@@ -191,7 +194,7 @@ pub struct Canvas {
   image: RgbaImage,
   constrains: SmallVec<[CanvasConstrain; 1]>,
   // A shared scratch memory for reusing dynamic memory allocations
-  scratch: Scratch,
+  scratch: RefCell<Scratch>,
 }
 
 impl Canvas {
@@ -200,12 +203,12 @@ impl Canvas {
     Self {
       image: RgbaImage::new(size.width, size.height),
       constrains: SmallVec::new(),
-      scratch: Scratch::default(),
+      scratch: RefCell::new(Scratch::default()),
     }
   }
 
-  pub(crate) fn scratch_mut(&mut self) -> &mut Scratch {
-    &mut self.scratch
+  pub(crate) fn scratch_mut(&self) -> RefMut<'_, Scratch> {
+    self.scratch.borrow_mut()
   }
 
   pub(crate) fn push_constrain(&mut self, overflow_constrain: CanvasConstrain) {
@@ -236,8 +239,8 @@ impl Canvas {
     // Extract the constrain before any mutable borrows
     let constrain = self.constrains.last();
 
-    // Temporarily take the scratch to avoid borrowing conflicts
-    let mut scratch = take(&mut self.scratch);
+    // Borrow the scratch mutably to avoid borrowing conflicts
+    let mut scratch = self.scratch.borrow_mut();
 
     overlay_image(
       &mut self.image,
@@ -249,9 +252,6 @@ impl Canvas {
       constrain,
       &mut scratch,
     );
-
-    // Put the scratch back
-    self.scratch = scratch;
   }
 
   /// Draws a mask with the specified color onto the canvas.
@@ -325,7 +325,7 @@ impl Canvas {
 
     border.append_mask_commands(&mut paths, size, Point::ZERO);
 
-    let (mask, placement) = Mask::with_scratch(&paths, self.scratch_mut())
+    let (mask, placement) = Mask::with_scratch(&paths, &mut self.scratch_mut())
       .transform(Some(transform.into()))
       .render();
 

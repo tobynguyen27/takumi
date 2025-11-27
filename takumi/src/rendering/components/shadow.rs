@@ -120,7 +120,7 @@ impl SizedShadow {
     canvas: &mut Canvas,
     layout: Layout,
   ) {
-    let image = draw_inset_shadow(self, border_radius, layout.size, canvas.scratch_mut());
+    let image = draw_inset_shadow(self, border_radius, layout.size, &mut canvas.scratch_mut());
 
     canvas.overlay_image(
       &image,

@@ -158,7 +158,7 @@ pub(crate) fn draw_glyph(
         .map(invert_y_coordinate)
         .collect::<Vec<_>>();
 
-      let (mask, placement) = Mask::with_scratch(&paths, canvas.scratch_mut())
+      let (mask, placement) = Mask::with_scratch(&paths, &mut canvas.scratch_mut())
         .transform(Some(transform.into()))
         .render();
 
@@ -198,7 +198,7 @@ pub(crate) fn draw_glyph(
         stroke.scale = false;
         stroke.join = Join::Bevel;
 
-        let (stroke_mask, stroke_placement) = Mask::with_scratch(&paths, canvas.scratch_mut())
+        let (stroke_mask, stroke_placement) = Mask::with_scratch(&paths, &mut canvas.scratch_mut())
           .transform(Some(transform.into()))
           .style(stroke)
           .render();
@@ -240,7 +240,7 @@ fn draw_color_outline_image(
       .map(invert_y_coordinate)
       .collect::<Vec<_>>();
 
-    let (mask, placement) = Mask::with_scratch(&paths, canvas.scratch_mut())
+    let (mask, placement) = Mask::with_scratch(&paths, &mut canvas.scratch_mut())
       .transform(Some(transform.into()))
       .render();
 

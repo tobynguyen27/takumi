@@ -147,7 +147,7 @@ pub(crate) fn draw_inline_layout(
 
   // If we have a mask image on the style, render it using the background tiling logic into a
   // temporary image and use that as the glyph fill.
-  let fill_image = create_fill_image(context, layout, content_box, canvas.scratch_mut())?;
+  let fill_image = create_fill_image(context, layout, content_box, &mut canvas.scratch_mut())?;
 
   let mut positioned_inline_boxes = Vec::new();
 
