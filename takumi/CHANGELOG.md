@@ -1,5 +1,11 @@
 # takumi
 
+## 0.55.1
+
+### Patch Changes
+
+- 3df6648: use `RefCell` internally for scratch buffer
+
 ## 0.55.0
 
 ### Minor Changes
