@@ -6,6 +6,7 @@ use image::{
   imageops::crop_imm,
 };
 use parley::{Glyph, GlyphRun};
+use swash::{ColorPalette, scale::outline::Outline};
 use taffy::{Layout, Point, Size};
 use zeno::{Command, Join, Mask, PathData, Stroke};
 
@@ -75,6 +76,7 @@ pub(crate) fn draw_glyph(
   image_fill: Option<&RgbaImage>,
   mut transform: Affine,
   text_style: &parley::Style<InlineBrush>,
+  palette: Option<ColorPalette>,
 ) -> Result<()> {
   transform = Affine::translation(
     layout.border.left + layout.padding.left + glyph.x,
@@ -156,7 +158,9 @@ pub(crate) fn draw_glyph(
         .map(invert_y_coordinate)
         .collect::<Vec<_>>();
 
-      let (mask, placement) = Mask::new(&paths).transform(Some(transform.into())).render();
+      let (mask, placement) = Mask::with_scratch(&paths, canvas.scratch_mut())
+        .transform(Some(transform.into()))
+        .render();
 
       if let Some(ref shadows) = style.text_shadow {
         for shadow in shadows.iter() {
@@ -175,7 +179,12 @@ pub(crate) fn draw_glyph(
       });
 
       // If only color outline is required, draw the mask directly
-      if outline.is_color() && cropped_fill_image.is_none() {
+      if outline.is_color()
+        && cropped_fill_image.is_none()
+        && let Some(palette) = palette
+      {
+        draw_color_outline_image(canvas, outline, palette, text_style.brush.color, transform);
+      } else {
         canvas.draw_mask(
           &mask,
           placement,
@@ -189,7 +198,7 @@ pub(crate) fn draw_glyph(
         stroke.scale = false;
         stroke.join = Join::Bevel;
 
-        let (stroke_mask, stroke_placement) = Mask::new(&paths)
+        let (stroke_mask, stroke_placement) = Mask::with_scratch(&paths, canvas.scratch_mut())
           .transform(Some(transform.into()))
           .style(stroke)
           .render();
@@ -205,6 +214,38 @@ pub(crate) fn draw_glyph(
   }
 
   Ok(())
+}
+
+// https://github.com/dfrg/swash/blob/3d8e6a781c93454dadf97e5c15764ceafab228e0/src/scale/mod.rs#L921
+fn draw_color_outline_image(
+  canvas: &mut Canvas,
+  outline: &Outline,
+  palette: ColorPalette,
+  default_color: Color,
+  transform: Affine,
+) {
+  for i in 0..outline.len() {
+    let Some(layer) = outline.get(i) else {
+      break;
+    };
+
+    let color = layer
+      .color_index()
+      .map(|index| Color(palette.get(index)))
+      .unwrap_or(default_color);
+
+    let paths = layer
+      .path()
+      .commands()
+      .map(invert_y_coordinate)
+      .collect::<Vec<_>>();
+
+    let (mask, placement) = Mask::with_scratch(&paths, canvas.scratch_mut())
+      .transform(Some(transform.into()))
+      .render();
+
+    canvas.draw_mask(&mask, placement, color, None);
+  }
 }
 
 #[derive(Clone, Copy, Debug)]

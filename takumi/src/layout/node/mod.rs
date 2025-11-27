@@ -247,7 +247,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
           },
         );
 
-      let (mask, placement) = Mask::new(&paths)
+      let (mask, placement) = Mask::with_scratch(&paths, canvas.scratch_mut())
         .transform(Some(context.transform.into()))
         .render();
 

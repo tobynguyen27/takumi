@@ -121,15 +121,11 @@ impl FontContext {
   pub(crate) fn resolve_glyphs(
     &self,
     run: &Run<'_, InlineBrush>,
+    font_ref: FontRef,
     glyph_ids: impl Iterator<Item = u32> + Clone,
-  ) -> Result<HashMap<u32, ResolvedGlyph>, FontError> {
+  ) -> HashMap<u32, ResolvedGlyph> {
     // Collect unique glyph IDs to avoid duplicate work
     let unique_glyph_ids: HashSet<u32> = glyph_ids.collect();
-
-    // Prepare font info for scaler creation
-    let font = run.font();
-    let font_ref = FontRef::from_index(font.data.as_ref(), font.index as usize)
-      .ok_or(FontError::InvalidFontIndex)?;
 
     let mut result = HashMap::new();
 
@@ -172,7 +168,7 @@ impl FontContext {
       }
     }
 
-    Ok(result)
+    result
   }
 
   /// Create an inline layout with the given root style and function

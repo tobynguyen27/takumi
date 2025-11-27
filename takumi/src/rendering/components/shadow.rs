@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use image::{RgbaImage, imageops::fast_blur};
 use taffy::{Layout, Point, Size};
-use zeno::{Fill, Mask, Placement};
+use zeno::{Fill, Mask, Placement, Scratch};
 
 use crate::{
   layout::style::{Affine, BoxShadow, Color, ImageScalingAlgorithm, TextShadow},
@@ -120,7 +120,7 @@ impl SizedShadow {
     canvas: &mut Canvas,
     layout: Layout,
   ) {
-    let image = draw_inset_shadow(self, border_radius, layout.size);
+    let image = draw_inset_shadow(self, border_radius, layout.size, canvas.scratch_mut());
 
     canvas.overlay_image(
       &image,
@@ -136,6 +136,7 @@ fn draw_inset_shadow(
   shadow: &SizedShadow,
   border: BorderProperties,
   border_box: Size<f32>,
+  scratch: &mut Scratch,
 ) -> RgbaImage {
   let mut shadow_image = RgbaImage::from_pixel(
     border_box.width as u32,
@@ -166,7 +167,9 @@ fn draw_inset_shadow(
       },
   );
 
-  let (mask, placement) = Mask::new(&paths).style(Fill::EvenOdd).render();
+  let (mask, placement) = Mask::with_scratch(&paths, scratch)
+    .style(Fill::EvenOdd)
+    .render();
 
   draw_mask(
     &mut shadow_image,

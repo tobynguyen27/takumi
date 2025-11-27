@@ -159,7 +159,13 @@ fn render_node<'g, Nodes: Node<Nodes>>(
 
   node.context.transform = transform;
 
-  let constrain = CanvasConstrain::from_node(&node.context, &node.context.style, layout, transform);
+  let constrain = CanvasConstrain::from_node(
+    &node.context,
+    &node.context.style,
+    layout,
+    transform,
+    canvas.scratch_mut(),
+  );
 
   let has_constrain = matches!(constrain, CanvasConstrainResult::Some(_));
 

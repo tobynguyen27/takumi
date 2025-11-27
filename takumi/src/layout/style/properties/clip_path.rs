@@ -1,6 +1,6 @@
 use cssparser::{Parser, Token, match_ignore_ascii_case};
 use taffy::{AbsoluteAxis, Point, Rect, Size};
-use zeno::{Fill, Mask, PathBuilder, PathData, Placement};
+use zeno::{Fill, Mask, PathBuilder, PathData, Placement, Scratch};
 
 use crate::{
   layout::style::{Axis, Color, FromCss, LengthUnit, ParseResult, Sides, SpacePair},
@@ -142,6 +142,7 @@ impl BasicShape {
     &self,
     context: &RenderContext,
     size: Size<f32>,
+    scratch: &mut Scratch,
   ) -> (Vec<u8>, Placement) {
     let mut paths = Vec::new();
 
@@ -224,7 +225,7 @@ impl BasicShape {
       }
     }
 
-    Mask::new(&paths)
+    Mask::with_scratch(&paths, scratch)
       .style(Fill::from(
         self.fill_rule().unwrap_or(context.style.clip_rule),
       ))

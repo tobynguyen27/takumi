@@ -202,7 +202,7 @@ impl BorderProperties {
       },
     );
 
-    let (mask, placement) = Mask::new(&paths)
+    let (mask, placement) = Mask::with_scratch(&paths, canvas.scratch_mut())
       .style(Fill::EvenOdd)
       .transform(Some(transform.into()))
       .render();

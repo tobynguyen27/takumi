@@ -1,6 +1,8 @@
 use image::RgbaImage;
 use parley::{GlyphRun, PositionedInlineBox, PositionedLayoutItem};
+use swash::FontRef;
 use taffy::{Layout, Size};
+use zeno::Scratch;
 
 use crate::{
   Result,
@@ -12,6 +14,7 @@ use crate::{
   rendering::{
     Canvas, RenderContext, draw_decoration, draw_glyph, overlay_image, resolve_layers_tiles,
   },
+  resources::font::FontError,
 };
 
 fn draw_glyph_run(
@@ -48,7 +51,14 @@ fn draw_glyph_run(
   // Collect all glyph IDs for batch processing
   let glyph_ids = glyph_run.positioned_glyphs().map(|glyph| glyph.id);
 
-  let resolved_glyphs = context.global.font_context.resolve_glyphs(run, glyph_ids)?;
+  let font = FontRef::from_index(run.font().data.as_ref(), run.font().index as usize)
+    .ok_or(FontError::InvalidFontIndex)?;
+  let resolved_glyphs = context
+    .global
+    .font_context
+    .resolve_glyphs(run, font, glyph_ids);
+
+  let palette = font.color_palettes().next();
 
   // Draw each glyph using the batch-resolved cache
   for glyph in glyph_run.positioned_glyphs() {
@@ -62,6 +72,7 @@ fn draw_glyph_run(
         image_fill,
         context.transform,
         glyph_run.style(),
+        palette,
       )?;
     }
   }
@@ -136,7 +147,7 @@ pub(crate) fn draw_inline_layout(
 
   // If we have a mask image on the style, render it using the background tiling logic into a
   // temporary image and use that as the glyph fill.
-  let fill_image = create_fill_image(context, layout, content_box)?;
+  let fill_image = create_fill_image(context, layout, content_box, canvas.scratch_mut())?;
 
   let mut positioned_inline_boxes = Vec::new();
 
@@ -165,6 +176,7 @@ fn create_fill_image(
   context: &RenderContext,
   layout: Layout,
   size: Size<f32>,
+  scratch: &mut Scratch,
 ) -> Result<Option<RgbaImage>> {
   let images = match context.style.mask_image.as_ref() {
     Some(images) => images,
@@ -196,6 +208,7 @@ fn create_fill_image(
           context.style.image_rendering,
           context.style.filter.as_ref(),
           None,
+          scratch,
         );
       }
     }

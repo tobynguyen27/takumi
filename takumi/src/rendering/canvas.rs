@@ -3,7 +3,7 @@
 //! This module provides performance-optimized canvas operations including
 //! fast image blending and pixel manipulation operations.
 
-use std::borrow::Cow;
+use std::{borrow::Cow, mem::take};
 
 use image::{
   GenericImageView, Pixel, Rgba, RgbaImage, SubImage,
@@ -11,7 +11,7 @@ use image::{
 };
 use smallvec::SmallVec;
 use taffy::{Layout, Point, Size};
-use zeno::{Mask, Placement};
+use zeno::{Mask, Placement, Scratch};
 
 use crate::{
   layout::style::{Affine, Color, Filters, ImageScalingAlgorithm, InheritedStyle, Overflow},
@@ -69,10 +69,11 @@ impl CanvasConstrain {
     style: &InheritedStyle,
     layout: Layout,
     transform: Affine,
+    scratch: &mut Scratch,
   ) -> CanvasConstrainResult {
     // Clip path would just clip everything, and behaves like overflow: hidden.
     if let Some(clip_path) = &style.clip_path {
-      let (mask, placement) = clip_path.render_mask(context, layout.size);
+      let (mask, placement) = clip_path.render_mask(context, layout.size, scratch);
 
       let end_x = placement.left + placement.width as i32;
       let end_y = placement.top + placement.height as i32;
@@ -189,6 +190,8 @@ impl CanvasConstrain {
 pub struct Canvas {
   image: RgbaImage,
   constrains: SmallVec<[CanvasConstrain; 1]>,
+  // A shared scratch memory for reusing dynamic memory allocations
+  scratch: Scratch,
 }
 
 impl Canvas {
@@ -197,7 +200,12 @@ impl Canvas {
     Self {
       image: RgbaImage::new(size.width, size.height),
       constrains: SmallVec::new(),
+      scratch: Scratch::default(),
     }
+  }
+
+  pub(crate) fn scratch_mut(&mut self) -> &mut Scratch {
+    &mut self.scratch
   }
 
   pub(crate) fn push_constrain(&mut self, overflow_constrain: CanvasConstrain) {
@@ -225,6 +233,12 @@ impl Canvas {
       return;
     }
 
+    // Extract the constrain before any mutable borrows
+    let constrain = self.constrains.last();
+
+    // Temporarily take the scratch to avoid borrowing conflicts
+    let mut scratch = take(&mut self.scratch);
+
     overlay_image(
       &mut self.image,
       image,
@@ -232,8 +246,12 @@ impl Canvas {
       transform,
       algorithm,
       filters,
-      self.constrains.last(),
+      constrain,
+      &mut scratch,
     );
+
+    // Put the scratch back
+    self.scratch = scratch;
   }
 
   /// Draws a mask with the specified color onto the canvas.
@@ -270,12 +288,10 @@ impl Canvas {
       return;
     }
 
-    let constrain = self.constrains.last();
-
     // Fast path: if drawing on the entire canvas, we can just replace the entire canvas with the color
     if transform.is_identity()
       && border.is_zero()
-      && constrain.is_none()
+      && self.constrains.last().is_none()
       && color.0[3] == 255
       && size.width as u32 == self.image.width()
       && size.height as u32 == self.image.height()
@@ -300,7 +316,7 @@ impl Canvas {
         &mut self.image,
         translation,
         size.map(|size| size as u32),
-        constrain,
+        self.constrains.last(),
         |_, _| color,
       );
     }
@@ -309,9 +325,18 @@ impl Canvas {
 
     border.append_mask_commands(&mut paths, size, Point::ZERO);
 
-    let (mask, placement) = Mask::new(&paths).transform(Some(transform.into())).render();
+    let (mask, placement) = Mask::with_scratch(&paths, self.scratch_mut())
+      .transform(Some(transform.into()))
+      .render();
 
-    draw_mask(&mut self.image, &mask, placement, color, None, constrain);
+    draw_mask(
+      &mut self.image,
+      &mask,
+      placement,
+      color,
+      None,
+      self.constrains.last(),
+    );
   }
 }
 
@@ -400,6 +425,7 @@ pub(crate) fn draw_mask<C: Into<Rgba<u8>>>(
   });
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn overlay_image(
   canvas: &mut RgbaImage,
   image: &RgbaImage,
@@ -408,6 +434,7 @@ pub(crate) fn overlay_image(
   algorithm: ImageScalingAlgorithm,
   filters: Option<&Filters>,
   constrain: Option<&CanvasConstrain>,
+  scratch: &mut Scratch,
 ) {
   let mut image = Cow::Borrowed(image);
 
@@ -452,7 +479,9 @@ pub(crate) fn overlay_image(
     Point::ZERO,
   );
 
-  let (mask, placement) = Mask::new(&paths).transform(Some(transform.into())).render();
+  let (mask, placement) = Mask::with_scratch(&paths, scratch)
+    .transform(Some(transform.into()))
+    .render();
 
   let is_identity = transform.is_identity();
 
