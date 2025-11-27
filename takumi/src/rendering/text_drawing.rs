@@ -1,8 +1,12 @@
 use std::{borrow::Cow, convert::Into, ops::Range};
 
-use image::{RgbaImage, imageops::crop_imm};
+use image::{
+  ImageError, RgbaImage,
+  error::{DecodingError, ImageFormatHint},
+  imageops::crop_imm,
+};
 use parley::{Glyph, GlyphRun};
-use taffy::{Layout, Size};
+use taffy::{Layout, Point, Size};
 use zeno::{Command, Join, Mask, PathData, Stroke};
 
 use crate::{
@@ -13,9 +17,27 @@ use crate::{
       Affine, Color, ImageScalingAlgorithm, SizedFontStyle, TextTransform, WhiteSpaceCollapse,
     },
   },
-  rendering::{BorderProperties, Canvas, apply_mask_alpha_to_pixel},
+  rendering::{
+    BorderProperties, Canvas, apply_mask_alpha_to_pixel, mask_index_from_coord, overlay_area,
+  },
   resources::font::ResolvedGlyph,
 };
+
+fn invert_y_coordinate(command: Command) -> Command {
+  match command {
+    Command::MoveTo(point) => Command::MoveTo((point.x, -point.y).into()),
+    Command::LineTo(point) => Command::LineTo((point.x, -point.y).into()),
+    Command::CurveTo(point1, point2, point3) => Command::CurveTo(
+      (point1.x, -point1.y).into(),
+      (point2.x, -point2.y).into(),
+      (point3.x, -point3.y).into(),
+    ),
+    Command::QuadTo(point1, point2) => {
+      Command::QuadTo((point1.x, -point1.y).into(), (point2.x, -point2.y).into())
+    }
+    Command::Close => Command::Close,
+  }
+}
 
 pub(crate) fn draw_decoration(
   canvas: &mut Canvas,
@@ -59,13 +81,11 @@ pub(crate) fn draw_glyph(
     layout.border.top + layout.padding.top + glyph.y,
   ) * transform;
 
-  if let ResolvedGlyph::Image(bitmap) = glyph_content {
-    let border = BorderProperties::default();
+  match (glyph_content, image_fill) {
+    (ResolvedGlyph::Image(bitmap), Some(image_fill)) => {
+      transform =
+        Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32) * transform;
 
-    transform =
-      Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32) * transform;
-
-    if let Some(image_fill) = image_fill {
       let mask = bitmap
         .data
         .iter()
@@ -76,117 +96,111 @@ pub(crate) fn draw_glyph(
 
       let mut bottom = RgbaImage::new(bitmap.placement.width, bitmap.placement.height);
 
-      let mut i = 0;
-
-      for y in 0..bitmap.placement.height {
-        for x in 0..bitmap.placement.width {
-          let alpha = mask[i];
-          i += 1;
-
-          if alpha == 0 {
-            continue;
-          }
+      overlay_area(
+        &mut bottom,
+        Point::ZERO,
+        Size {
+          width: bitmap.placement.width,
+          height: bitmap.placement.height,
+        },
+        None,
+        |x, y| {
+          let alpha = mask[mask_index_from_coord(x, y, bitmap.placement.width)];
 
           let source_x = x + glyph.x as u32;
           let source_y = y + glyph.y as u32 - bitmap.placement.top as u32;
 
           let Some(pixel) = image_fill.get_pixel_checked(source_x, source_y) else {
-            continue;
+            return Color::transparent().into();
           };
 
-          let pixel = apply_mask_alpha_to_pixel(*pixel, alpha);
-
-          bottom.put_pixel(x, y, pixel);
-        }
-      }
+          apply_mask_alpha_to_pixel(*pixel, alpha)
+        },
+      );
 
       canvas.overlay_image(
         &bottom,
-        border,
+        BorderProperties::default(),
         transform,
         ImageScalingAlgorithm::Auto,
         None,
       );
-      return Ok(());
     }
+    (ResolvedGlyph::Image(bitmap), None) => {
+      transform =
+        Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32) * transform;
 
-    let image = RgbaImage::from_raw(
-      bitmap.placement.width,
-      bitmap.placement.height,
-      bitmap.data.clone(),
-    )
-    .ok_or(crate::Error::ImageError(image::ImageError::Decoding(
-      image::error::DecodingError::new(
-        image::error::ImageFormatHint::Unknown,
-        "Failed to create image from raw data",
-      ),
-    )))?;
-
-    canvas.overlay_image(&image, border, transform, ImageScalingAlgorithm::Auto, None);
-    return Ok(());
-  }
-
-  if let ResolvedGlyph::Outline(outline) = glyph_content {
-    // have to invert the y coordinate from y-up to y-down first
-    let paths = outline
-      .path()
-      .commands()
-      .map(|command| match command {
-        Command::MoveTo(point) => Command::MoveTo((point.x, -point.y).into()),
-        Command::LineTo(point) => Command::LineTo((point.x, -point.y).into()),
-        Command::CurveTo(point1, point2, point3) => Command::CurveTo(
-          (point1.x, -point1.y).into(),
-          (point2.x, -point2.y).into(),
-          (point3.x, -point3.y).into(),
-        ),
-        Command::QuadTo(point1, point2) => {
-          Command::QuadTo((point1.x, -point1.y).into(), (point2.x, -point2.y).into())
-        }
-        Command::Close => Command::Close,
-      })
-      .collect::<Vec<_>>();
-
-    let (mask, placement) = Mask::new(&paths).transform(Some(transform.into())).render();
-
-    if let Some(ref shadows) = style.text_shadow {
-      for shadow in shadows.iter() {
-        shadow.draw_outset_mask(canvas, Cow::Borrowed(&mask), placement);
-      }
-    }
-
-    let cropped_fill_image = image_fill.map(|image| {
-      crop_imm(
-        image,
-        placement.left as u32,
-        placement.top as u32,
-        placement.width,
-        placement.height,
+      let image = RgbaImage::from_raw(
+        bitmap.placement.width,
+        bitmap.placement.height,
+        bitmap.data.clone(),
       )
-    });
+      .ok_or(ImageError::Decoding(DecodingError::new(
+        ImageFormatHint::Unknown,
+        "Failed to create image from raw data",
+      )))?;
 
-    canvas.draw_mask(
-      &mask,
-      placement,
-      text_style.brush.color,
-      cropped_fill_image.map(Into::into),
-    );
-
-    if style.stroke_width > 0.0 {
-      let mut stroke = Stroke::new(style.stroke_width);
-      stroke.scale = false;
-      stroke.join = Join::Bevel;
-
-      let (stroke_mask, stroke_placement) = Mask::new(&paths)
-        .transform(Some(transform.into()))
-        .style(stroke)
-        .render();
-
-      canvas.draw_mask(
-        &stroke_mask,
-        stroke_placement,
-        style.text_stroke_color,
+      canvas.overlay_image(
+        &image,
+        Default::default(),
+        transform,
+        Default::default(),
         None,
       );
+    }
+    (ResolvedGlyph::Outline(outline), _) => {
+      // have to invert the y coordinate from y-up to y-down first
+      let paths = outline
+        .path()
+        .commands()
+        .map(invert_y_coordinate)
+        .collect::<Vec<_>>();
+
+      let (mask, placement) = Mask::new(&paths).transform(Some(transform.into())).render();
+
+      if let Some(ref shadows) = style.text_shadow {
+        for shadow in shadows.iter() {
+          shadow.draw_outset_mask(canvas, Cow::Borrowed(&mask), placement);
+        }
+      }
+
+      let cropped_fill_image = image_fill.map(|image| {
+        crop_imm(
+          image,
+          placement.left as u32,
+          placement.top as u32,
+          placement.width,
+          placement.height,
+        )
+      });
+
+      // If only color outline is required, draw the mask directly
+      if outline.is_color() && cropped_fill_image.is_none() {
+        canvas.draw_mask(
+          &mask,
+          placement,
+          text_style.brush.color,
+          cropped_fill_image.map(Into::into),
+        );
+      }
+
+      if style.stroke_width > 0.0 {
+        let mut stroke = Stroke::new(style.stroke_width);
+        stroke.scale = false;
+        stroke.join = Join::Bevel;
+
+        let (stroke_mask, stroke_placement) = Mask::new(&paths)
+          .transform(Some(transform.into()))
+          .style(stroke)
+          .render();
+
+        canvas.draw_mask(
+          &stroke_mask,
+          stroke_placement,
+          style.text_stroke_color,
+          None,
+        );
+      }
     }
   }
 

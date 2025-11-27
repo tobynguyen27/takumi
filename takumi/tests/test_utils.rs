@@ -37,8 +37,8 @@ const TEST_FONTS: &[(&str, &str, GenericFamily)] = &[
     GenericFamily::Monospace,
   ),
   (
-    "fonts/noto-sans/NotoColorEmoji.ttf",
-    "Noto Color Emoji",
+    "fonts/twemoji/TwemojiMozilla-colr.woff2",
+    "Twemoji Mozilla",
     GenericFamily::Emoji,
   ),
 ];
