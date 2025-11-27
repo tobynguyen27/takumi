@@ -13,6 +13,7 @@ You can try out Takumi in [Playground](https://takumi.kane.tw/playground) withou
 - RTL support.
 - Tailwind CSS support out of the box.
 - Variable fonts support.
+- COLR font support (e.g. twemoji-colr).
 - WOFF2 font format support.
 - PNG, JPEG, WebP, AVIF output support.
 - WebP, APNG animation rendering support.
