@@ -40,10 +40,11 @@ async function cachedFetch(url: string): Promise<ArrayBuffer> {
 }
 
 (async () => {
-  const [_, normalFont, monoFont] = await Promise.all([
+  const [_, normalFont, monoFont, emojiFont] = await Promise.all([
     initWasm({ module_or_path: wasmUrl }),
     fetch("/fonts/Geist.woff2").then((r) => r.arrayBuffer()),
     fetch("/fonts/GeistMono.woff2").then((r) => r.arrayBuffer()),
+    fetch("/fonts/TwemojiMozilla-colr.woff2").then((r) => r.arrayBuffer()),
   ]);
 
   renderer = new Renderer();
@@ -54,6 +55,10 @@ async function cachedFetch(url: string): Promise<ArrayBuffer> {
   renderer.loadFont({
     data: monoFont,
     name: "Geist Mono",
+  });
+  renderer.loadFont({
+    data: emojiFont,
+    name: "Twemoji Mozilla",
   });
 
   postMessage({ type: "ready" });
