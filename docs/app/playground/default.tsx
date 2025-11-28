@@ -11,7 +11,7 @@ export default function Image() {
       <div tw="justify-center items-center flex flex-col text-white">
         <h1 tw="font-semibold text-6xl block whitespace-pre mt-0">
           Welcome to <span tw="text-[#ff3535]">Takumi </span>
-          Playground!
+          Playground 👋
         </h1>
         <span tw="opacity-75 text-4xl font-[Geist_Mono]">
           You can try out and experiment with Takumi here.
