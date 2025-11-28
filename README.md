@@ -31,7 +31,7 @@ You can try out Takumi in [Playground](https://takumi.kane.tw/playground) withou
 
   ![Takumi OG Image](./example/twitter-images/output/og-image.png)
 
-- X Post Image clone in embed [(source)](./example/twitter-images/components/x-post-image.tsx).
+- X post og image clone [(source)](./example/twitter-images/components/x-post-image.tsx).
 
   ![X OG Image](./example/twitter-images/output/x-post-image.png)
 
