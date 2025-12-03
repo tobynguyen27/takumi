@@ -166,7 +166,31 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
         }))
       };
 
+      if let CssValue::Value(background) = &style.background
+        && let Some(images) = &background.image
+      {
+        collection.insert_many(images.0.iter().filter_map(|image| {
+          if let BackgroundImage::Url(url) = image {
+            Some(url.clone())
+          } else {
+            None
+          }
+        }));
+      };
+
       if let CssValue::Value(Some(images)) = &style.mask_image {
+        collection.insert_many(images.0.iter().filter_map(|image| {
+          if let BackgroundImage::Url(url) = image {
+            Some(url.clone())
+          } else {
+            None
+          }
+        }));
+      };
+
+      if let CssValue::Value(mask) = &style.mask
+        && let Some(images) = &mask.image
+      {
         collection.insert_many(images.0.iter().filter_map(|image| {
           if let BackgroundImage::Url(url) = image {
             Some(url.clone())
@@ -355,7 +379,12 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
     canvas: &mut Canvas,
     layout: Layout,
   ) -> Result<()> {
-    let Some(background_image) = context.style.background_image.as_ref() else {
+    let Some(background_image) = context
+      .style
+      .background_image
+      .as_ref()
+      .or(context.style.background.image.as_ref())
+    else {
       return Ok(());
     };
 
@@ -365,9 +394,21 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
       BackgroundClip::BorderBox => {
         let tiles = resolve_layers_tiles(
           background_image,
-          context.style.background_position.as_ref(),
-          context.style.background_size.as_ref(),
-          context.style.background_repeat.as_ref(),
+          context
+            .style
+            .background_position
+            .as_ref()
+            .or(context.style.background.position.as_ref()),
+          context
+            .style
+            .background_size
+            .as_ref()
+            .or(context.style.background.size.as_ref()),
+          context
+            .style
+            .background_repeat
+            .as_ref()
+            .or(context.style.background.repeat.as_ref()),
           context,
           layout.size,
         )?;

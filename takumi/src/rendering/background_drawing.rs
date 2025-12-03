@@ -309,15 +309,32 @@ pub(crate) fn create_mask(
   border_box: Size<f32>,
   mask_memory: &mut MaskMemory,
 ) -> Result<Option<Vec<u8>>> {
-  let Some(mask_image) = context.style.mask_image.as_ref() else {
+  let Some(mask_image) = context
+    .style
+    .mask_image
+    .as_ref()
+    .or(context.style.mask.image.as_ref())
+  else {
     return Ok(None);
   };
 
   let resolved_tiles = resolve_layers_tiles(
     mask_image,
-    context.style.mask_position.as_ref(),
-    context.style.mask_size.as_ref(),
-    context.style.mask_repeat.as_ref(),
+    context
+      .style
+      .mask_position
+      .as_ref()
+      .or(context.style.mask.position.as_ref()),
+    context
+      .style
+      .mask_size
+      .as_ref()
+      .or(context.style.mask.size.as_ref()),
+    context
+      .style
+      .mask_repeat
+      .as_ref()
+      .or(context.style.mask.repeat.as_ref()),
     context,
     border_box,
   )?;
@@ -355,15 +372,32 @@ pub(crate) fn create_background_image(
   offset: Point<f32>,
   mask_memory: &mut MaskMemory,
 ) -> Result<Option<RgbaImage>> {
-  let Some(background_image) = context.style.background_image.as_ref() else {
+  let Some(background_image) = context
+    .style
+    .background_image
+    .as_ref()
+    .or(context.style.background.image.as_ref())
+  else {
     return Ok(None);
   };
 
   let resolved_tiles = resolve_layers_tiles(
     background_image,
-    context.style.background_position.as_ref(),
-    context.style.background_size.as_ref(),
-    context.style.background_repeat.as_ref(),
+    context
+      .style
+      .background_position
+      .as_ref()
+      .or(context.style.background.position.as_ref()),
+    context
+      .style
+      .background_size
+      .as_ref()
+      .or(context.style.background.size.as_ref()),
+    context
+      .style
+      .background_repeat
+      .as_ref()
+      .or(context.style.background.repeat.as_ref()),
     context,
     border_box,
   )?;

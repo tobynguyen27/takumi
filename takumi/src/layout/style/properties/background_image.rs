@@ -57,10 +57,8 @@ impl<'i> FromCss<'i> for BackgroundImages {
 
     images.push(BackgroundImage::from_css(input)?);
 
-    while input.expect_comma().is_ok()
-      && let Ok(image) = input.try_parse(BackgroundImage::from_css)
-    {
-      images.push(image);
+    while input.expect_comma().is_ok() {
+      images.push(BackgroundImage::from_css(input)?);
     }
 
     Ok(Self(images))

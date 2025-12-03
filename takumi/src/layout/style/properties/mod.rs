@@ -4,6 +4,7 @@
 //! typography settings, positioning, and visual effects.
 
 mod aspect_ratio;
+mod background;
 mod background_image;
 mod background_position;
 mod background_repeat;
@@ -43,6 +44,7 @@ mod word_break;
 use std::borrow::Cow;
 
 pub use aspect_ratio::*;
+pub use background::*;
 pub use background_image::*;
 pub use background_position::*;
 pub use background_repeat::*;
