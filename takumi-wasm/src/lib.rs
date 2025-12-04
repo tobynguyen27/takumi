@@ -1,6 +1,5 @@
 use std::{
   collections::HashMap,
-  io::Cursor,
   sync::{Arc, Once},
 };
 
@@ -294,11 +293,10 @@ impl Renderer {
     .unwrap();
 
     let mut buffer = Vec::new();
-    let mut cursor = Cursor::new(&mut buffer);
 
     write_image(
       &image,
-      &mut cursor,
+      &mut buffer,
       options.format.unwrap_or(ImageOutputFormat::Png),
       options.quality,
     )
@@ -354,14 +352,13 @@ impl Renderer {
       .collect();
 
     let mut buffer = Vec::new();
-    let mut cursor = Cursor::new(&mut buffer);
 
     match options.format.unwrap_or(AnimationOutputFormat::WebP) {
       AnimationOutputFormat::WebP => {
-        encode_animated_webp(&rendered_frames, &mut cursor, true, false, None).unwrap();
+        encode_animated_webp(&rendered_frames, &mut buffer, true, false, None).unwrap();
       }
       AnimationOutputFormat::APng => {
-        encode_animated_png(&rendered_frames, &mut cursor, None).unwrap();
+        encode_animated_png(&rendered_frames, &mut buffer, None).unwrap();
       }
     }
 

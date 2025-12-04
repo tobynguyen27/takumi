@@ -19,6 +19,10 @@ pub enum TakumiError {
   #[error("PNG encoding error: {0}")]
   PngError(#[from] png::EncodingError),
 
+  /// Error encoding a WebP image.
+  #[error("WebP encoding error: {0}")]
+  WebPEncodingError(#[from] image_webp::EncodingError),
+
   /// Generic image processing error.
   #[error("Image error: {0}")]
   ImageError(#[from] image::ImageError),

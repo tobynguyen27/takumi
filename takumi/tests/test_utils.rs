@@ -1,6 +1,6 @@
 use std::{
   fs::File,
-  io::{BufWriter, Read},
+  io::Read,
   path::{Path, PathBuf},
   sync::Arc,
 };
@@ -116,9 +116,8 @@ pub fn run_style_width_test(node: NodeKind, fixture_path: &str) {
   let path = Path::new(fixture_path);
 
   let mut file = File::create(path).unwrap();
-  let mut buf = BufWriter::new(&mut file);
 
-  write_image(&image, &mut buf, ImageOutputFormat::WebP, None).unwrap();
+  write_image(&image, &mut file, ImageOutputFormat::WebP, None).unwrap();
 }
 
 #[allow(dead_code)]

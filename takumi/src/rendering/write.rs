@@ -108,7 +108,7 @@ fn has_any_alpha_pixel(image: &RgbaImage) -> bool {
 }
 
 /// Writes a single rendered image to `destination` using `format`.
-pub fn write_image<T: Write + std::io::Seek>(
+pub fn write_image<T: Write>(
   image: &RgbaImage,
   destination: &mut T,
   format: ImageOutputFormat,
@@ -162,8 +162,15 @@ pub fn write_image<T: Write + std::io::Seek>(
 
       writer.finish()?;
     }
-    _ => {
-      image.write_to(destination, format.into())?;
+    ImageOutputFormat::WebP => {
+      let encoder = WebPEncoder::new(destination);
+
+      encoder.encode(
+        image.as_raw(),
+        image.width(),
+        image.height(),
+        image_webp::ColorType::Rgba8,
+      )?;
     }
   }
 
@@ -212,14 +219,12 @@ pub fn encode_animated_webp<W: Write>(
     .par_iter()
     .map(|frame| {
       let mut buf = Vec::new();
-      WebPEncoder::new(&mut buf)
-        .encode(
-          &frame.image,
-          frame.image.width(),
-          frame.image.height(),
-          image_webp::ColorType::Rgba8,
-        )
-        .map_err(|_| IoError(std::io::Error::other("WebP encode error")))?;
+      WebPEncoder::new(&mut buf).encode(
+        &frame.image,
+        frame.image.width(),
+        frame.image.height(),
+        image_webp::ColorType::Rgba8,
+      )?;
 
       let payload = extract_vp8_payload(&buf)?;
 

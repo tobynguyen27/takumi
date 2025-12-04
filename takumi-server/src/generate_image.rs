@@ -1,5 +1,3 @@
-use std::io::Cursor;
-
 use axum::{
   extract::{Query, State},
   http::StatusCode,
@@ -56,9 +54,8 @@ pub async fn generate_image_handler(
     })?;
 
     let mut buffer = Vec::new();
-    let mut cursor = Cursor::new(&mut buffer);
 
-    write_image(&image, &mut cursor, format, query.quality).map_err(|_| {
+    write_image(&image, &mut buffer, format, query.quality).map_err(|_| {
       (
         StatusCode::INTERNAL_SERVER_ERROR,
         "Failed to write image.".to_string(),

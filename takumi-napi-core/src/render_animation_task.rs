@@ -1,6 +1,5 @@
 use napi::bindgen_prelude::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use std::io::Cursor;
 use takumi::{
   GlobalContext,
   layout::{Viewport, node::NodeKind},
@@ -46,15 +45,14 @@ impl Task for RenderAnimationTask<'_> {
       .collect();
 
     let mut buffer = Vec::new();
-    let mut cursor = Cursor::new(&mut buffer);
 
     match self.format {
       AnimationOutputFormat::webp => {
-        encode_animated_webp(&frames, &mut cursor, true, false, None)
+        encode_animated_webp(&frames, &mut buffer, true, false, None)
           .map_err(|e| napi::Error::from_reason(format!("Failed to write to buffer: {e:?}")))?;
       }
       AnimationOutputFormat::apng => {
-        encode_animated_png(&frames, &mut cursor, None)
+        encode_animated_png(&frames, &mut buffer, None)
           .map_err(|e| napi::Error::from_reason(format!("Failed to write to buffer: {e:?}")))?;
       }
     }

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Cursor};
+use std::collections::HashMap;
 
 use crossbeam_channel::{Receiver, bounded};
 use napi::bindgen_prelude::*;
@@ -167,9 +167,8 @@ impl Task for RenderTask<'_> {
     }
 
     let mut buffer = Vec::new();
-    let mut cursor = Cursor::new(&mut buffer);
 
-    write_image(&image, &mut cursor, self.format.into(), self.quality)
+    write_image(&image, &mut buffer, self.format.into(), self.quality)
       .map_err(|e| napi::Error::from_reason(format!("Failed to write to buffer: {e:?}")))?;
 
     Ok(buffer)
