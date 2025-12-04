@@ -57,7 +57,7 @@ impl<'g> RenderTask<'g> {
           .and_then(|global| global.get_named_property("fetch").ok())
       })
       .ok_or(Error::from_reason(
-        "No global fetch() function available. Please provide one using a third-party package.",
+        "No global fetch() function found. Please provide your own.",
       ))?;
 
     let (tx, rx) = bounded(1);
@@ -160,7 +160,7 @@ impl Task for RenderTask<'_> {
         .build()
         .unwrap(),
     )
-    .map_err(|e| napi::Error::from_reason(format!("Failed to render: {e:?}")))?;
+    .map_err(|e| napi::Error::from_reason(e.to_string()))?;
 
     if self.format == OutputFormat::raw {
       return Ok(image.into_raw());
@@ -169,7 +169,7 @@ impl Task for RenderTask<'_> {
     let mut buffer = Vec::new();
 
     write_image(&image, &mut buffer, self.format.into(), self.quality)
-      .map_err(|e| napi::Error::from_reason(format!("Failed to write to buffer: {e:?}")))?;
+      .map_err(|e| napi::Error::from_reason(e.to_string()))?;
 
     Ok(buffer)
   }

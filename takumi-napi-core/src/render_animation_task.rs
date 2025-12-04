@@ -49,11 +49,11 @@ impl Task for RenderAnimationTask<'_> {
     match self.format {
       AnimationOutputFormat::webp => {
         encode_animated_webp(&frames, &mut buffer, true, false, None)
-          .map_err(|e| napi::Error::from_reason(format!("Failed to write to buffer: {e:?}")))?;
+          .map_err(|e| napi::Error::from_reason(e.to_string()))?;
       }
       AnimationOutputFormat::apng => {
         encode_animated_png(&frames, &mut buffer, None)
-          .map_err(|e| napi::Error::from_reason(format!("Failed to write to buffer: {e:?}")))?;
+          .map_err(|e| napi::Error::from_reason(e.to_string()))?;
       }
     }
 
