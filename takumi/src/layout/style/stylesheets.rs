@@ -36,6 +36,14 @@ macro_rules! define_style {
           $( $property: self.$property.inherit_value(&parent.$property), )*
         }
       }
+
+      /// Merges styles from another Style, where the other Style's non-Unset values take precedence.
+      /// This is used to overlay higher-priority styles (e.g., inline styles) over lower-priority ones (e.g., Tailwind).
+      pub(crate) fn merge_from(&mut self, other: Self) {
+        $(
+          self.$property = other.$property.or(std::mem::take(&mut self.$property));
+        )*
+      }
     }
 
     /// A resolved set of style properties.
@@ -643,5 +651,74 @@ impl InheritedStyle {
       scrollbar_width: 0.0,
       text_align: taffy::TextAlign::Auto,
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::layout::style::{CssValue, Style, properties::*};
+
+  #[test]
+  fn test_merge_from_inline_over_tailwind() {
+    // Tailwind style (lower priority)
+    let mut tw_style = Style {
+      width: CssValue::Value(LengthUnit::Rem(10.0)),
+      height: CssValue::Value(LengthUnit::Rem(20.0)),
+      color: CssValue::Value(ColorInput::Value(Color([255, 0, 0, 255]))), // red
+      ..Default::default()
+    };
+
+    // Inline style (higher priority) - only sets width
+    // height is Unset
+    // color is Unset
+    let inline_style = Style {
+      width: CssValue::Value(LengthUnit::Px(100.0)),
+      ..Default::default()
+    };
+
+    // Merge: inline_style should override tw_style's width, but keep height and color
+    tw_style.merge_from(inline_style);
+
+    // Check results
+    assert_eq!(tw_style.width, CssValue::Value(LengthUnit::Px(100.0))); // from inline
+    assert_eq!(tw_style.height, CssValue::Value(LengthUnit::Rem(20.0))); // from tw
+    assert_eq!(
+      tw_style.color,
+      CssValue::Value(ColorInput::Value(Color([255, 0, 0, 255])))
+    ); // from tw
+  }
+
+  #[test]
+  fn test_unset_follows_default_inherit_flag() {
+    // Non-inheriting property (DEFAULT_INHERIT = false)
+    let unset_width: CssValue<LengthUnit, false> = CssValue::Unset;
+    let result = unset_width.inherit_value(&LengthUnit::Px(100.0));
+    assert_eq!(result, LengthUnit::Auto); // Should use default (Auto), not inherit
+
+    // Inheriting property (DEFAULT_INHERIT = true)
+    let unset_color: CssValue<ColorInput, true> = CssValue::Unset;
+    let parent_color = ColorInput::Value(Color([255, 0, 0, 255]));
+    let result = unset_color.inherit_value(&parent_color);
+    assert_eq!(result, parent_color); // Should inherit from parent
+  }
+
+  #[test]
+  fn test_or_method() {
+    let high_priority = CssValue::Value(LengthUnit::Px(100.0));
+    let low_priority = CssValue::Value(LengthUnit::Rem(10.0));
+    let unset: CssValue<LengthUnit> = CssValue::Unset;
+
+    // High priority value should be kept
+    assert_eq!(high_priority.or(low_priority), high_priority);
+
+    // Unset should fallback to low priority
+    assert_eq!(unset.or(low_priority), low_priority);
+
+    // Initial/Inherit should be kept even when or-ing with Value
+    let initial: CssValue<LengthUnit> = CssValue::Initial;
+    assert_eq!(initial.or(low_priority), initial);
+
+    let inherit: CssValue<LengthUnit> = CssValue::Inherit;
+    assert_eq!(inherit.or(low_priority), inherit);
   }
 }

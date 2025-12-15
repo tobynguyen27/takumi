@@ -15,8 +15,11 @@ use serde::{
 pub use stylesheets::*;
 
 /// Represents a CSS property value that can be explicitly set, inherited from parent, or reset to initial value.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub enum CssValue<T, const DEFAULT_INHERIT: bool = false> {
+  /// Property was not set by the user
+  #[default]
+  Unset,
   /// Use the initial value of the property
   Initial,
   /// Inherit the computed value from the parent element
@@ -170,16 +173,6 @@ impl<'de, T: for<'i> FromCss<'i>, const DEFAULT_INHERIT: bool> Deserialize<'de>
   }
 }
 
-impl<T: Default, const DEFAULT_INHERIT: bool> Default for CssValue<T, DEFAULT_INHERIT> {
-  fn default() -> Self {
-    if DEFAULT_INHERIT {
-      CssValue::Inherit
-    } else {
-      CssValue::Initial
-    }
-  }
-}
-
 impl<T, const DEFAULT_INHERIT: bool> From<T> for CssValue<T, DEFAULT_INHERIT> {
   fn from(value: T) -> Self {
     CssValue::Value(value)
@@ -196,6 +189,18 @@ impl<T: Default, const DEFAULT_INHERIT: bool> CssValue<T, DEFAULT_INHERIT> {
       Self::Value(v) => v,
       Self::Inherit => parent.clone(),
       Self::Initial => T::default(),
+      // Unset follows CSS spec: inherit if DEFAULT_INHERIT, otherwise initial
+      Self::Unset if DEFAULT_INHERIT => parent.clone(),
+      Self::Unset => T::default(),
+    }
+  }
+
+  /// Returns self if it's not Unset, otherwise returns other.
+  /// This is used to merge style layers (e.g., inline style over Tailwind).
+  pub(crate) fn or(self, other: Self) -> Self {
+    match self {
+      Self::Unset => other,
+      _ => self,
     }
   }
 }

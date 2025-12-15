@@ -35,10 +35,17 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
     parent_style: &InheritedStyle,
     viewport: Viewport,
   ) -> InheritedStyle {
-    let mut style = self.style.take().unwrap_or_default();
+    // Start with empty style
+    let mut style = Style::default();
 
+    // Apply Tailwind first (lower priority)
     if let Some(tw) = self.tw.as_ref() {
       tw.apply(&mut style, viewport);
+    }
+
+    // Merge inline style on top (higher priority)
+    if let Some(inline_style) = self.style.take() {
+      style.merge_from(inline_style);
     }
 
     style.inherit(parent_style)
