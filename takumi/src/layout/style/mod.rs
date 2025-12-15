@@ -57,6 +57,7 @@ impl<'de, T: for<'i> FromCss<'i>, const DEFAULT_INHERIT: bool> Visitor<'de>
     match_ignore_ascii_case! {value,
       "initial" => Ok(CssValue::Initial),
       "inherit" => Ok(CssValue::Inherit),
+      "unset" => Ok(CssValue::Unset),
       _ => T::from_str(value).map(CssValue::Value).map_err(E::custom),
     }
   }
@@ -130,6 +131,7 @@ impl<'de, T: for<'i> FromCss<'i>, const DEFAULT_INHERIT: bool> Visitor<'de>
       "none" => Ok(CssValue::Value(None)),
       "initial" => Ok(CssValue::Initial),
       "inherit" => Ok(CssValue::Inherit),
+      "unset" => Ok(CssValue::Unset),
       _ => T::from_str(value).map(|v| CssValue::Value(Some(v))).map_err(E::custom),
     }
   }
