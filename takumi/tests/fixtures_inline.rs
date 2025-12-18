@@ -50,6 +50,7 @@ fn fixtures_text_inline() {
     .iter()
     .map(|(text, style)| {
       TextNode {
+        preset: None,
         tw: None,
         style: Some(style.clone()),
         text: text.to_string(),
@@ -59,6 +60,7 @@ fn fixtures_text_inline() {
     .collect::<Vec<_>>();
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -84,6 +86,7 @@ fn fixtures_inline_image() {
   // Inline image should behave as inline-level box content
   let children = vec![
     TextNode {
+      preset: None,
       tw: None,
       style: Some(
         StyleBuilder::default()
@@ -95,6 +98,7 @@ fn fixtures_inline_image() {
     }
     .into(),
     ImageNode {
+      preset: None,
       tw: None,
       style: Some(
         StyleBuilder::default()
@@ -108,6 +112,7 @@ fn fixtures_inline_image() {
     }
     .into(),
     TextNode {
+      preset: None,
       tw: None,
       style: Some(
         StyleBuilder::default()
@@ -121,6 +126,7 @@ fn fixtures_inline_image() {
   ];
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -135,6 +141,7 @@ fn fixtures_inline_image() {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -158,6 +165,7 @@ fn fixtures_inline_block_in_inline() {
   // A block-level container inside inline content: should create anonymous block formatting context
   let children = vec![
     TextNode {
+      preset: None,
       tw: None,
       style: Some(
         StyleBuilder::default()
@@ -169,6 +177,7 @@ fn fixtures_inline_block_in_inline() {
     }
     .into(),
     ContainerNode {
+      preset: None,
       tw: None,
       style: Some(
         StyleBuilder::default()
@@ -181,6 +190,7 @@ fn fixtures_inline_block_in_inline() {
       ),
       children: Some(vec![
         TextNode {
+          preset: None,
           tw: None,
           style: Some(
             StyleBuilder::default()
@@ -195,6 +205,7 @@ fn fixtures_inline_block_in_inline() {
     }
     .into(),
     TextNode {
+      preset: None,
       tw: None,
       style: Some(
         StyleBuilder::default()
@@ -208,6 +219,7 @@ fn fixtures_inline_block_in_inline() {
   ];
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()

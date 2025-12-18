@@ -10,6 +10,7 @@ use test_utils::run_style_width_test;
 
 fn create_container(background_images: BackgroundImages) -> ContainerNode<NodeKind> {
   ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -30,6 +31,7 @@ fn create_container_with(
   background_repeat: Option<BackgroundRepeats>,
 ) -> ContainerNode<NodeKind> {
   ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()

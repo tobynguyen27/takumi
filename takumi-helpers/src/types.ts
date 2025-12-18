@@ -16,6 +16,7 @@ export type Node = ContainerNode | TextNode | ImageNode | AnyNode;
 
 export type ContainerNode = {
   type: "container";
+  preset?: CSSProperties;
   style?: CSSProperties;
   children?: Node[];
   tw?: string;
@@ -24,6 +25,7 @@ export type ContainerNode = {
 export type TextNode = {
   type: "text";
   text: string;
+  preset?: CSSProperties;
   style?: CSSProperties;
   tw?: string;
 };
@@ -33,6 +35,7 @@ export type ImageNode = {
   src: string;
   width?: number;
   height?: number;
+  preset?: CSSProperties;
   style?: CSSProperties;
   tw?: string;
 };

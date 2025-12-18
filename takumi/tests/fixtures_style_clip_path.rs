@@ -11,6 +11,7 @@ fn fixtures_clip_path_text_stroke_filled() {
   let text = "clip-path works in Takumi";
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -29,6 +30,7 @@ fn fixtures_clip_path_text_stroke_filled() {
     ),
     children: Some(vec![
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -45,6 +47,7 @@ fn fixtures_clip_path_text_stroke_filled() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -75,6 +78,7 @@ fn fixtures_clip_path_text_stroke_filled() {
 #[test]
 fn fixtures_clip_path_triangle_vercel() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -91,6 +95,7 @@ fn fixtures_clip_path_triangle_vercel() {
     children: Some(vec![
       // Triangle with clip-path
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -119,6 +124,7 @@ fn fixtures_clip_path_triangle_vercel() {
 #[test]
 fn fixtures_clip_path_triangle_gradient() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -135,6 +141,7 @@ fn fixtures_clip_path_triangle_gradient() {
     children: Some(vec![
       // Triangle with gradient background and clip-path
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -168,6 +175,7 @@ fn fixtures_clip_path_triangle_gradient() {
 #[test]
 fn fixtures_clip_path_circle() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -184,6 +192,7 @@ fn fixtures_clip_path_circle() {
     children: Some(vec![
       // Circle with clip-path
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -207,6 +216,7 @@ fn fixtures_clip_path_circle() {
 #[test]
 fn fixtures_clip_path_inset_rounded() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -223,6 +233,7 @@ fn fixtures_clip_path_inset_rounded() {
     children: Some(vec![
       // Inset with border radius and clip-path
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()

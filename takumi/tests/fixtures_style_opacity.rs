@@ -9,6 +9,7 @@ mod test_utils;
 
 fn create_test_container(opacity: f32) -> NodeKind {
   ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -26,6 +27,7 @@ fn create_test_container(opacity: f32) -> NodeKind {
     ),
     children: Some(vec![
       TextNode {
+        preset: None,
         tw: None,
         style: None,
         text: opacity.to_string(),
@@ -39,6 +41,7 @@ fn create_test_container(opacity: f32) -> NodeKind {
 #[test]
 fn test_style_opacity() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -65,6 +68,7 @@ fn test_style_opacity() {
 #[test]
 fn test_style_opacity_image_with_text() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -80,6 +84,7 @@ fn test_style_opacity_image_with_text() {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -91,6 +96,7 @@ fn test_style_opacity_image_with_text() {
         ),
         children: Some(vec![
           ImageNode {
+            preset: None,
             tw: None,
             style: Some(
               StyleBuilder::default()
@@ -108,6 +114,7 @@ fn test_style_opacity_image_with_text() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()

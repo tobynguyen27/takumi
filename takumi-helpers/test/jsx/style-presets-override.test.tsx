@@ -11,7 +11,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Hello",
-        style: defaultStylePresets.h1,
+        preset: defaultStylePresets.h1,
       } satisfies TextNode);
     });
 
@@ -20,7 +20,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Paragraph",
-        style: defaultStylePresets.p,
+        preset: defaultStylePresets.p,
       } satisfies TextNode);
     });
 
@@ -29,7 +29,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Bold",
-        style: defaultStylePresets.strong,
+        preset: defaultStylePresets.strong,
       } satisfies TextNode);
     });
 
@@ -38,7 +38,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Plain text",
-        style: defaultStylePresets.span,
+        preset: defaultStylePresets.span,
       } satisfies TextNode);
     });
   });
@@ -145,7 +145,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Custom",
-        style: {
+        preset: {
           fontSize: "3em",
           color: "red",
           fontWeight: "normal",
@@ -170,7 +170,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Custom paragraph",
-        style: {
+        preset: {
           marginTop: "2em",
           marginBottom: "2em",
           color: "blue",
@@ -205,7 +205,7 @@ describe("fromJsx - stylePresets overriding", () => {
           {
             type: "text",
             text: "Title",
-            style: {
+            preset: {
               fontSize: "4em",
               color: "purple",
             },
@@ -213,7 +213,7 @@ describe("fromJsx - stylePresets overriding", () => {
           {
             type: "text",
             text: "Bold",
-            style: {
+            preset: {
               fontWeight: "900",
               color: "orange",
             },
@@ -238,7 +238,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Article content",
-        style: {
+        preset: {
           padding: "20px",
           backgroundColor: "#f0f0f0",
         },
@@ -267,14 +267,14 @@ describe("fromJsx - stylePresets overriding", () => {
           {
             type: "text",
             text: "Custom H1",
-            style: {
+            preset: {
               fontSize: "5em",
             },
           },
           {
             type: "text",
             text: "Default H2",
-            style: defaultStylePresets.h2,
+            preset: defaultStylePresets.h2,
           },
         ],
       } satisfies ContainerNode);
@@ -290,8 +290,8 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Inline styled",
+        preset: defaultStylePresets.h1,
         style: {
-          ...defaultStylePresets.h1,
           fontSize: "10em",
           color: "green",
         },
@@ -317,9 +317,12 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Inline override",
+        preset: {
+          fontSize: "3em",
+          color: "red",
+        },
         style: {
           fontSize: "10em",
-          color: "red",
           fontWeight: "100",
         },
       } satisfies TextNode);
@@ -369,7 +372,7 @@ describe("fromJsx - stylePresets overriding", () => {
           {
             type: "text",
             text: "Title",
-            style: { fontSize: "4em" },
+            preset: customPresets.h1,
           },
           {
             type: "container",
@@ -380,20 +383,20 @@ describe("fromJsx - stylePresets overriding", () => {
                   {
                     type: "text",
                     text: "Paragraph with ",
-                    style: defaultStylePresets.span,
+                    preset: defaultStylePresets.span,
                   },
                   {
                     type: "text",
                     text: "bold",
-                    style: { fontWeight: "900" },
+                    preset: customPresets.strong,
                   },
                   {
                     type: "text",
                     text: " text",
-                    style: defaultStylePresets.span,
+                    preset: defaultStylePresets.span,
                   },
                 ],
-                style: { marginTop: "2em" },
+                preset: customPresets.p,
               },
             ],
           },
@@ -423,23 +426,28 @@ describe("fromJsx - stylePresets overriding", () => {
           {
             type: "text",
             text: "Styled Title",
-            style: {
+            preset: {
               fontSize: "3em",
+              color: "red",
+            },
+            style: {
               color: "blue",
             },
           },
           {
             type: "text",
             text: "Normal paragraph",
-            style: {
+            preset: {
               marginTop: "1.5em",
             },
           },
           {
             type: "text",
             text: "Green paragraph",
-            style: {
+            preset: {
               marginTop: "1.5em",
+            },
+            style: {
               color: "green",
             },
           },
@@ -470,12 +478,12 @@ describe("fromJsx - stylePresets overriding", () => {
           {
             type: "text",
             text: "Test",
-            style: { fontSize: "5em" },
+            preset: customPresets.h1,
           },
           {
             type: "text",
             text: "Content",
-            style: defaultStylePresets.p,
+            preset: defaultStylePresets.p,
           },
         ],
       } satisfies ContainerNode);
@@ -514,7 +522,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Hello",
-        style: defaultStylePresets.h1,
+        preset: defaultStylePresets.h1,
       } satisfies TextNode);
     });
 
@@ -523,7 +531,7 @@ describe("fromJsx - stylePresets overriding", () => {
       expect(result).toEqual({
         type: "text",
         text: "Hello",
-        style: defaultStylePresets.h1,
+        preset: defaultStylePresets.h1,
       } satisfies TextNode);
     });
 
@@ -546,7 +554,7 @@ describe("fromJsx - stylePresets overriding", () => {
           {
             type: "text",
             text: "Custom",
-            style: { fontSize: "6em" },
+            preset: customPresets.h1,
           },
           {
             type: "text",
@@ -579,7 +587,7 @@ describe("fromJsx - stylePresets overriding", () => {
           {
             type: "text",
             text: "Inner Title",
-            style: { fontSize: "7em" },
+            preset: customPresets.h1,
           },
         ],
       } satisfies ContainerNode);

@@ -29,6 +29,7 @@ pub fn say_hello_to(name: &str) {
   // Create a text node with custom styling
   // Font size is set to 48.0 and other styles use default values
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -42,6 +43,7 @@ pub fn say_hello_to(name: &str) {
   // Create a root container node that will hold the text
   // Set dimensions to 1200x630 pixels (common size for social media images)
   let root: ContainerNode<NodeKind> = ContainerNode {
+    preset: None,
     tw: None,
     style: Default::default(),
     children: Some(vec![text.into()]),

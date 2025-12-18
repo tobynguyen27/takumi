@@ -14,6 +14,7 @@ const ROTATED_ANGLES: &[f32] = &[0.0, 45.0, 90.0, 135.0, 180.0, 225.0, 270.0, 31
 #[test]
 fn test_rotate_image() {
   let image = ContainerNode {
+    preset: None,
     style: Some(
       StyleBuilder::default()
         .width(Percentage(100.0))
@@ -27,6 +28,7 @@ fn test_rotate_image() {
     tw: None,
     children: Some(vec![
       ImageNode {
+        preset: None,
         style: Some(
           StyleBuilder::default()
             .rotate(Some(Angle::new(90.0)))
@@ -48,6 +50,7 @@ fn test_rotate_image() {
 #[test]
 fn test_rotate() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -61,6 +64,7 @@ fn test_rotate() {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         style: Some(
           StyleBuilder::default()
             .width(Rem(16.0))
@@ -83,6 +87,7 @@ fn test_rotate() {
 #[test]
 fn test_style_transform_origin_center() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -109,6 +114,7 @@ fn test_style_transform_origin_center() {
 #[test]
 fn test_style_transform_origin_top_left() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -145,6 +151,7 @@ fn test_style_transform_origin_top_left() {
 
 fn create_rotated_container(angle: f32, transform_origin: BackgroundPosition) -> ImageNode {
   ImageNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -171,6 +178,7 @@ fn create_rotated_container(angle: f32, transform_origin: BackgroundPosition) ->
 #[test]
 fn test_style_transform_translate_and_scale() {
   let mut container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -186,6 +194,7 @@ fn test_style_transform_translate_and_scale() {
   };
 
   let position = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -197,6 +206,7 @@ fn test_style_transform_translate_and_scale() {
     ),
     children: Some(vec![
       TextNode {
+        preset: None,
         text: "200px x 100px".to_string(),
         tw: None,
         style: None,
@@ -206,6 +216,7 @@ fn test_style_transform_translate_and_scale() {
   };
 
   let translated = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -219,6 +230,7 @@ fn test_style_transform_translate_and_scale() {
     ),
     children: Some(vec![
       ImageNode {
+        preset: None,
         tw: None,
         src: "assets/images/yeecord.png".into(),
         style: Some(
@@ -236,6 +248,7 @@ fn test_style_transform_translate_and_scale() {
   };
 
   let scaled = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -250,6 +263,7 @@ fn test_style_transform_translate_and_scale() {
     ),
     children: Some(vec![
       TextNode {
+        preset: None,
         text: "100px x 100px, scale(2.0, 2.0)".to_string(),
         tw: None,
         style: None,
@@ -259,6 +273,7 @@ fn test_style_transform_translate_and_scale() {
   };
 
   let rotated = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -274,6 +289,7 @@ fn test_style_transform_translate_and_scale() {
     ),
     children: Some(vec![
       TextNode {
+        preset: None,
         text: "200px x 200px, rotate(45deg)".to_string(),
         tw: None,
         style: None,

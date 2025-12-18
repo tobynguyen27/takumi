@@ -7,13 +7,23 @@ function applyStyle(node: AnyNode, style?: CSSProperties) {
   }
 }
 
+function applyPreset(node: AnyNode, preset?: CSSProperties) {
+  if (preset && Object.keys(preset).length > 0) {
+    node.preset = preset;
+  }
+}
+
 export function container(props: Omit<ContainerNode, "type">): ContainerNode {
   const node: ContainerNode = {
     type: "container",
     children: props.children,
-    tw: props.tw,
   };
 
+  if (props.tw) {
+    node.tw = props.tw;
+  }
+
+  applyPreset(node, props.preset);
   applyStyle(node, props.style);
 
   return node;
@@ -40,9 +50,13 @@ export function text(
   const node: TextNode = {
     type: "text",
     text: props.text,
-    tw: props.tw,
   };
 
+  if (props.tw) {
+    node.tw = props.tw;
+  }
+
+  applyPreset(node, props.preset);
   applyStyle(node, style ?? props.style);
 
   return node;
@@ -54,9 +68,13 @@ export function image(props: Omit<ImageNode, "type">): ImageNode {
     src: props.src,
     width: props.width,
     height: props.height,
-    tw: props.tw,
   };
 
+  if (props.tw) {
+    node.tw = props.tw;
+  }
+
+  applyPreset(node, props.preset);
   applyStyle(node, props.style);
 
   return node;

@@ -8,6 +8,7 @@ use test_utils::run_style_width_test;
 
 fn create_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
   ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -21,6 +22,7 @@ fn create_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -35,6 +37,7 @@ fn create_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
         ),
         children: Some(vec![
           ImageNode {
+            preset: None,
             tw: None,
             style: Some(
               StyleBuilder::default()
@@ -60,6 +63,7 @@ fn create_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
 
 fn create_text_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
   ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -73,6 +77,7 @@ fn create_text_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
     ),
     children: Some(vec![
       ContainerNode {
+    preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -87,6 +92,7 @@ fn create_text_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
         ),
         children: Some(vec![
           TextNode {
+    preset: None,
             tw: None,
             style: Some(
               StyleBuilder::default()

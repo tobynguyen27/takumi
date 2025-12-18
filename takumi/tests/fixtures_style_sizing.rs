@@ -13,6 +13,7 @@ use test_utils::run_style_width_test;
 #[test]
 fn test_style_width() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -31,6 +32,7 @@ fn test_style_width() {
 #[test]
 fn test_style_height() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -49,6 +51,7 @@ fn test_style_height() {
 #[test]
 fn test_style_min_width() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -68,6 +71,7 @@ fn test_style_min_width() {
 #[test]
 fn test_style_min_height() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -87,6 +91,7 @@ fn test_style_min_height() {
 #[test]
 fn test_style_max_width() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -106,6 +111,7 @@ fn test_style_max_width() {
 #[test]
 fn test_style_max_height() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()

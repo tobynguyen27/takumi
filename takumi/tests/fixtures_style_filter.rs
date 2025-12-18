@@ -19,6 +19,7 @@ fn test_style_filter_on_image_node() {
   ];
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -37,6 +38,7 @@ fn test_style_filter_on_image_node() {
         .iter()
         .map(|effect| {
           ContainerNode {
+            preset: None,
             tw: None,
             style: Some(
               StyleBuilder::default()
@@ -48,6 +50,7 @@ fn test_style_filter_on_image_node() {
             ),
             children: Some(vec![
               ImageNode {
+                preset: None,
                 tw: None,
                 src: "assets/images/yeecord.png".into(),
                 style: Some(
@@ -63,6 +66,7 @@ fn test_style_filter_on_image_node() {
               }
               .into(),
               TextNode {
+                preset: None,
                 tw: None,
                 style: None,
                 text: effect.to_string(),

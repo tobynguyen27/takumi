@@ -13,6 +13,7 @@ use test_utils::run_style_width_test;
 #[test]
 fn test_style_position() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -24,6 +25,7 @@ fn test_style_position() {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()

@@ -13,6 +13,7 @@ use test_utils::run_style_width_test;
 #[test]
 fn fixtures_text_basic() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -29,6 +30,7 @@ fn fixtures_text_basic() {
 #[test]
 fn fixtures_text_typography_regular_24px() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -54,6 +56,7 @@ fn fixtures_text_typography_variable_width() {
     .iter()
     .map(|width| {
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -74,6 +77,7 @@ fn fixtures_text_typography_variable_width() {
     .collect::<Vec<_>>();
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -101,6 +105,7 @@ fn fixtures_text_typography_variable_weight() {
     .step_by(50)
     .map(|weight| {
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -116,6 +121,7 @@ fn fixtures_text_typography_variable_weight() {
     .collect::<Vec<_>>();
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -138,6 +144,7 @@ fn fixtures_text_typography_variable_weight() {
 #[test]
 fn fixtures_text_typography_medium_weight_500() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -159,6 +166,7 @@ fn fixtures_text_typography_medium_weight_500() {
 #[test]
 fn fixtures_text_typography_line_height_40px() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -180,6 +188,7 @@ fn fixtures_text_typography_line_height_40px() {
 #[test]
 fn fixtures_text_typography_letter_spacing_2px() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -201,6 +210,7 @@ fn fixtures_text_typography_letter_spacing_2px() {
 #[test]
 fn fixtures_text_align_start() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -220,6 +230,7 @@ fn fixtures_text_align_start() {
 #[test]
 fn fixtures_text_align_center() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -239,6 +250,7 @@ fn fixtures_text_align_center() {
 #[test]
 fn fixtures_text_align_right() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -260,6 +272,7 @@ fn fixtures_text_ellipsis_line_clamp_2() {
   let long_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
 
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -283,6 +296,7 @@ fn fixtures_text_ellipsis_line_clamp_2() {
 #[test]
 fn fixtures_text_transform_all() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -294,6 +308,7 @@ fn fixtures_text_transform_all() {
     ),
     children: Some(vec![
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -307,6 +322,7 @@ fn fixtures_text_transform_all() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -320,6 +336,7 @@ fn fixtures_text_transform_all() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -333,6 +350,7 @@ fn fixtures_text_transform_all() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -359,6 +377,7 @@ fn fixtures_text_mask_image_gradient_and_emoji() {
   .unwrap();
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -373,6 +392,7 @@ fn fixtures_text_mask_image_gradient_and_emoji() {
     ),
     children: Some(vec![
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -400,6 +420,7 @@ fn fixtures_text_mask_image_gradient_and_emoji() {
 #[test]
 fn fixtures_text_stroke_black_red() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -429,6 +450,7 @@ fn fixtures_text_shadow() {
   }];
 
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -455,6 +477,7 @@ fn fixtures_text_shadow_no_blur_radius() {
   }];
 
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -478,6 +501,7 @@ fn fixtures_text_wrap_nowrap() {
   let long_text = "This is a very long piece of text that should demonstrate text wrapping behavior when it exceeds the container width. The quick brown fox jumps over the lazy dog.";
 
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -495,6 +519,7 @@ fn fixtures_text_wrap_nowrap() {
     children: Some(vec![
       // Wrap text
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -506,6 +531,7 @@ fn fixtures_text_wrap_nowrap() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -525,6 +551,7 @@ fn fixtures_text_wrap_nowrap() {
 #[test]
 fn fixtures_text_whitespace_collapse() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -541,6 +568,7 @@ fn fixtures_text_whitespace_collapse() {
     ),
     children: Some(vec![
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -552,6 +580,7 @@ fn fixtures_text_whitespace_collapse() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -563,6 +592,7 @@ fn fixtures_text_whitespace_collapse() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -574,6 +604,7 @@ fn fixtures_text_whitespace_collapse() {
       }
       .into(),
       TextNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -597,6 +628,7 @@ fn fixtures_text_whitespace_collapse() {
 #[test]
 fn fixtures_text_ellipsis_text_nowrap() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -610,6 +642,7 @@ fn fixtures_text_ellipsis_text_nowrap() {
     ),
     children: Some(vec![
       TextNode {
+    preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()

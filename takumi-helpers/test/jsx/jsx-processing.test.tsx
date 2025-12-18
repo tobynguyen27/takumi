@@ -26,7 +26,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "Hello World",
-      style: defaultStylePresets.span,
+      preset: defaultStylePresets.span,
     } satisfies TextNode);
   });
 
@@ -35,7 +35,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "42",
-      style: defaultStylePresets.span,
+      preset: defaultStylePresets.span,
     } satisfies TextNode);
   });
 
@@ -83,8 +83,12 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "Hello",
+      preset: {
+        marginTop: "1em",
+        marginBottom: "1em",
+        display: "block",
+      },
       style: {
-        ...defaultStylePresets.p,
         WebkitTextStroke: "1px red",
       },
     } satisfies TextNode);
@@ -139,17 +143,17 @@ describe("fromJsx", () => {
         {
           type: "text",
           text: "First",
-          style: defaultStylePresets.span,
+          preset: defaultStylePresets.span,
         },
         {
           type: "text",
           text: "Second",
-          style: defaultStylePresets.span,
+          preset: defaultStylePresets.span,
         },
         {
           type: "text",
           text: "Third",
-          style: defaultStylePresets.span,
+          preset: defaultStylePresets.span,
         },
       ],
     } satisfies ContainerNode);
@@ -162,7 +166,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "image",
       src: "https://example.com/image.jpg",
-      style: defaultStylePresets.img,
+      preset: defaultStylePresets.img,
     } satisfies ImageNode);
   });
 
@@ -198,7 +202,7 @@ describe("fromJsx", () => {
         {
           type: "text",
           text: "Title",
-          style: defaultStylePresets.h1,
+          preset: defaultStylePresets.h1,
         },
         {
           type: "container",
@@ -209,20 +213,20 @@ describe("fromJsx", () => {
                 {
                   type: "text",
                   text: "Paragraph with ",
-                  style: defaultStylePresets.span,
+                  preset: defaultStylePresets.span,
                 },
                 {
                   type: "text",
                   text: "bold",
-                  style: defaultStylePresets.strong,
+                  preset: defaultStylePresets.strong,
                 },
                 {
                   type: "text",
                   text: " text",
-                  style: defaultStylePresets.span,
+                  preset: defaultStylePresets.span,
                 },
               ],
-              style: defaultStylePresets.p,
+              preset: defaultStylePresets.p,
             },
             {
               type: "container",
@@ -249,7 +253,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "Resolved text",
-      style: defaultStylePresets.span,
+      preset: defaultStylePresets.span,
     } satisfies TextNode);
   });
 
@@ -279,7 +283,7 @@ describe("fromJsx", () => {
             {
               type: "text",
               text: "Welcome",
-              style: defaultStylePresets.h1,
+              preset: defaultStylePresets.h1,
             },
             {
               type: "container",
@@ -287,19 +291,19 @@ describe("fromJsx", () => {
                 {
                   type: "text",
                   text: "Item 1",
-                  style: defaultStylePresets.span,
+                  preset: defaultStylePresets.span,
                 },
                 {
                   type: "text",
                   text: "Item 2",
-                  style: defaultStylePresets.span,
+                  preset: defaultStylePresets.span,
                 },
               ],
             },
             {
               type: "image",
               src: "https://example.com/logo.png",
-              style: defaultStylePresets.img,
+              preset: defaultStylePresets.img,
             },
           ],
         },
@@ -340,7 +344,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "image",
       src: renderToStaticMarkup(component),
-      style: defaultStylePresets.svg,
+      preset: defaultStylePresets.svg,
     });
   });
 });

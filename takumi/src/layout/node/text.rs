@@ -21,6 +21,8 @@ use crate::{
 /// alignment, and styling options.
 #[derive(Debug, Clone, Deserialize)]
 pub struct TextNode {
+  /// Default style presets from HTML element type (lowest priority)
+  pub preset: Option<Style>,
   /// The styling properties for this text node
   pub style: Option<Style>,
   /// The text content to be rendered
@@ -38,12 +40,17 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
     // Start with empty style
     let mut style = Style::default();
 
-    // Apply Tailwind first (lower priority)
+    // 1. Apply preset first (lowest priority)
+    if let Some(preset) = self.preset.take() {
+      style.merge_from(preset);
+    }
+
+    // 2. Apply Tailwind (medium priority)
     if let Some(tw) = self.tw.as_ref() {
       tw.apply(&mut style, viewport);
     }
 
-    // Merge inline style on top (higher priority)
+    // 3. Merge inline style last (highest priority)
     if let Some(inline_style) = self.style.take() {
       style.merge_from(inline_style);
     }

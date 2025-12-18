@@ -10,6 +10,7 @@ use test_utils::run_style_width_test;
 #[test]
 fn test_style_text_decoration() {
   let text = TextNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()

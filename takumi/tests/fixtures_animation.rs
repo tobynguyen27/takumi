@@ -26,6 +26,7 @@ fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
       let y_offset = -bounce * 140.0; // pixels up
 
       let node = ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -40,6 +41,7 @@ fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
         ),
         children: Some(vec![
           ContainerNode {
+            preset: None,
             tw: None,
             style: Some(
               StyleBuilder::default()
@@ -49,6 +51,7 @@ fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
             ),
             children: Some(vec![
               TextNode {
+                preset: None,
                 tw: None,
                 style: Some(
                   StyleBuilder::default()

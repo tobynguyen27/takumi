@@ -13,6 +13,7 @@ use test_utils::run_style_width_test;
 #[test]
 fn test_style_margin() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -24,6 +25,7 @@ fn test_style_margin() {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -46,6 +48,7 @@ fn test_style_margin() {
 #[test]
 fn test_style_padding() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -58,6 +61,7 @@ fn test_style_padding() {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()

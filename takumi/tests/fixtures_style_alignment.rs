@@ -13,6 +13,7 @@ use test_utils::run_style_width_test;
 #[test]
 fn test_style_align_items() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -26,6 +27,7 @@ fn test_style_align_items() {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -39,6 +41,7 @@ fn test_style_align_items() {
       }
       .into(),
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -52,6 +55,7 @@ fn test_style_align_items() {
       }
       .into(),
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -73,6 +77,7 @@ fn test_style_align_items() {
 #[test]
 fn test_style_justify_content() {
   let container = ContainerNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -86,6 +91,7 @@ fn test_style_justify_content() {
     ),
     children: Some(vec![
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -99,6 +105,7 @@ fn test_style_justify_content() {
       }
       .into(),
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()
@@ -112,6 +119,7 @@ fn test_style_justify_content() {
       }
       .into(),
       ContainerNode {
+        preset: None,
         tw: None,
         style: Some(
           StyleBuilder::default()

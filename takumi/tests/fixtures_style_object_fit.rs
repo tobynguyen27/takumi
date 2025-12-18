@@ -9,6 +9,7 @@ use test_utils::run_style_width_test;
 #[test]
 fn test_style_object_fit_contain() {
   let image = ImageNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -29,6 +30,7 @@ fn test_style_object_fit_contain() {
 #[test]
 fn test_style_object_fit_cover() {
   let image = ImageNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -49,6 +51,7 @@ fn test_style_object_fit_cover() {
 #[test]
 fn test_style_object_fit_fill() {
   let image = ImageNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -69,6 +72,7 @@ fn test_style_object_fit_fill() {
 #[test]
 fn test_style_object_fit_none() {
   let image = ImageNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()
@@ -89,6 +93,7 @@ fn test_style_object_fit_none() {
 #[test]
 fn test_style_object_fit_scale_down() {
   let image = ImageNode {
+    preset: None,
     tw: None,
     style: Some(
       StyleBuilder::default()

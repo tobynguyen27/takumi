@@ -81,7 +81,12 @@ async function fromJsxInternal(
     return Array.isArray(result) ? result : result ? [result] : [];
   }
 
-  return [text(String(element), getPresets(options)?.span)];
+  return [
+    text({
+      text: String(element),
+      preset: getPresets(options)?.span,
+    }),
+  ];
 }
 
 function getPresets(
@@ -201,7 +206,7 @@ async function processReactElement(
   }
 
   if (isHtmlElement(element, "br")) {
-    return [text("\n", getPresets(options)?.span)];
+    return [text({ text: "\n", preset: getPresets(options)?.span })];
   }
 
   if (isHtmlElement(element, "img")) {
@@ -212,7 +217,7 @@ async function processReactElement(
     return [createSvgElement(element, options)];
   }
 
-  const style = extractStyle(element, options);
+  const { preset, style } = extractStyle(element, options);
   const tw = extractTw(element);
 
   const textChildren = await tryCollectTextChildren(element);
@@ -220,6 +225,7 @@ async function processReactElement(
     return [
       text({
         text: textChildren,
+        preset,
         style,
         tw,
       }),
@@ -230,6 +236,7 @@ async function processReactElement(
   return [
     container({
       children,
+      preset,
       style,
       tw,
     }),
@@ -244,11 +251,12 @@ function createImageElement(
     throw new Error("Image element must have a 'src' prop.");
   }
 
-  const style = extractStyle(element, options);
+  const { preset, style } = extractStyle(element, options);
   const tw = extractTw(element);
 
   return image({
     src: element.props.src,
+    preset,
     style,
     tw,
   });
@@ -258,11 +266,12 @@ function createSvgElement(
   element: ReactElement<ComponentProps<"svg">, "svg">,
   options?: FromJsxOptions,
 ) {
-  const style = extractStyle(element, options);
+  const { preset, style } = extractStyle(element, options);
   const tw = extractTw(element);
   const svg = serializeSvg(element);
 
   return image({
+    preset,
     style,
     src: svg,
     tw,
@@ -272,15 +281,16 @@ function createSvgElement(
 function extractStyle(
   element: ReactElementLike,
   options?: FromJsxOptions,
-): CSSProperties {
-  const base = {};
+): { preset?: CSSProperties; style?: CSSProperties } {
+  let preset: CSSProperties | undefined;
+  let style: CSSProperties | undefined;
 
   const presets = getPresets(options);
   if (presets && typeof element.type === "string" && element.type in presets) {
-    Object.assign(base, presets[element.type as keyof typeof presets]);
+    preset = { ...presets[element.type as keyof typeof presets] };
   }
 
-  const style =
+  const inlineStyle =
     typeof element.props === "object" &&
     element.props !== null &&
     "style" in element.props &&
@@ -289,11 +299,11 @@ function extractStyle(
       ? element.props.style
       : undefined;
 
-  if (style && Object.keys(style).length > 0) {
-    Object.assign(base, style);
+  if (inlineStyle && Object.keys(inlineStyle).length > 0) {
+    style = inlineStyle;
   }
 
-  return base;
+  return { preset, style };
 }
 
 function extractTw(element: ReactElementLike): string | undefined {
