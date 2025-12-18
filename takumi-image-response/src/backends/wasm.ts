@@ -1,4 +1,4 @@
-import { fromJsx } from "@takumi-rs/helpers/jsx";
+import { type FromJsxOptions, fromJsx } from "@takumi-rs/helpers/jsx";
 import init, {
   type ByteBuf,
   collectNodeFetchTasks,
@@ -60,6 +60,7 @@ type ImageResponseOptionsWithRenderer = ResponseInit &
   RenderOptions &
   ModuleOptions & {
     renderer: Renderer;
+    jsx?: FromJsxOptions;
   };
 
 type ImageResponseOptionsWithoutRenderer = ResponseInit &
@@ -67,6 +68,7 @@ type ImageResponseOptionsWithoutRenderer = ResponseInit &
   ModuleOptions & {
     fonts?: Font[];
     persistentImages?: PersistentImage[];
+    jsx?: FromJsxOptions;
   };
 
 export type ImageResponseOptions =
@@ -125,7 +127,7 @@ function createStream(component: ReactNode, options: ImageResponseOptions) {
 
         const renderer = getRenderer(options);
 
-        const node = await fromJsx(component);
+        const node = await fromJsx(component, options.jsx);
 
         if (!options.fetchedResources) {
           const urls = collectNodeFetchTasks(node);

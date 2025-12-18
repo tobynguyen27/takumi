@@ -5,7 +5,7 @@ import {
   Renderer,
   type RenderOptions,
 } from "@takumi-rs/core";
-import { fromJsx } from "@takumi-rs/helpers/jsx";
+import { type FromJsxOptions, fromJsx } from "@takumi-rs/helpers/jsx";
 import type { ReactNode } from "react";
 
 let renderer: Renderer | undefined;
@@ -24,12 +24,14 @@ type ImageResponseOptionsWithRenderer = ResponseInit &
   RenderOptions & {
     renderer: Renderer;
     signal?: AbortSignal;
+    jsx?: FromJsxOptions;
   };
 
 type ImageResponseOptionsWithoutRenderer = ResponseInit &
   RenderOptions &
   ConstructRendererOptions & {
     signal?: AbortSignal;
+    jsx?: FromJsxOptions;
   };
 
 export type ImageResponseOptions =
@@ -107,7 +109,7 @@ function createStream(component: ReactNode, options?: ImageResponseOptions) {
       try {
         const renderer = await getRenderer(options);
 
-        const node = await fromJsx(component);
+        const node = await fromJsx(component, options?.jsx);
         const image = await renderer.render(
           node,
           options ?? defaultOptions,

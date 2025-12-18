@@ -3,7 +3,7 @@
 
 import type { CSSProperties, JSX } from "react";
 
-export const stylePresets: Partial<
+export const defaultStylePresets: Partial<
   Record<keyof JSX.IntrinsicElements, CSSProperties>
 > = {
   body: {

@@ -1,0 +1,588 @@
+import { describe, expect, test } from "bun:test";
+import type { CSSProperties } from "react";
+import { fromJsx } from "../../src/jsx/jsx";
+import { defaultStylePresets } from "../../src/jsx/style-presets";
+import type { ContainerNode, TextNode } from "../../src/types";
+
+describe("fromJsx - stylePresets overriding", () => {
+  describe("default behavior", () => {
+    test("applies default style presets to h1 element", async () => {
+      const result = await fromJsx(<h1>Hello</h1>);
+      expect(result).toEqual({
+        type: "text",
+        text: "Hello",
+        style: defaultStylePresets.h1,
+      } satisfies TextNode);
+    });
+
+    test("applies default style presets to p element", async () => {
+      const result = await fromJsx(<p>Paragraph</p>);
+      expect(result).toEqual({
+        type: "text",
+        text: "Paragraph",
+        style: defaultStylePresets.p,
+      } satisfies TextNode);
+    });
+
+    test("applies default style presets to strong element", async () => {
+      const result = await fromJsx(<strong>Bold</strong>);
+      expect(result).toEqual({
+        type: "text",
+        text: "Bold",
+        style: defaultStylePresets.strong,
+      } satisfies TextNode);
+    });
+
+    test("applies default style presets to span for raw text", async () => {
+      const result = await fromJsx("Plain text");
+      expect(result).toEqual({
+        type: "text",
+        text: "Plain text",
+        style: defaultStylePresets.span,
+      } satisfies TextNode);
+    });
+  });
+
+  describe("disabling default styles with false", () => {
+    test("disables default styles for h1 element", async () => {
+      const result = await fromJsx(<h1>Hello</h1>, { defaultStyles: false });
+      expect(result).toEqual({
+        type: "text",
+        text: "Hello",
+      } satisfies TextNode);
+    });
+
+    test("disables default styles for p element", async () => {
+      const result = await fromJsx(<p>Paragraph</p>, {
+        defaultStyles: false,
+      });
+      expect(result).toEqual({
+        type: "text",
+        text: "Paragraph",
+      } satisfies TextNode);
+    });
+
+    test("disables default styles for strong element", async () => {
+      const result = await fromJsx(<strong>Bold</strong>, {
+        defaultStyles: false,
+      });
+      expect(result).toEqual({
+        type: "text",
+        text: "Bold",
+      } satisfies TextNode);
+    });
+
+    test("disables default styles for raw text", async () => {
+      const result = await fromJsx("Plain text", { defaultStyles: false });
+      expect(result).toEqual({
+        type: "text",
+        text: "Plain text",
+      } satisfies TextNode);
+    });
+
+    test("disables default styles for img element", async () => {
+      const result = await fromJsx(
+        <img src="https://example.com/image.jpg" alt="Test" />,
+        { defaultStyles: false },
+      );
+      expect(result).toEqual({
+        type: "image",
+        src: "https://example.com/image.jpg",
+      });
+    });
+
+    test("disables default styles for nested elements", async () => {
+      const result = await fromJsx(
+        <div>
+          <h1>Title</h1>
+          <p>
+            Text with <strong>bold</strong>
+          </p>
+        </div>,
+        { defaultStyles: false },
+      );
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Title",
+          },
+          {
+            type: "container",
+            children: [
+              {
+                type: "text",
+                text: "Text with ",
+              },
+              {
+                type: "text",
+                text: "bold",
+              },
+            ],
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+  });
+
+  describe("custom style presets", () => {
+    test("overrides h1 preset with custom styles", async () => {
+      const customPresets = {
+        ...defaultStylePresets,
+        h1: {
+          fontSize: "3em",
+          color: "red",
+          fontWeight: "normal",
+        } as CSSProperties,
+      };
+
+      const result = await fromJsx(<h1>Custom</h1>, {
+        defaultStyles: customPresets,
+      });
+
+      expect(result).toEqual({
+        type: "text",
+        text: "Custom",
+        style: {
+          fontSize: "3em",
+          color: "red",
+          fontWeight: "normal",
+        },
+      } satisfies TextNode);
+    });
+
+    test("overrides p preset with custom styles", async () => {
+      const customPresets = {
+        ...defaultStylePresets,
+        p: {
+          marginTop: "2em",
+          marginBottom: "2em",
+          color: "blue",
+        } as CSSProperties,
+      };
+
+      const result = await fromJsx(<p>Custom paragraph</p>, {
+        defaultStyles: customPresets,
+      });
+
+      expect(result).toEqual({
+        type: "text",
+        text: "Custom paragraph",
+        style: {
+          marginTop: "2em",
+          marginBottom: "2em",
+          color: "blue",
+        },
+      } satisfies TextNode);
+    });
+
+    test("overrides multiple presets", async () => {
+      const customPresets = {
+        ...defaultStylePresets,
+        h1: {
+          fontSize: "4em",
+          color: "purple",
+        } as CSSProperties,
+        strong: {
+          fontWeight: "900",
+          color: "orange",
+        } as CSSProperties,
+      };
+
+      const result = await fromJsx(
+        <div>
+          <h1>Title</h1>
+          <strong>Bold</strong>
+        </div>,
+        { defaultStyles: customPresets },
+      );
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Title",
+            style: {
+              fontSize: "4em",
+              color: "purple",
+            },
+          },
+          {
+            type: "text",
+            text: "Bold",
+            style: {
+              fontWeight: "900",
+              color: "orange",
+            },
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+
+    test("adds new preset for custom element", async () => {
+      const customPresets = {
+        ...defaultStylePresets,
+        article: {
+          padding: "20px",
+          backgroundColor: "#f0f0f0",
+        } as CSSProperties,
+      };
+
+      const result = await fromJsx(<article>Article content</article>, {
+        defaultStyles: customPresets,
+      });
+
+      expect(result).toEqual({
+        type: "text",
+        text: "Article content",
+        style: {
+          padding: "20px",
+          backgroundColor: "#f0f0f0",
+        },
+      } satisfies TextNode);
+    });
+
+    test("partial override keeps unspecified presets as default", async () => {
+      const customPresets = {
+        ...defaultStylePresets,
+        h1: {
+          fontSize: "5em",
+        } as CSSProperties,
+      };
+
+      const result = await fromJsx(
+        <div>
+          <h1>Custom H1</h1>
+          <h2>Default H2</h2>
+        </div>,
+        { defaultStyles: customPresets },
+      );
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Custom H1",
+            style: {
+              fontSize: "5em",
+            },
+          },
+          {
+            type: "text",
+            text: "Default H2",
+            style: defaultStylePresets.h2,
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+  });
+
+  describe("inline styles override presets", () => {
+    test("inline styles override default presets", async () => {
+      const result = await fromJsx(
+        <h1 style={{ fontSize: "10em", color: "green" }}>Inline styled</h1>,
+      );
+
+      expect(result).toEqual({
+        type: "text",
+        text: "Inline styled",
+        style: {
+          ...defaultStylePresets.h1,
+          fontSize: "10em",
+          color: "green",
+        },
+      } satisfies TextNode);
+    });
+
+    test("inline styles override custom presets", async () => {
+      const customPresets = {
+        ...defaultStylePresets,
+        h1: {
+          fontSize: "3em",
+          color: "red",
+        } as CSSProperties,
+      };
+
+      const result = await fromJsx(
+        <h1 style={{ fontSize: "10em", fontWeight: "100" }}>
+          Inline override
+        </h1>,
+        { defaultStyles: customPresets },
+      );
+
+      expect(result).toEqual({
+        type: "text",
+        text: "Inline override",
+        style: {
+          fontSize: "10em",
+          color: "red",
+          fontWeight: "100",
+        },
+      } satisfies TextNode);
+    });
+
+    test("inline styles work when default styles are disabled", async () => {
+      const result = await fromJsx(
+        <h1 style={{ fontSize: "8em", color: "blue" }}>No presets</h1>,
+        { defaultStyles: false },
+      );
+
+      expect(result).toEqual({
+        type: "text",
+        text: "No presets",
+        style: {
+          fontSize: "8em",
+          color: "blue",
+        },
+      } satisfies TextNode);
+    });
+  });
+
+  describe("complex scenarios", () => {
+    test("deeply nested elements with custom presets", async () => {
+      const customPresets = {
+        ...defaultStylePresets,
+        h1: { fontSize: "4em" } as CSSProperties,
+        p: { marginTop: "2em" } as CSSProperties,
+        strong: { fontWeight: "900" } as CSSProperties,
+      };
+
+      const result = await fromJsx(
+        <div>
+          <h1>Title</h1>
+          <div>
+            <p>
+              Paragraph with <strong>bold</strong> text
+            </p>
+          </div>
+        </div>,
+        { defaultStyles: customPresets },
+      );
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Title",
+            style: { fontSize: "4em" },
+          },
+          {
+            type: "container",
+            children: [
+              {
+                type: "container",
+                children: [
+                  {
+                    type: "text",
+                    text: "Paragraph with ",
+                    style: defaultStylePresets.span,
+                  },
+                  {
+                    type: "text",
+                    text: "bold",
+                    style: { fontWeight: "900" },
+                  },
+                  {
+                    type: "text",
+                    text: " text",
+                    style: defaultStylePresets.span,
+                  },
+                ],
+                style: { marginTop: "2em" },
+              },
+            ],
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+
+    test("mixed inline styles and custom presets", async () => {
+      const customPresets = {
+        ...defaultStylePresets,
+        h1: { fontSize: "3em", color: "red" } as CSSProperties,
+        p: { marginTop: "1.5em" } as CSSProperties,
+      };
+
+      const result = await fromJsx(
+        <div>
+          <h1 style={{ color: "blue" }}>Styled Title</h1>
+          <p>Normal paragraph</p>
+          <p style={{ color: "green" }}>Green paragraph</p>
+        </div>,
+        { defaultStyles: customPresets },
+      );
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Styled Title",
+            style: {
+              fontSize: "3em",
+              color: "blue",
+            },
+          },
+          {
+            type: "text",
+            text: "Normal paragraph",
+            style: {
+              marginTop: "1.5em",
+            },
+          },
+          {
+            type: "text",
+            text: "Green paragraph",
+            style: {
+              marginTop: "1.5em",
+              color: "green",
+            },
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+
+    test("function component with custom presets", async () => {
+      const MyComponent = ({ title }: { title: string }) => (
+        <div>
+          <h1>{title}</h1>
+          <p>Content</p>
+        </div>
+      );
+
+      const customPresets = {
+        ...defaultStylePresets,
+        h1: { fontSize: "5em" } as CSSProperties,
+      };
+
+      const result = await fromJsx(<MyComponent title="Test" />, {
+        defaultStyles: customPresets,
+      });
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Test",
+            style: { fontSize: "5em" },
+          },
+          {
+            type: "text",
+            text: "Content",
+            style: defaultStylePresets.p,
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+
+    test("empty custom presets object (no presets)", async () => {
+      const result = await fromJsx(
+        <div>
+          <h1>Title</h1>
+          <p>Paragraph</p>
+        </div>,
+        { defaultStyles: {} },
+      );
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Title",
+          },
+          {
+            type: "text",
+            text: "Paragraph",
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+  });
+
+  describe("edge cases", () => {
+    test("undefined defaultStyles option uses default presets", async () => {
+      const result = await fromJsx(<h1>Hello</h1>, {
+        defaultStyles: undefined,
+      });
+      expect(result).toEqual({
+        type: "text",
+        text: "Hello",
+        style: defaultStylePresets.h1,
+      } satisfies TextNode);
+    });
+
+    test("empty options object uses default presets", async () => {
+      const result = await fromJsx(<h1>Hello</h1>, {});
+      expect(result).toEqual({
+        type: "text",
+        text: "Hello",
+        style: defaultStylePresets.h1,
+      } satisfies TextNode);
+    });
+
+    test("custom presets with only one element defined", async () => {
+      const customPresets = {
+        h1: { fontSize: "6em" } as CSSProperties,
+      };
+
+      const result = await fromJsx(
+        <div>
+          <h1>Custom</h1>
+          <p>Default</p>
+        </div>,
+        { defaultStyles: customPresets },
+      );
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Custom",
+            style: { fontSize: "6em" },
+          },
+          {
+            type: "text",
+            text: "Default",
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+
+    test("custom presets are passed through nested function components", async () => {
+      const Inner = () => <h1>Inner Title</h1>;
+      const Outer = () => (
+        <div>
+          <Inner />
+        </div>
+      );
+
+      const customPresets = {
+        ...defaultStylePresets,
+        h1: { fontSize: "7em" } as CSSProperties,
+      };
+
+      const result = await fromJsx(<Outer />, {
+        defaultStyles: customPresets,
+      });
+
+      expect(result).toEqual({
+        type: "container",
+        children: [
+          {
+            type: "text",
+            text: "Inner Title",
+            style: { fontSize: "7em" },
+          },
+        ],
+      } satisfies ContainerNode);
+    });
+  });
+});

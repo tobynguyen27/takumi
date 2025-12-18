@@ -3,7 +3,7 @@ import { User2 } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { container } from "../../src/helpers";
 import { fromJsx } from "../../src/jsx/jsx";
-import { stylePresets } from "../../src/jsx/style-presets";
+import { defaultStylePresets } from "../../src/jsx/style-presets";
 import type { ContainerNode, ImageNode, TextNode } from "../../src/types";
 
 describe("fromJsx", () => {
@@ -26,7 +26,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "Hello World",
-      style: stylePresets.span,
+      style: defaultStylePresets.span,
     } satisfies TextNode);
   });
 
@@ -35,7 +35,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "42",
-      style: stylePresets.span,
+      style: defaultStylePresets.span,
     } satisfies TextNode);
   });
 
@@ -84,7 +84,7 @@ describe("fromJsx", () => {
       type: "text",
       text: "Hello",
       style: {
-        ...stylePresets.p,
+        ...defaultStylePresets.p,
         WebkitTextStroke: "1px red",
       },
     } satisfies TextNode);
@@ -139,17 +139,17 @@ describe("fromJsx", () => {
         {
           type: "text",
           text: "First",
-          style: stylePresets.span,
+          style: defaultStylePresets.span,
         },
         {
           type: "text",
           text: "Second",
-          style: stylePresets.span,
+          style: defaultStylePresets.span,
         },
         {
           type: "text",
           text: "Third",
-          style: stylePresets.span,
+          style: defaultStylePresets.span,
         },
       ],
     } satisfies ContainerNode);
@@ -162,7 +162,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "image",
       src: "https://example.com/image.jpg",
-      style: stylePresets.img,
+      style: defaultStylePresets.img,
     } satisfies ImageNode);
   });
 
@@ -198,7 +198,7 @@ describe("fromJsx", () => {
         {
           type: "text",
           text: "Title",
-          style: stylePresets.h1,
+          style: defaultStylePresets.h1,
         },
         {
           type: "container",
@@ -209,16 +209,20 @@ describe("fromJsx", () => {
                 {
                   type: "text",
                   text: "Paragraph with ",
-                  style: stylePresets.span,
+                  style: defaultStylePresets.span,
                 },
                 {
                   type: "text",
                   text: "bold",
-                  style: stylePresets.strong,
+                  style: defaultStylePresets.strong,
                 },
-                { type: "text", text: " text", style: stylePresets.span },
+                {
+                  type: "text",
+                  text: " text",
+                  style: defaultStylePresets.span,
+                },
               ],
-              style: stylePresets.p,
+              style: defaultStylePresets.p,
             },
             {
               type: "container",
@@ -245,7 +249,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "text",
       text: "Resolved text",
-      style: stylePresets.span,
+      style: defaultStylePresets.span,
     } satisfies TextNode);
   });
 
@@ -275,7 +279,7 @@ describe("fromJsx", () => {
             {
               type: "text",
               text: "Welcome",
-              style: stylePresets.h1,
+              style: defaultStylePresets.h1,
             },
             {
               type: "container",
@@ -283,19 +287,19 @@ describe("fromJsx", () => {
                 {
                   type: "text",
                   text: "Item 1",
-                  style: stylePresets.span,
+                  style: defaultStylePresets.span,
                 },
                 {
                   type: "text",
                   text: "Item 2",
-                  style: stylePresets.span,
+                  style: defaultStylePresets.span,
                 },
               ],
             },
             {
               type: "image",
               src: "https://example.com/logo.png",
-              style: stylePresets.img,
+              style: defaultStylePresets.img,
             },
           ],
         },
@@ -336,7 +340,7 @@ describe("fromJsx", () => {
     expect(result).toEqual({
       type: "image",
       src: renderToStaticMarkup(component),
-      style: stylePresets.svg,
+      style: defaultStylePresets.svg,
     });
   });
 });

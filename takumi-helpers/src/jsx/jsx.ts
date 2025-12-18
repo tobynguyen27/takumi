@@ -6,7 +6,7 @@ import type {
 } from "react";
 import { container, image, percentage, text } from "../helpers";
 import type { Node } from "../types";
-import { stylePresets } from "./style-presets";
+import { defaultStylePresets } from "./style-presets";
 import { serializeSvg } from "./svg";
 import {
   isFunctionComponent,
@@ -19,6 +19,8 @@ import {
   type ReactElementLike,
 } from "./utils";
 
+export * from "./style-presets";
+
 declare module "react" {
   // biome-ignore lint/correctness/noUnusedVariables: used for type inference
   interface DOMAttributes<T> {
@@ -26,10 +28,22 @@ declare module "react" {
   }
 }
 
+export interface FromJsxOptions {
+  /**
+   * Override or disable the default Chromium style presets.
+   *
+   * If an object is provided, all the default style presets will be overridden.
+   *
+   * If `false` is provided explicitly, no default style presets will be used.
+   */
+  defaultStyles?: typeof defaultStylePresets | false;
+}
+
 export async function fromJsx(
   element: ReactNode | ReactElementLike,
+  options?: FromJsxOptions,
 ): Promise<Node> {
-  const result = await fromJsxInternal(element);
+  const result = await fromJsxInternal(element, options);
 
   if (result.length === 0) {
     return container({});
@@ -50,26 +64,37 @@ export async function fromJsx(
 
 async function fromJsxInternal(
   element: ReactNode | ReactElementLike,
+  options?: FromJsxOptions,
 ): Promise<Node[]> {
   if (element === undefined || element === null || element === false) return [];
 
   // If element is a server component, wait for it to resolve first
-  if (element instanceof Promise) return fromJsxInternal(await element);
+  if (element instanceof Promise)
+    return fromJsxInternal(await element, options);
 
   // If element is an iterable, collect the children
   if (typeof element === "object" && Symbol.iterator in element)
-    return collectIterable(element);
+    return collectIterable(element, options);
 
   if (isValidElement(element)) {
-    const result = await processReactElement(element);
+    const result = await processReactElement(element, options);
     return Array.isArray(result) ? result : result ? [result] : [];
   }
 
-  return [text(String(element), stylePresets.span)];
+  return [text(String(element), getPresets(options)?.span)];
+}
+
+function getPresets(
+  options?: FromJsxOptions,
+): typeof defaultStylePresets | undefined {
+  if (options?.defaultStyles === false) return undefined;
+
+  return options?.defaultStyles ?? defaultStylePresets;
 }
 
 function tryHandleComponentWrapper(
   element: ReactElementLike,
+  options?: FromJsxOptions,
 ): Promise<Node[]> | undefined {
   if (typeof element.type !== "object" || element.type === null)
     return undefined;
@@ -79,7 +104,7 @@ function tryHandleComponentWrapper(
     const forwardRefType = element.type as {
       render: (props: unknown, ref: unknown) => ReactNode;
     };
-    return fromJsxInternal(forwardRefType.render(element.props, null));
+    return fromJsxInternal(forwardRefType.render(element.props, null), options);
   }
 
   // Handle memo components
@@ -88,7 +113,7 @@ function tryHandleComponentWrapper(
     const innerType = memoType.type;
 
     if (isFunctionComponent(innerType)) {
-      return fromJsxInternal(innerType(element.props));
+      return fromJsxInternal(innerType(element.props), options);
     }
 
     const cloned: ReactElementLike = {
@@ -96,7 +121,7 @@ function tryHandleComponentWrapper(
       type: innerType as ReactElementLike["type"],
     } as ReactElementLike;
 
-    return processReactElement(cloned);
+    return processReactElement(cloned, options);
   }
 }
 
@@ -154,17 +179,20 @@ function collectTextFromChildren(children: ReactNode[]): string | undefined {
     .join("");
 }
 
-async function processReactElement(element: ReactElementLike): Promise<Node[]> {
+async function processReactElement(
+  element: ReactElementLike,
+  options?: FromJsxOptions,
+): Promise<Node[]> {
   if (isFunctionComponent(element.type)) {
-    return fromJsxInternal(element.type(element.props));
+    return fromJsxInternal(element.type(element.props), options);
   }
 
-  const wrapperResult = tryHandleComponentWrapper(element);
+  const wrapperResult = tryHandleComponentWrapper(element, options);
   if (wrapperResult !== undefined) return wrapperResult;
 
   // Handle React fragments <></>
   if (isReactFragment(element)) {
-    const children = await collectChildren(element);
+    const children = await collectChildren(element, options);
     return children || [];
   }
 
@@ -173,18 +201,18 @@ async function processReactElement(element: ReactElementLike): Promise<Node[]> {
   }
 
   if (isHtmlElement(element, "br")) {
-    return [text("\n", stylePresets.span)];
+    return [text("\n", getPresets(options)?.span)];
   }
 
   if (isHtmlElement(element, "img")) {
-    return [createImageElement(element)];
+    return [createImageElement(element, options)];
   }
 
   if (isHtmlElement(element, "svg")) {
-    return [createSvgElement(element)];
+    return [createSvgElement(element, options)];
   }
 
-  const style = extractStyle(element);
+  const style = extractStyle(element, options);
   const tw = extractTw(element);
 
   const textChildren = await tryCollectTextChildren(element);
@@ -197,7 +225,7 @@ async function processReactElement(element: ReactElementLike): Promise<Node[]> {
       }),
     ];
 
-  const children = await collectChildren(element);
+  const children = await collectChildren(element, options);
 
   return [
     container({
@@ -210,12 +238,13 @@ async function processReactElement(element: ReactElementLike): Promise<Node[]> {
 
 function createImageElement(
   element: ReactElement<ComponentProps<"img">, "img">,
+  options?: FromJsxOptions,
 ) {
   if (!element.props.src) {
     throw new Error("Image element must have a 'src' prop.");
   }
 
-  const style = extractStyle(element);
+  const style = extractStyle(element, options);
   const tw = extractTw(element);
 
   return image({
@@ -225,8 +254,11 @@ function createImageElement(
   });
 }
 
-function createSvgElement(element: ReactElement<ComponentProps<"svg">, "svg">) {
-  const style = extractStyle(element);
+function createSvgElement(
+  element: ReactElement<ComponentProps<"svg">, "svg">,
+  options?: FromJsxOptions,
+) {
+  const style = extractStyle(element, options);
   const tw = extractTw(element);
   const svg = serializeSvg(element);
 
@@ -237,14 +269,15 @@ function createSvgElement(element: ReactElement<ComponentProps<"svg">, "svg">) {
   });
 }
 
-function extractStyle(element: ReactElementLike): CSSProperties {
+function extractStyle(
+  element: ReactElementLike,
+  options?: FromJsxOptions,
+): CSSProperties {
   const base = {};
 
-  if (typeof element.type === "string" && element.type in stylePresets) {
-    Object.assign(
-      base,
-      stylePresets[element.type as keyof typeof stylePresets],
-    );
+  const presets = getPresets(options);
+  if (presets && typeof element.type === "string" && element.type in presets) {
+    Object.assign(base, presets[element.type as keyof typeof presets]);
   }
 
   const style =
@@ -274,7 +307,10 @@ function extractTw(element: ReactElementLike): string | undefined {
   return element.props.tw as string;
 }
 
-function collectChildren(element: ReactElementLike): Promise<Node[]> {
+function collectChildren(
+  element: ReactElementLike,
+  options?: FromJsxOptions,
+): Promise<Node[]> {
   if (
     typeof element.props !== "object" ||
     element.props === null ||
@@ -282,11 +318,14 @@ function collectChildren(element: ReactElementLike): Promise<Node[]> {
   )
     return Promise.resolve([]);
 
-  return fromJsxInternal(element.props.children as ReactNode);
+  return fromJsxInternal(element.props.children as ReactNode, options);
 }
 
-function collectIterable(iterable: Iterable<ReactNode>): Promise<Node[]> {
+function collectIterable(
+  iterable: Iterable<ReactNode>,
+  options?: FromJsxOptions,
+): Promise<Node[]> {
   return Promise.all(
-    Array.from(iterable).map((element) => fromJsxInternal(element)),
+    Array.from(iterable).map((element) => fromJsxInternal(element, options)),
   ).then((results) => results.flat());
 }

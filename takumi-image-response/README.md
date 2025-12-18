@@ -84,6 +84,18 @@ const renderer = new Renderer();
 new ImageResponse(<OgImage />, { renderer });
 ```
 
+### JSX Options
+
+You can pass the JSX options to the `ImageResponse` constructor.
+
+```tsx
+new ImageResponse(<OgImage />, { 
+  jsx: { 
+    defaultStyles: false,
+  } 
+});
+```
+
 ---
 
 ## WASM Usage
