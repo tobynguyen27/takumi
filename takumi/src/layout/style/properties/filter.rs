@@ -8,7 +8,7 @@ use crate::{
     Angle, Color, FromCss, Length, ParseResult, PercentageNumber, TextShadow,
     tw::TailwindPropertyParser,
   },
-  rendering::{SizedShadow, Sizing, apply_fast_blur, blend_pixel},
+  rendering::{SizedShadow, Sizing, apply_blur, blend_pixel},
 };
 
 /// Represents a single CSS filter operation
@@ -177,7 +177,7 @@ pub(crate) fn apply_filters<'f, F: Iterator<Item = &'f Filter>>(
             huerotate_in_place(image, *angle as i32);
           }
           Filter::Blur(blur) => {
-            apply_fast_blur(image, blur.to_px(sizing, 1.0));
+            apply_blur(image, blur.to_px(sizing, 1.0));
           }
           Filter::DropShadow(drop_shadow) => {
             let size = Size {
@@ -269,7 +269,7 @@ fn apply_drop_shadow_filter(canvas: &mut RgbaImage, shadow: &SizedShadow) {
   }
 
   // Apply blur to the shadow
-  apply_fast_blur(&mut shadow_image, shadow.blur_radius);
+  apply_blur(&mut shadow_image, shadow.blur_radius);
 
   // Create the result image
   let mut result = RgbaImage::new(result_width, result_height);

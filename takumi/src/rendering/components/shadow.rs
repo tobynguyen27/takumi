@@ -1,67 +1,14 @@
-use image::{RgbaImage, imageops::fast_blur};
+use image::RgbaImage;
 use taffy::{Layout, Point, Size};
 use zeno::{Fill, PathData, Placement};
 
 use crate::{
   layout::style::{Affine, BoxShadow, Color, ImageScalingAlgorithm, Sides, TextShadow},
   rendering::{
-    BorderProperties, Canvas, CanvasConstrain, MaskMemory, Sizing, draw_mask, overlay_image,
+    BorderProperties, Canvas, CanvasConstrain, MaskMemory, Sizing, apply_blur, draw_mask,
+    overlay_image,
   },
 };
-
-/// Converts an image from straight alpha to premultiplied alpha.
-/// This is necessary before blurring to avoid black halo artifacts.
-fn to_premultiplied_alpha(image: &mut RgbaImage) {
-  for pixel in image.pixels_mut() {
-    let alpha = pixel.0[3];
-
-    // Skip fully transparent or fully opaque pixels (no change needed)
-    if alpha == 0 || alpha == 255 {
-      continue;
-    }
-
-    // Use integer math to avoid floating point operations
-    let alpha_u32 = alpha as u32;
-    pixel.0[0] = ((pixel.0[0] as u32 * alpha_u32) / 255) as u8;
-    pixel.0[1] = ((pixel.0[1] as u32 * alpha_u32) / 255) as u8;
-    pixel.0[2] = ((pixel.0[2] as u32 * alpha_u32) / 255) as u8;
-  }
-}
-
-/// Converts an image from premultiplied alpha back to straight alpha.
-fn from_premultiplied_alpha(image: &mut RgbaImage) {
-  for pixel in image.pixels_mut() {
-    let alpha = pixel.0[3];
-
-    // Skip fully transparent or fully opaque pixels (no change needed)
-    if alpha == 0 || alpha == 255 {
-      continue;
-    }
-
-    // Use integer math with checked operations to avoid overflow
-    let alpha_u32 = alpha as u32;
-    pixel.0[0] = (((pixel.0[0] as u32 * 255) / alpha_u32).min(255)) as u8;
-    pixel.0[1] = (((pixel.0[1] as u32 * 255) / alpha_u32).min(255)) as u8;
-    pixel.0[2] = (((pixel.0[2] as u32 * 255) / alpha_u32).min(255)) as u8;
-  }
-}
-
-/// Applies a fast blur to an image using image-rs's optimized implementation.
-/// Uses premultiplied alpha to avoid black halo artifacts when blurring
-/// images with transparency.
-pub(crate) fn apply_fast_blur(image: &mut RgbaImage, radius: f32) {
-  if radius <= 0.0 {
-    return;
-  }
-
-  // Convert CSS blur radius to sigma for fast_blur
-  // CSS blur radius is roughly 3x the standard deviation (sigma)
-  let sigma = radius / 3.0;
-
-  to_premultiplied_alpha(image);
-  *image = fast_blur(image, sigma);
-  from_premultiplied_alpha(image);
-}
 
 /// Represents a resolved box shadow with all its properties.
 #[derive(Clone, Copy)]
@@ -153,7 +100,7 @@ impl SizedShadow {
       None,
     );
 
-    apply_fast_blur(&mut image, self.blur_radius);
+    apply_blur(&mut image, self.blur_radius);
 
     overlay_image(
       canvas,
@@ -229,7 +176,7 @@ fn draw_inset_shadow(
 
   draw_mask(&mut shadow_image, mask, placement, shadow.color, None);
 
-  apply_fast_blur(&mut shadow_image, shadow.blur_radius);
+  apply_blur(&mut shadow_image, shadow.blur_radius);
 
   shadow_image
 }
