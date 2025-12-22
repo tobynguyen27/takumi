@@ -1,6 +1,6 @@
 use cssparser::{Parser, Token, match_ignore_ascii_case};
 
-use crate::layout::style::{ColorInput, FromCss, ParseResult, properties::LengthUnit};
+use crate::layout::style::{ColorInput, FromCss, ParseResult, properties::Length};
 
 /// Represents border style options (currently only solid is supported).
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -12,8 +12,8 @@ pub enum BorderStyle {
 /// Parsed `border` value.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Border {
-  /// Border width as a `LengthUnit`.
-  pub width: Option<LengthUnit>,
+  /// Border width.
+  pub width: Option<Length>,
   /// Border style (currently only solid is supported).
   pub style: Option<BorderStyle>,
   /// Optional border color.
@@ -31,7 +31,7 @@ impl<'i> FromCss<'i> for Border {
         break;
       }
 
-      if let Ok(value) = input.try_parse(LengthUnit::from_css) {
+      if let Ok(value) = input.try_parse(Length::from_css) {
         width = Some(value);
         continue;
       }
@@ -91,7 +91,7 @@ mod tests {
     assert_eq!(
       Border::from_str("10px"),
       Ok(Border {
-        width: Some(LengthUnit::Px(10.0)),
+        width: Some(Length::Px(10.0)),
         style: None,
         color: None,
       })
@@ -127,7 +127,7 @@ mod tests {
     assert_eq!(
       Border::from_str("2px solid"),
       Ok(Border {
-        width: Some(LengthUnit::Px(2.0)),
+        width: Some(Length::Px(2.0)),
         style: Some(BorderStyle::Solid),
         color: None,
       })
@@ -139,7 +139,7 @@ mod tests {
     assert_eq!(
       Border::from_str("2px solid red"),
       Ok(Border {
-        width: Some(LengthUnit::Px(2.0)),
+        width: Some(Length::Px(2.0)),
         style: Some(BorderStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
       })
@@ -151,7 +151,7 @@ mod tests {
     assert_eq!(
       Border::from_str("solid 2px red"),
       Ok(Border {
-        width: Some(LengthUnit::Px(2.0)),
+        width: Some(Length::Px(2.0)),
         style: Some(BorderStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
       })
@@ -163,7 +163,7 @@ mod tests {
     assert_eq!(
       Border::from_str("red solid 2px"),
       Ok(Border {
-        width: Some(LengthUnit::Px(2.0)),
+        width: Some(Length::Px(2.0)),
         style: Some(BorderStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
       })
@@ -175,7 +175,7 @@ mod tests {
     assert_eq!(
       Border::from_str("1.5rem solid blue"),
       Ok(Border {
-        width: Some(LengthUnit::Rem(1.5)),
+        width: Some(Length::Rem(1.5)),
         style: Some(BorderStyle::Solid),
         color: Some(ColorInput::Value(Color([0, 0, 255, 255]))),
       })
@@ -187,7 +187,7 @@ mod tests {
     assert_eq!(
       Border::from_str("3px solid #ff0000"),
       Ok(Border {
-        width: Some(LengthUnit::Px(3.0)),
+        width: Some(Length::Px(3.0)),
         style: Some(BorderStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
       })
@@ -199,7 +199,7 @@ mod tests {
     assert_eq!(
       Border::from_str("4px solid rgb(0, 255, 0)"),
       Ok(Border {
-        width: Some(LengthUnit::Px(4.0)),
+        width: Some(Length::Px(4.0)),
         style: Some(BorderStyle::Solid),
         color: Some(ColorInput::Value(Color([0, 255, 0, 255]))),
       })
@@ -226,7 +226,7 @@ mod tests {
     assert_eq!(
       Border::from_str("3px solid blue"),
       Ok(Border {
-        width: Some(LengthUnit::Px(3.0)),
+        width: Some(Length::Px(3.0)),
         style: Some(BorderStyle::Solid),
         color: Some(ColorInput::Value(Color([0, 0, 255, 255]))),
       })

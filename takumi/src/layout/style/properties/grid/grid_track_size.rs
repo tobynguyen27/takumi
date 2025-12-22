@@ -3,7 +3,7 @@ use taffy::{MaxTrackSizingFunction, MinTrackSizingFunction, TrackSizingFunction}
 
 use crate::{
   layout::style::{
-    FromCss, GridLengthUnit, GridMinMaxSize, LengthUnit, ParseResult, tw::TailwindPropertyParser,
+    FromCss, GridLength, GridMinMaxSize, Length, ParseResult, tw::TailwindPropertyParser,
   },
   rendering::Sizing,
 };
@@ -28,11 +28,11 @@ pub enum GridTrackSize {
   /// A minmax() track size
   MinMax(GridMinMaxSize),
   /// A fixed track size
-  Fixed(GridLengthUnit),
+  Fixed(GridLength),
 }
 
-impl From<GridLengthUnit> for GridTrackSize {
-  fn from(length: GridLengthUnit) -> Self {
+impl From<GridLength> for GridTrackSize {
+  fn from(length: GridLength) -> Self {
     Self::Fixed(length)
   }
 }
@@ -61,8 +61,8 @@ impl GridTrackSize {
 impl TailwindPropertyParser for GridTrackSize {
   fn parse_tw(token: &str) -> Option<Self> {
     let track_size = match_ignore_ascii_case! {token,
-      "auto" => GridTrackSize::Fixed(GridLengthUnit::Unit(LengthUnit::Auto)),
-      "fr" => GridTrackSize::Fixed(GridLengthUnit::Fr(1.0)),
+      "auto" => GridTrackSize::Fixed(GridLength::Unit(Length::Auto)),
+      "fr" => GridTrackSize::Fixed(GridLength::Fr(1.0)),
       _ => return None,
     };
     Some(track_size)
@@ -76,21 +76,21 @@ impl<'i> FromCss<'i> for GridTrackSize {
       .is_ok()
     {
       return input.parse_nested_block(|input| {
-        let min = GridLengthUnit::from_css(input)?;
+        let min = GridLength::from_css(input)?;
         input.expect_comma()?;
-        let max = GridLengthUnit::from_css(input)?;
+        let max = GridLength::from_css(input)?;
         Ok(GridTrackSize::MinMax(GridMinMaxSize { min, max }))
       });
     }
 
-    let length = GridLengthUnit::from_css(input)?;
+    let length = GridLength::from_css(input)?;
     Ok(GridTrackSize::Fixed(length))
   }
 }
 
 #[cfg(test)]
 mod tests {
-  use crate::layout::style::LengthUnit;
+  use crate::layout::style::Length;
 
   use super::*;
 
@@ -99,14 +99,14 @@ mod tests {
     assert_eq!(
       GridTrackSize::from_str("minmax(10px, 1fr)"),
       Ok(GridTrackSize::MinMax(GridMinMaxSize {
-        min: GridLengthUnit::Unit(LengthUnit::Px(10.0)),
-        max: GridLengthUnit::Fr(1.0)
+        min: GridLength::Unit(Length::Px(10.0)),
+        max: GridLength::Fr(1.0)
       }))
     );
 
     assert_eq!(
       GridTrackSize::from_str("2fr"),
-      Ok(GridTrackSize::Fixed(GridLengthUnit::Fr(2.0)))
+      Ok(GridTrackSize::Fixed(GridLength::Fr(2.0)))
     );
   }
 }

@@ -5,9 +5,7 @@ use std::ops::{Deref, Neg};
 
 use super::gradient_utils::{color_from_stops, resolve_stops_along_axis};
 use crate::{
-  layout::style::{
-    Color, ColorInput, FromCss, LengthUnit, ParseResult, tw::TailwindPropertyParser,
-  },
+  layout::style::{Color, ColorInput, FromCss, Length, ParseResult, tw::TailwindPropertyParser},
   rendering::RenderContext,
 };
 
@@ -137,7 +135,7 @@ impl LinearGradientDrawContext {
 /// Represents a gradient stop position.
 /// If a percentage or number (0.0-1.0) is provided, it is treated as a percentage.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct StopPosition(pub LengthUnit);
+pub struct StopPosition(pub Length);
 
 /// Represents a gradient stop.
 #[derive(Debug, Clone, PartialEq)]
@@ -165,16 +163,16 @@ pub struct ResolvedGradientStop {
 impl<'i> FromCss<'i> for StopPosition {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, StopPosition> {
     if let Ok(num) = input.try_parse(Parser::expect_number) {
-      return Ok(StopPosition(LengthUnit::Percentage(
+      return Ok(StopPosition(Length::Percentage(
         num.clamp(0.0, 1.0) * 100.0,
       )));
     }
 
     if let Ok(unit_value) = input.try_parse(Parser::expect_percentage) {
-      return Ok(StopPosition(LengthUnit::Percentage(unit_value * 100.0)));
+      return Ok(StopPosition(Length::Percentage(unit_value * 100.0)));
     }
 
-    let Ok(length) = input.try_parse(LengthUnit::from_css) else {
+    let Ok(length) = input.try_parse(Length::from_css) else {
       return Err(input.new_error_for_next_token());
     };
 
@@ -545,11 +543,11 @@ mod tests {
         stops: smallvec![
           GradientStop::ColorHint {
             color: ColorInput::Value(Color([255, 0, 0, 255])),
-            hint: Some(StopPosition(LengthUnit::Percentage(0.0))),
+            hint: Some(StopPosition(Length::Percentage(0.0))),
           },
           GradientStop::ColorHint {
             color: ColorInput::Value(Color([0, 0, 255, 255])),
-            hint: Some(StopPosition(LengthUnit::Percentage(100.0))),
+            hint: Some(StopPosition(Length::Percentage(100.0))),
           },
         ]
       })
@@ -567,7 +565,7 @@ mod tests {
             color: ColorInput::Value(Color([255, 0, 0, 255])),
             hint: None,
           },
-          GradientStop::Hint(StopPosition(LengthUnit::Percentage(50.0))),
+          GradientStop::Hint(StopPosition(Length::Percentage(50.0))),
           GradientStop::ColorHint {
             color: ColorInput::Value(Color([0, 0, 255, 255])),
             hint: None,
@@ -627,9 +625,7 @@ mod tests {
   fn test_parse_gradient_hint_numeric() {
     assert_eq!(
       GradientStop::from_str("50%"),
-      Ok(GradientStop::Hint(StopPosition(LengthUnit::Percentage(
-        50.0
-      ))))
+      Ok(GradientStop::Hint(StopPosition(Length::Percentage(50.0))))
     );
   }
 
@@ -691,12 +687,12 @@ mod tests {
             color: Color([255, 0, 0, 255]).into(),
             hint: None,
           },
-          GradientStop::Hint(StopPosition(LengthUnit::Percentage(25.0))),
+          GradientStop::Hint(StopPosition(Length::Percentage(25.0))),
           GradientStop::ColorHint {
             color: Color([0, 255, 0, 255]).into(),
             hint: None,
           },
-          GradientStop::Hint(StopPosition(LengthUnit::Percentage(75.0))),
+          GradientStop::Hint(StopPosition(Length::Percentage(75.0))),
           GradientStop::ColorHint {
             color: Color([0, 0, 255, 255]).into(),
             hint: None,
@@ -713,11 +709,11 @@ mod tests {
       stops: smallvec![
         GradientStop::ColorHint {
           color: Color([255, 0, 0, 255]).into(), // Red
-          hint: Some(StopPosition(LengthUnit::Percentage(0.0))),
+          hint: Some(StopPosition(Length::Percentage(0.0))),
         },
         GradientStop::ColorHint {
           color: Color([0, 0, 255, 255]).into(), // Blue
-          hint: Some(StopPosition(LengthUnit::Percentage(100.0))),
+          hint: Some(StopPosition(Length::Percentage(100.0))),
         },
       ],
     };
@@ -750,11 +746,11 @@ mod tests {
       stops: smallvec![
         GradientStop::ColorHint {
           color: Color([255, 0, 0, 255]).into(), // Red
-          hint: Some(StopPosition(LengthUnit::Percentage(0.0))),
+          hint: Some(StopPosition(Length::Percentage(0.0))),
         },
         GradientStop::ColorHint {
           color: Color([0, 0, 255, 255]).into(), // Blue
-          hint: Some(StopPosition(LengthUnit::Percentage(100.0))),
+          hint: Some(StopPosition(Length::Percentage(100.0))),
         },
       ],
     };
@@ -847,7 +843,7 @@ mod tests {
   fn test_stop_position_parsing_fraction_number() {
     assert_eq!(
       StopPosition::from_str("0.25"),
-      Ok(StopPosition(LengthUnit::Percentage(25.0)))
+      Ok(StopPosition(Length::Percentage(25.0)))
     );
   }
 
@@ -855,7 +851,7 @@ mod tests {
   fn test_stop_position_parsing_percentage() {
     assert_eq!(
       StopPosition::from_str("75%"),
-      Ok(StopPosition(LengthUnit::Percentage(75.0)))
+      Ok(StopPosition(Length::Percentage(75.0)))
     );
   }
 
@@ -863,7 +859,7 @@ mod tests {
   fn test_stop_position_parsing_length_px() {
     assert_eq!(
       StopPosition::from_str("12px"),
-      Ok(StopPosition(LengthUnit::Px(12.0)))
+      Ok(StopPosition(Length::Px(12.0)))
     );
   }
 
@@ -871,12 +867,12 @@ mod tests {
   fn test_stop_position_value_css_roundtrip() {
     assert_eq!(
       StopPosition::from_str("50%"),
-      Ok(StopPosition(LengthUnit::Percentage(50.0)))
+      Ok(StopPosition(Length::Percentage(50.0)))
     );
 
     assert_eq!(
       StopPosition::from_str("8px"),
-      Ok(StopPosition(LengthUnit::Px(8.0)))
+      Ok(StopPosition(Length::Px(8.0)))
     );
   }
 
@@ -887,15 +883,15 @@ mod tests {
       stops: smallvec![
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Percentage(0.0))),
+          hint: Some(StopPosition(Length::Percentage(0.0))),
         },
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Percentage(50.0))),
+          hint: Some(StopPosition(Length::Percentage(50.0))),
         },
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Px(100.0))),
+          hint: Some(StopPosition(Length::Px(100.0))),
         },
       ],
     };
@@ -918,11 +914,11 @@ mod tests {
       stops: smallvec![
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Px(0.0))),
+          hint: Some(StopPosition(Length::Px(0.0))),
         },
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Px(0.0))),
+          hint: Some(StopPosition(Length::Px(0.0))),
         },
       ],
     };

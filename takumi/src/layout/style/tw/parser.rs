@@ -3,20 +3,20 @@ use std::ops::Neg;
 use cssparser::{Parser, match_ignore_ascii_case};
 
 use crate::layout::style::{
-  LengthUnit::{self, *},
+  Length::{self, *},
   tw::TailwindPropertyParser,
   *,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TwFontSize {
-  pub(crate) font_size: LengthUnit,
+  pub(crate) font_size: Length,
   pub(crate) line_height: Option<LineHeight>,
 }
 
 impl<'i> FromCss<'i> for TwFontSize {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    Ok(Self::new(LengthUnit::from_css(input)?, None))
+    Ok(Self::new(Length::from_css(input)?, None))
   }
 }
 
@@ -76,7 +76,7 @@ impl TailwindPropertyParser for TwFontSize {
 }
 
 impl TwFontSize {
-  pub const fn new(font_size: LengthUnit, line_height: Option<LineHeight>) -> Self {
+  pub const fn new(font_size: Length, line_height: Option<LineHeight>) -> Self {
     Self {
       font_size,
       line_height,
@@ -100,8 +100,8 @@ impl TailwindPropertyParser for TwGridTemplate {
     // Create repeat(count, minmax(0, 1fr))
     let track_sizes = vec![
       GridTrackSize::MinMax(GridMinMaxSize {
-        min: GridLengthUnit::Unit(LengthUnit::Px(0.0)),
-        max: GridLengthUnit::Fr(1.0),
+        min: GridLength::Unit(Length::Px(0.0)),
+        max: GridLength::Fr(1.0),
       });
       count as usize
     ];
@@ -116,11 +116,11 @@ impl TailwindPropertyParser for TwGridTemplate {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct TwLetterSpacing(pub LengthUnit);
+pub struct TwLetterSpacing(pub Length);
 
 impl<'i> FromCss<'i> for TwLetterSpacing {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    Ok(Self(LengthUnit::from_css(input)?))
+    Ok(Self(Length::from_css(input)?))
   }
 }
 
@@ -135,23 +135,23 @@ impl Neg for TwLetterSpacing {
 impl TailwindPropertyParser for TwLetterSpacing {
   fn parse_tw(token: &str) -> Option<Self> {
     match_ignore_ascii_case! {token,
-      "tighter" => Some(TwLetterSpacing(LengthUnit::Em(-0.05))),
-      "tight" => Some(TwLetterSpacing(LengthUnit::Em(-0.025))),
-      "normal" => Some(TwLetterSpacing(LengthUnit::Em(0.0))),
-      "wide" => Some(TwLetterSpacing(LengthUnit::Em(0.025))),
-      "wider" => Some(TwLetterSpacing(LengthUnit::Em(0.05))),
-      "widest" => Some(TwLetterSpacing(LengthUnit::Em(0.1))),
+      "tighter" => Some(TwLetterSpacing(Length::Em(-0.05))),
+      "tight" => Some(TwLetterSpacing(Length::Em(-0.025))),
+      "normal" => Some(TwLetterSpacing(Length::Em(0.0))),
+      "wide" => Some(TwLetterSpacing(Length::Em(0.025))),
+      "wider" => Some(TwLetterSpacing(Length::Em(0.05))),
+      "widest" => Some(TwLetterSpacing(Length::Em(0.1))),
       _ => None,
     }
   }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct TwBorderWidth(pub LengthUnit);
+pub struct TwBorderWidth(pub Length);
 
 impl<'i> FromCss<'i> for TwBorderWidth {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    Ok(Self(LengthUnit::from_css(input)?))
+    Ok(Self(Length::from_css(input)?))
   }
 }
 
@@ -159,32 +159,32 @@ impl TailwindPropertyParser for TwBorderWidth {
   fn parse_tw(token: &str) -> Option<Self> {
     let value = token.parse::<f32>().ok()?;
 
-    Some(TwBorderWidth(LengthUnit::Px(value)))
+    Some(TwBorderWidth(Length::Px(value)))
   }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct TwRounded(pub(crate) LengthUnit<false>);
+pub struct TwRounded(pub(crate) Length<false>);
 
 impl<'i> FromCss<'i> for TwRounded {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    Ok(TwRounded(LengthUnit::from_css(input)?))
+    Ok(TwRounded(Length::from_css(input)?))
   }
 }
 
 impl TailwindPropertyParser for TwRounded {
   fn parse_tw(token: &str) -> Option<Self> {
     match_ignore_ascii_case! {token,
-      "full" => Some(TwRounded(LengthUnit::Px(9999.0))),
-      "none" => Some(TwRounded(LengthUnit::Px(0.0))),
-      "xs" => Some(TwRounded(LengthUnit::Rem(0.125))),
-      "sm" => Some(TwRounded(LengthUnit::Rem(0.25))),
-      "md" => Some(TwRounded(LengthUnit::Rem(0.375))),
-      "lg" => Some(TwRounded(LengthUnit::Rem(0.5))),
-      "xl" => Some(TwRounded(LengthUnit::Rem(0.75))),
-      "2xl" => Some(TwRounded(LengthUnit::Rem(1.0))),
-      "3xl" => Some(TwRounded(LengthUnit::Rem(1.5))),
-      "4xl" => Some(TwRounded(LengthUnit::Rem(2.0))),
+      "full" => Some(TwRounded(Length::Px(9999.0))),
+      "none" => Some(TwRounded(Length::Px(0.0))),
+      "xs" => Some(TwRounded(Length::Rem(0.125))),
+      "sm" => Some(TwRounded(Length::Rem(0.25))),
+      "md" => Some(TwRounded(Length::Rem(0.375))),
+      "lg" => Some(TwRounded(Length::Rem(0.5))),
+      "xl" => Some(TwRounded(Length::Rem(0.75))),
+      "2xl" => Some(TwRounded(Length::Rem(1.0))),
+      "3xl" => Some(TwRounded(Length::Rem(1.5))),
+      "4xl" => Some(TwRounded(Length::Rem(2.0))),
       _ => None,
     }
   }

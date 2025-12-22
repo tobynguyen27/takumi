@@ -1,7 +1,7 @@
 use smallvec::smallvec;
 use takumi::layout::{
   node::TextNode,
-  style::{LengthUnit::*, *},
+  style::{Length::*, *},
 };
 
 mod test_utils;

@@ -22,7 +22,7 @@ mod font_variation_settings;
 mod font_weight;
 mod gradient_utils;
 mod grid;
-mod length_unit;
+mod length;
 mod line_clamp;
 mod line_height;
 mod linear_gradient;
@@ -62,7 +62,7 @@ pub use font_style::*;
 pub use font_variation_settings::*;
 pub use font_weight::*;
 pub use grid::*;
-pub use length_unit::*;
+pub use length::*;
 pub use line_clamp::*;
 pub use line_height::*;
 pub use linear_gradient::*;
@@ -208,20 +208,13 @@ impl TailwindPropertyParser for BackgroundClip {
 
 /// Represents the CSS `border-radius` property, supporting elliptical corners.
 ///
-/// Each corner can have independent horizontal and vertical radii, allowing for both circular and elliptical shapes.
-///
-/// This struct supports the full CSS syntax, including the elliptical form, e.g.:
-/// `border-radius: 10px 20px 30px 40px / 15px 25px 35px 45px;`
-///
-/// The inner `Sides<SpacePair<LengthUnit<false>>>` field stores the radii for each corner as pairs of horizontal and vertical values.
-/// The order of the `Sides` array follows the CSS specification:
-/// [top-left, top-right, bottom-right, bottom-left].
+/// Each corner has independent horizontal and vertical radii, allowing for both circular and elliptical shapes.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct BorderRadius(pub Sides<SpacePair<LengthUnit<false>>>);
+pub struct BorderRadius(pub Sides<SpacePair<Length<false>>>);
 
 impl<'i> FromCss<'i> for BorderRadius {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let widths: Sides<LengthUnit<false>> = Sides::from_css(input)?;
+    let widths: Sides<Length<false>> = Sides::from_css(input)?;
 
     let heights = if input.try_parse(|input| input.expect_delim('/')).is_ok() {
       Sides::from_css(input)?

@@ -14,9 +14,9 @@ use crate::{
 
 pub(crate) type ImageTiles = (RgbaImage, SmallVec<[i32; 1]>, SmallVec<[i32; 1]>);
 
-pub(crate) fn resolve_length_against_area(unit: LengthUnit, area: u32, sizing: &Sizing) -> u32 {
+pub(crate) fn resolve_length_against_area(unit: Length, area: u32, sizing: &Sizing) -> u32 {
   match unit {
-    LengthUnit::Auto => area,
+    Length::Auto => area,
     _ => unit.to_px(sizing, area as f32).max(0.0) as u32,
   }
 }
@@ -88,12 +88,12 @@ pub(crate) fn resolve_background_size(
 }
 
 pub(crate) fn resolve_length_unit_to_position_component(
-  length: LengthUnit,
+  length: Length,
   available: i32,
   sizing: &Sizing,
 ) -> i32 {
   match length {
-    LengthUnit::Auto => available / 2,
+    Length::Auto => available / 2,
     _ => length.to_px(sizing, available as f32) as i32,
   }
 }

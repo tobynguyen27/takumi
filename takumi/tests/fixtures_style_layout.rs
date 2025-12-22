@@ -1,7 +1,7 @@
 use takumi::layout::{
   node::ContainerNode,
   style::{
-    LengthUnit::{Percentage, Px},
+    Length::{Percentage, Px},
     *,
   },
 };
@@ -215,8 +215,8 @@ fn test_style_grid_template_columns() {
         .height(Px(200.0))
         .display(Display::Grid)
         .grid_template_columns(Some(vec![
-          GridTemplateComponent::Single(GridTrackSize::Fixed(GridLengthUnit::Unit(Px(50.0)))),
-          GridTemplateComponent::Single(GridTrackSize::Fixed(GridLengthUnit::Unit(Px(100.0)))),
+          GridTemplateComponent::Single(GridTrackSize::Fixed(GridLength::Unit(Px(50.0)))),
+          GridTemplateComponent::Single(GridTrackSize::Fixed(GridLength::Unit(Px(100.0)))),
         ]))
         .background_color(ColorInput::Value(Color([0, 0, 255, 255])))
         .build()
@@ -267,8 +267,8 @@ fn test_style_grid_template_rows() {
         .height(Px(200.0))
         .display(Display::Grid)
         .grid_template_rows(Some(vec![
-          GridTemplateComponent::Single(GridTrackSize::Fixed(GridLengthUnit::Unit(Px(50.0)))),
-          GridTemplateComponent::Single(GridTrackSize::Fixed(GridLengthUnit::Unit(Px(100.0)))),
+          GridTemplateComponent::Single(GridTrackSize::Fixed(GridLength::Unit(Px(50.0)))),
+          GridTemplateComponent::Single(GridTrackSize::Fixed(GridLength::Unit(Px(100.0)))),
         ]))
         .background_color(ColorInput::Value(Color([0, 0, 255, 255])))
         .build()

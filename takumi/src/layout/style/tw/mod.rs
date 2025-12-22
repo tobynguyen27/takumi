@@ -137,17 +137,17 @@ impl TailwindValue {
 
 /// Represents a breakpoint.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Breakpoint(pub(crate) LengthUnit);
+pub struct Breakpoint(pub(crate) Length);
 
 impl Breakpoint {
   /// Parse a breakpoint from a token.
   pub fn parse(token: &str) -> Option<Self> {
     match_ignore_ascii_case! {token,
-      "sm" => Some(Breakpoint(LengthUnit::Rem(40.0))),
-      "md" => Some(Breakpoint(LengthUnit::Rem(48.0))),
-      "lg" => Some(Breakpoint(LengthUnit::Rem(64.0))),
-      "xl" => Some(Breakpoint(LengthUnit::Rem(80.0))),
-      "2xl" => Some(Breakpoint(LengthUnit::Rem(96.0))),
+      "sm" => Some(Breakpoint(Length::Rem(40.0))),
+      "md" => Some(Breakpoint(Length::Rem(48.0))),
+      "lg" => Some(Breakpoint(Length::Rem(64.0))),
+      "xl" => Some(Breakpoint(Length::Rem(80.0))),
+      "2xl" => Some(Breakpoint(Length::Rem(96.0))),
       _ => None,
     }
   }
@@ -159,9 +159,9 @@ impl Breakpoint {
     };
 
     let breakpoint_width = match self.0 {
-      LengthUnit::Rem(value) => value * viewport.font_size * viewport.device_pixel_ratio,
-      LengthUnit::Px(value) => value * viewport.device_pixel_ratio,
-      LengthUnit::Vw(value) => (value / 100.0) * viewport_width as f32,
+      Length::Rem(value) => value * viewport.font_size * viewport.device_pixel_ratio,
+      Length::Px(value) => value * viewport.device_pixel_ratio,
+      Length::Vw(value) => (value / 100.0) * viewport_width as f32,
       _ => 0.0,
     };
 
@@ -202,7 +202,7 @@ pub enum TailwindProperty {
   /// `flex` property.
   Flex(Flex),
   /// `flex-basis` property.
-  FlexBasis(LengthUnit),
+  FlexBasis(Length),
   /// `overflow` property.
   Overflow(Overflow),
   /// `overflow-x` property.
@@ -240,19 +240,19 @@ pub enum TailwindProperty {
   /// `text-transform` property.
   TextTransform(TextTransform),
   /// `width` and `height` property.
-  Size(LengthUnit),
+  Size(Length),
   /// `width` property.
-  Width(LengthUnit),
+  Width(Length),
   /// `height` property.
-  Height(LengthUnit),
+  Height(Length),
   /// `min-width` property.
-  MinWidth(LengthUnit),
+  MinWidth(Length),
   /// `min-height` property.
-  MinHeight(LengthUnit),
+  MinHeight(Length),
   /// `max-width` property.
-  MaxWidth(LengthUnit),
+  MaxWidth(Length),
   /// `max-height` property.
-  MaxHeight(LengthUnit),
+  MaxHeight(Length),
   /// `box-shadow` property.
   Shadow(BoxShadow),
   /// `display` property.
@@ -270,11 +270,11 @@ pub enum TailwindProperty {
   /// `background-image` property.
   BackgroundImage(BackgroundImage),
   /// `gap` property.
-  Gap(LengthUnit<false>),
+  Gap(Length<false>),
   /// `column-gap` property.
-  GapX(LengthUnit<false>),
+  GapX(Length<false>),
   /// `row-gap` property.
-  GapY(LengthUnit<false>),
+  GapY(Length<false>),
   /// `grid-auto-flow` property.
   GridAutoFlow(GridAutoFlow),
   /// `grid-auto-columns` property.
@@ -348,11 +348,11 @@ pub enum TailwindProperty {
   /// `line-height` property.
   LineHeight(LineHeight),
   /// `translate` property.
-  Translate(LengthUnit),
+  Translate(Length),
   /// `translate-x` property.
-  TranslateX(LengthUnit),
+  TranslateX(Length),
   /// `translate-y` property.
-  TranslateY(LengthUnit),
+  TranslateY(Length),
   /// `rotate` property.
   Rotate(Angle),
   /// `scale` property.
@@ -364,47 +364,47 @@ pub enum TailwindProperty {
   /// `transform-origin` property.
   TransformOrigin(BackgroundPosition),
   /// `margin` property.
-  Margin(LengthUnit<false>),
+  Margin(Length<false>),
   /// `margin-inline` property.
-  MarginX(LengthUnit<false>),
+  MarginX(Length<false>),
   /// `margin-block` property.
-  MarginY(LengthUnit<false>),
+  MarginY(Length<false>),
   /// `margin-top` property.
-  MarginTop(LengthUnit<false>),
+  MarginTop(Length<false>),
   /// `margin-right` property.
-  MarginRight(LengthUnit<false>),
+  MarginRight(Length<false>),
   /// `margin-bottom` property.
-  MarginBottom(LengthUnit<false>),
+  MarginBottom(Length<false>),
   /// `margin-left` property.
-  MarginLeft(LengthUnit<false>),
+  MarginLeft(Length<false>),
   /// `padding` property.
-  Padding(LengthUnit<false>),
+  Padding(Length<false>),
   /// `padding-inline` property.
-  PaddingX(LengthUnit<false>),
+  PaddingX(Length<false>),
   /// `padding-block` property.
-  PaddingY(LengthUnit<false>),
+  PaddingY(Length<false>),
   /// `padding-top` property.
-  PaddingTop(LengthUnit<false>),
+  PaddingTop(Length<false>),
   /// `padding-right` property.
-  PaddingRight(LengthUnit<false>),
+  PaddingRight(Length<false>),
   /// `padding-bottom` property.
-  PaddingBottom(LengthUnit<false>),
+  PaddingBottom(Length<false>),
   /// `padding-left` property.
-  PaddingLeft(LengthUnit<false>),
+  PaddingLeft(Length<false>),
   /// `inset` property.
-  Inset(LengthUnit),
+  Inset(Length),
   /// `inset-inline` property.
-  InsetX(LengthUnit),
+  InsetX(Length),
   /// `inset-block` property.
-  InsetY(LengthUnit),
+  InsetY(Length),
   /// `top` property.
-  Top(LengthUnit),
+  Top(Length),
   /// `right` property.
-  Right(LengthUnit),
+  Right(Length),
   /// `bottom` property.
-  Bottom(LengthUnit),
+  Bottom(Length),
   /// `left` property.
-  Left(LengthUnit),
+  Left(Length),
 }
 
 /// A trait for parsing tailwind properties.
@@ -898,15 +898,11 @@ mod tests {
   fn test_parse_width() {
     assert_eq!(
       TailwindProperty::parse("w-64"),
-      Some(TailwindProperty::Width(LengthUnit::Rem(
-        64.0 * TW_VAR_SPACING
-      )))
+      Some(TailwindProperty::Width(Length::Rem(64.0 * TW_VAR_SPACING)))
     );
     assert_eq!(
       TailwindProperty::parse("h-32"),
-      Some(TailwindProperty::Height(LengthUnit::Rem(
-        32.0 * TW_VAR_SPACING
-      )))
+      Some(TailwindProperty::Height(Length::Rem(32.0 * TW_VAR_SPACING)))
     );
     assert_eq!(
       TailwindProperty::parse("justify-self-center"),
@@ -954,7 +950,7 @@ mod tests {
       Some(TailwindProperty::Flex(Flex {
         grow: 3.0,
         shrink: 1.0,
-        basis: LengthUnit::Auto,
+        basis: Length::Auto,
       }))
     );
   }
@@ -963,7 +959,7 @@ mod tests {
   fn test_parse_negative_margin() {
     assert_eq!(
       TailwindProperty::parse("-ml-4"),
-      Some(TailwindProperty::MarginLeft(LengthUnit::Rem(
+      Some(TailwindProperty::MarginLeft(Length::Rem(
         -4.0 * TW_VAR_SPACING
       )))
     );
@@ -973,11 +969,11 @@ mod tests {
   fn test_parse_border_radius() {
     assert_eq!(
       TailwindProperty::parse("rounded-xs"),
-      Some(TailwindProperty::Rounded(TwRounded(LengthUnit::Rem(0.125))))
+      Some(TailwindProperty::Rounded(TwRounded(Length::Rem(0.125))))
     );
     assert_eq!(
       TailwindProperty::parse("rounded-full"),
-      Some(TailwindProperty::Rounded(TwRounded(LengthUnit::Px(9999.0))))
+      Some(TailwindProperty::Rounded(TwRounded(Length::Px(9999.0))))
     );
   }
 
@@ -985,15 +981,15 @@ mod tests {
   fn test_parse_border_width() {
     assert_eq!(
       TailwindProperty::parse("border-t-2"),
-      Some(TailwindProperty::BorderTopWidth(TwBorderWidth(
-        LengthUnit::Px(2.0)
-      )))
+      Some(TailwindProperty::BorderTopWidth(TwBorderWidth(Length::Px(
+        2.0
+      ))))
     );
     assert_eq!(
       TailwindProperty::parse("border-x-4"),
-      Some(TailwindProperty::BorderXWidth(TwBorderWidth(
-        LengthUnit::Px(4.0)
-      )))
+      Some(TailwindProperty::BorderXWidth(TwBorderWidth(Length::Px(
+        4.0
+      ))))
     );
   }
 
@@ -1103,8 +1099,8 @@ mod tests {
     assert_eq!(
       TailwindValue::parse("md:!mt-4"),
       Some(TailwindValue {
-        property: TailwindProperty::MarginTop(LengthUnit::Rem(1.0)),
-        breakpoint: Some(Breakpoint(LengthUnit::Rem(48.0))),
+        property: TailwindProperty::MarginTop(Length::Rem(1.0)),
+        breakpoint: Some(Breakpoint(Length::Rem(48.0))),
         important: true,
       })
     );
@@ -1118,26 +1114,26 @@ mod tests {
         inner: vec![
           // mt-16
           TailwindValue {
-            property: TailwindProperty::MarginTop(LengthUnit::Rem(4.0)),
+            property: TailwindProperty::MarginTop(Length::Rem(4.0)),
             breakpoint: None,
             important: false,
           },
           // sm:mt-8
           TailwindValue {
-            property: TailwindProperty::MarginTop(LengthUnit::Rem(2.0)),
-            breakpoint: Some(Breakpoint(LengthUnit::Rem(40.0))),
+            property: TailwindProperty::MarginTop(Length::Rem(2.0)),
+            breakpoint: Some(Breakpoint(Length::Rem(40.0))),
             important: false,
           },
           // !mt-12
           TailwindValue {
-            property: TailwindProperty::MarginTop(LengthUnit::Rem(3.0)),
+            property: TailwindProperty::MarginTop(Length::Rem(3.0)),
             breakpoint: None,
             important: true,
           },
           // md:!mt-4
           TailwindValue {
-            property: TailwindProperty::MarginTop(LengthUnit::Rem(1.0)),
-            breakpoint: Some(Breakpoint(LengthUnit::Rem(48.0))),
+            property: TailwindProperty::MarginTop(Length::Rem(1.0)),
+            breakpoint: Some(Breakpoint(Length::Rem(48.0))),
             important: true,
           },
         ]

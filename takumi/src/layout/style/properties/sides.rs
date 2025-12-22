@@ -1,7 +1,7 @@
 use cssparser::Parser;
 use taffy::Rect;
 
-use crate::layout::style::{FromCss, LengthUnit, ParseResult};
+use crate::layout::style::{FromCss, Length, ParseResult};
 
 /// Represents the values for the four sides of a box (top, right, bottom, left).
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -84,40 +84,40 @@ impl<T: Copy> From<T> for Sides<T> {
   }
 }
 
-impl Sides<LengthUnit> {
-  /// Creates a new zeroable Sides with [LengthUnit::zero].
+impl Sides<Length> {
+  /// Creates a new zeroable Sides.
   pub const fn zero() -> Self {
-    Self([LengthUnit::zero(); 4])
+    Self([Length::zero(); 4])
   }
 
-  /// Creates a new autoable Sides with [LengthUnit::Auto].
+  /// Creates a new autoable Sides.
   pub const fn auto() -> Self {
-    Self([LengthUnit::Auto; 4])
+    Self([Length::Auto; 4])
   }
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::layout::style::LengthUnit;
+  use crate::layout::style::Length;
 
   #[test]
   fn deserialize_single_number() {
     assert_eq!(
-      Sides::<LengthUnit>::from_str("5"),
-      Ok(Sides([LengthUnit::Px(5.0); 4]))
+      Sides::<Length>::from_str("5"),
+      Ok(Sides([Length::Px(5.0); 4]))
     );
   }
 
   #[test]
   fn deserialize_axis_pair_numbers() {
     assert_eq!(
-      Sides::<LengthUnit>::from_str("10 20"),
+      Sides::<Length>::from_str("10 20"),
       Ok(Sides([
-        LengthUnit::Px(10.0),
-        LengthUnit::Px(20.0),
-        LengthUnit::Px(10.0),
-        LengthUnit::Px(20.0)
+        Length::Px(10.0),
+        Length::Px(20.0),
+        Length::Px(10.0),
+        Length::Px(20.0)
       ]))
     );
   }
@@ -125,20 +125,20 @@ mod tests {
   #[test]
   fn deserialize_css_single_value() {
     assert_eq!(
-      Sides::<LengthUnit>::from_str("10px"),
-      Ok(Sides([LengthUnit::Px(10.0); 4]))
+      Sides::<Length>::from_str("10px"),
+      Ok(Sides([Length::Px(10.0); 4]))
     );
   }
 
   #[test]
   fn deserialize_css_multi_values() {
     assert_eq!(
-      Sides::<LengthUnit>::from_str("1px 2px 3px 4px"),
+      Sides::<Length>::from_str("1px 2px 3px 4px"),
       Ok(Sides([
-        LengthUnit::Px(1.0),
-        LengthUnit::Px(2.0),
-        LengthUnit::Px(3.0),
-        LengthUnit::Px(4.0)
+        Length::Px(1.0),
+        Length::Px(2.0),
+        Length::Px(3.0),
+        Length::Px(4.0)
       ]))
     );
   }

@@ -1,7 +1,7 @@
 use takumi::layout::{
   node::{ContainerNode, ImageNode, TextNode},
   style::{
-    LengthUnit::{Percentage, Px, Rem},
+    Length::{Percentage, Px, Rem},
     *,
   },
 };

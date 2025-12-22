@@ -114,7 +114,7 @@ impl<'i> FromCss<'i> for GridTemplateComponents {
 
 #[cfg(test)]
 mod tests {
-  use crate::layout::style::{GridLengthUnit, GridRepetitionKeyword};
+  use crate::layout::style::{GridLength, GridRepetitionKeyword};
 
   use super::*;
 
@@ -127,12 +127,12 @@ mod tests {
         vec![
           GridRepeatTrack {
             names: vec!["a".to_string()],
-            size: GridTrackSize::Fixed(GridLengthUnit::Fr(1.0)),
+            size: GridTrackSize::Fixed(GridLength::Fr(1.0)),
             end_names: None
           },
           GridRepeatTrack {
             names: vec!["b".to_string()],
-            size: GridTrackSize::Fixed(GridLengthUnit::Fr(2.0)),
+            size: GridTrackSize::Fixed(GridLength::Fr(2.0)),
             end_names: None
           }
         ]

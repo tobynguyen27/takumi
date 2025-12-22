@@ -2,7 +2,7 @@ use takumi::layout::{
   node::{ContainerNode, ImageNode, TextNode},
   style::{
     AlignItems, Color, ColorInput, Display, FontWeight, JustifyContent,
-    LengthUnit::{Percentage, Px},
+    Length::{Percentage, Px},
     Sides, StyleBuilder, TextOverflow, TextTransform, WhiteSpace,
   },
 };

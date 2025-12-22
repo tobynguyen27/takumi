@@ -5,7 +5,7 @@ use smallvec::SmallVec;
 use taffy::{Point, Size};
 
 use crate::{
-  layout::style::{Angle, FromCss, LengthUnit, ParseResult, PercentageNumber},
+  layout::style::{Angle, FromCss, Length, ParseResult, PercentageNumber},
   rendering::Sizing,
 };
 
@@ -15,7 +15,7 @@ const DEFAULT_SCALE: f32 = 1.0;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Transform {
   /// Translates an element along the X-axis and Y-axis by the specified lengths
-  Translate(LengthUnit, LengthUnit),
+  Translate(Length, Length),
   /// Scales an element by the specified factors
   Scale(f32, f32),
   /// Rotates an element (2D rotation) by angle in degrees
@@ -280,19 +280,19 @@ impl<'i> FromCss<'i> for Transform {
 
     match_ignore_ascii_case! {function,
       "translate" => parser.parse_nested_block(|input| {
-        let x = LengthUnit::from_css(input)?;
+        let x = Length::from_css(input)?;
         input.expect_comma()?;
-        let y = LengthUnit::from_css(input)?;
+        let y = Length::from_css(input)?;
 
         Ok(Transform::Translate(x, y))
       }),
       "translatex" => parser.parse_nested_block(|input| Ok(Transform::Translate(
-        LengthUnit::from_css(input)?,
-        LengthUnit::zero(),
+        Length::from_css(input)?,
+        Length::zero(),
       ))),
       "translatey" => parser.parse_nested_block(|input| Ok(Transform::Translate(
-        LengthUnit::zero(),
-        LengthUnit::from_css(input)?,
+        Length::zero(),
+        Length::from_css(input)?,
       ))),
       "scale" => parser.parse_nested_block(|input| {
         let PercentageNumber(x) = PercentageNumber::from_css(input)?;
@@ -345,10 +345,7 @@ mod tests {
   fn test_transform_from_str() {
     assert_eq!(
       Transform::from_str("translate(10, 20px)"),
-      Ok(Transform::Translate(
-        LengthUnit::Px(10.0),
-        LengthUnit::Px(20.0)
-      ))
+      Ok(Transform::Translate(Length::Px(10.0), Length::Px(20.0)))
     );
   }
 

@@ -2,7 +2,7 @@ use takumi::layout::{
   node::ContainerNode,
   style::{
     AlignItems, Color, ColorInput, Display, JustifyContent,
-    LengthUnit::{Percentage, Px},
+    Length::{Percentage, Px},
     StyleBuilder,
   },
 };

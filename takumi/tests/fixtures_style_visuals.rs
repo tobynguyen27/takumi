@@ -2,7 +2,7 @@ use serde_json::{from_value, json};
 use smallvec::smallvec;
 use takumi::layout::{
   node::{ContainerNode, ImageNode, TextNode},
-  style::{LengthUnit::*, *},
+  style::{Length::*, *},
 };
 
 mod test_utils;

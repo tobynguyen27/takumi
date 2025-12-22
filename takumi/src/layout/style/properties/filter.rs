@@ -4,7 +4,7 @@ use smallvec::SmallVec;
 use taffy::Size;
 
 use crate::{
-  layout::style::{Angle, Color, FromCss, LengthUnit, ParseResult, PercentageNumber, TextShadow},
+  layout::style::{Angle, Color, FromCss, Length, ParseResult, PercentageNumber, TextShadow},
   rendering::{SizedShadow, Sizing, apply_fast_blur, blend_pixel},
 };
 
@@ -26,7 +26,7 @@ pub enum Filter {
   /// Opacity amount (0..1). Accepts number or percentage
   Opacity(PercentageNumber),
   /// Blur radius in pixels
-  Blur(LengthUnit),
+  Blur(Length),
   /// Drop shadow effect with offset, blur, and color (reuses TextShadow parsing)
   DropShadow(TextShadow),
 }
@@ -345,8 +345,8 @@ impl<'i> FromCss<'i> for Filter {
       "blur" => parser.parse_nested_block(|input| {
         // blur() can have an optional radius, defaults to 0
         let radius = input
-          .try_parse(LengthUnit::from_css)
-          .unwrap_or(LengthUnit::zero());
+          .try_parse(Length::from_css)
+          .unwrap_or(Length::zero());
         Ok(Filter::Blur(radius))
       }),
       "drop-shadow" => parser.parse_nested_block(|input| {
@@ -361,7 +361,7 @@ impl<'i> FromCss<'i> for Filter {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::layout::style::{Color, ColorInput, LengthUnit::Px};
+  use crate::layout::style::{Color, ColorInput, Length::Px};
 
   #[test]
   fn test_parse_blur_filter() {
@@ -370,10 +370,7 @@ mod tests {
 
   #[test]
   fn test_parse_blur_filter_zero() {
-    assert_eq!(
-      Filter::from_str("blur()"),
-      Ok(Filter::Blur(LengthUnit::zero()))
-    );
+    assert_eq!(Filter::from_str("blur()"), Ok(Filter::Blur(Length::zero())));
   }
 
   #[test]
@@ -396,7 +393,7 @@ mod tests {
       Ok(Filter::DropShadow(TextShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
         color: ColorInput::Value(Color([255, 0, 0, 255])),
       }))
     );
@@ -409,7 +406,7 @@ mod tests {
       Ok(Filter::DropShadow(TextShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
         color: ColorInput::CurrentColor,
       }))
     );

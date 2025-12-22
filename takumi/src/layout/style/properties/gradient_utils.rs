@@ -186,7 +186,7 @@ pub(crate) fn resolve_stops_along_axis(
 mod tests {
   use crate::{
     GlobalContext,
-    layout::style::{LengthUnit, StopPosition},
+    layout::style::{Length, StopPosition},
   };
 
   use super::*;
@@ -196,15 +196,15 @@ mod tests {
     let stops = vec![
       GradientStop::ColorHint {
         color: Color([255, 0, 0, 255]).into(),
-        hint: Some(StopPosition(LengthUnit::Px(10.0))),
+        hint: Some(StopPosition(Length::Px(10.0))),
       },
       GradientStop::ColorHint {
         color: Color([0, 255, 0, 255]).into(),
-        hint: Some(StopPosition(LengthUnit::Px(20.0))),
+        hint: Some(StopPosition(Length::Px(20.0))),
       },
       GradientStop::ColorHint {
         color: Color([0, 0, 255, 255]).into(),
-        hint: Some(StopPosition(LengthUnit::Percentage(30.0))),
+        hint: Some(StopPosition(Length::Percentage(30.0))),
       },
     ];
 
@@ -295,7 +295,7 @@ mod tests {
         color: Color([255, 0, 0, 255]).into(),
         hint: None,
       },
-      GradientStop::Hint(StopPosition(LengthUnit::Percentage(10.0))),
+      GradientStop::Hint(StopPosition(Length::Percentage(10.0))),
       GradientStop::ColorHint {
         color: Color([0, 0, 255, 255]).into(),
         hint: None,

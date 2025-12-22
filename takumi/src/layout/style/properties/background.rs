@@ -167,8 +167,8 @@ mod tests {
       Ok(Background {
         image: BackgroundImage::Url("../img/image.png".into()),
         size: BackgroundSize::Explicit {
-          width: LengthUnit::Percentage(80.0),
-          height: LengthUnit::Auto,
+          width: Length::Percentage(80.0),
+          height: Length::Auto,
         },
         repeat: BackgroundRepeat::no_repeat(),
         ..Default::default()

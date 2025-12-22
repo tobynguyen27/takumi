@@ -51,7 +51,7 @@ impl<'i> FromCss<'i> for GridRepeatTrack {
 
 #[cfg(test)]
 mod tests {
-  use crate::layout::style::GridLengthUnit;
+  use crate::layout::style::GridLength;
 
   use super::*;
   use cssparser::{Parser, ParserInput};
@@ -65,7 +65,7 @@ mod tests {
     assert_eq!(
       track,
       Ok(GridRepeatTrack {
-        size: GridTrackSize::Fixed(GridLengthUnit::Fr(1.0)),
+        size: GridTrackSize::Fixed(GridLength::Fr(1.0)),
         names: vec!["a".to_string(), "b".to_string(), "c".to_string()],
         end_names: None,
       })

@@ -2,7 +2,7 @@ use smallvec::smallvec;
 use std::f32::consts::PI;
 use takumi::layout::{
   node::{ContainerNode, NodeKind, TextNode},
-  style::{LengthUnit::*, *},
+  style::{Length::*, *},
 };
 
 mod test_utils;

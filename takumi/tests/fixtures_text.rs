@@ -3,7 +3,7 @@ use smallvec::smallvec;
 use swash::tag_from_bytes;
 use takumi::layout::{
   node::{ContainerNode, NodeKind, TextNode},
-  style::{LengthUnit::*, *},
+  style::{Length::*, *},
 };
 
 mod test_utils;

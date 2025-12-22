@@ -1,8 +1,6 @@
 use cssparser::{Parser, match_ignore_ascii_case};
 
-use crate::layout::style::{
-  AspectRatio, FromCss, LengthUnit, ParseResult, tw::TailwindPropertyParser,
-};
+use crate::layout::style::{AspectRatio, FromCss, Length, ParseResult, tw::TailwindPropertyParser};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 /// Represents a flex shorthand property for flex-grow, flex-shrink, and flex-basis.
@@ -12,7 +10,7 @@ pub struct Flex {
   /// The flex-shrink value.
   pub shrink: f32,
   /// The flex-basis value.
-  pub basis: LengthUnit,
+  pub basis: Length,
 }
 
 impl TailwindPropertyParser for Flex {
@@ -38,7 +36,7 @@ impl Flex {
     Self {
       grow: 1.0,
       shrink: 1.0,
-      basis: LengthUnit::Auto,
+      basis: Length::Auto,
     }
   }
 
@@ -47,7 +45,7 @@ impl Flex {
     Self {
       grow: 0.0,
       shrink: 0.0,
-      basis: LengthUnit::Auto,
+      basis: Length::Auto,
     }
   }
 
@@ -56,7 +54,7 @@ impl Flex {
     Self {
       grow: 0.0,
       shrink: 1.0,
-      basis: LengthUnit::Auto,
+      basis: Length::Auto,
     }
   }
 
@@ -65,7 +63,7 @@ impl Flex {
     Self {
       grow: number,
       shrink: 1.0,
-      basis: LengthUnit::zero(),
+      basis: Length::zero(),
     }
   }
 }
@@ -102,7 +100,7 @@ impl<'i> FromCss<'i> for Flex {
       }
 
       if basis.is_none()
-        && let Ok(val) = input.try_parse(LengthUnit::from_css)
+        && let Ok(val) = input.try_parse(Length::from_css)
       {
         basis = Some(val);
         continue;
@@ -114,7 +112,7 @@ impl<'i> FromCss<'i> for Flex {
     Ok(Flex {
       grow: grow.unwrap_or(1.0),
       shrink: shrink.unwrap_or(1.0),
-      basis: basis.unwrap_or(LengthUnit::zero()),
+      basis: basis.unwrap_or(Length::zero()),
     })
   }
 }
@@ -130,7 +128,7 @@ mod tests {
       Ok(Flex {
         grow: 1.0,
         shrink: 1.0,
-        basis: LengthUnit::Auto
+        basis: Length::Auto
       })
     );
   }
@@ -142,7 +140,7 @@ mod tests {
       Ok(Flex {
         grow: 2.0,
         shrink: 1.0,
-        basis: LengthUnit::zero()
+        basis: Length::zero()
       })
     );
   }
@@ -154,7 +152,7 @@ mod tests {
       Ok(Flex {
         grow: 1.0,
         shrink: 1.0,
-        basis: LengthUnit::Px(30.0)
+        basis: Length::Px(30.0)
       })
     );
   }
@@ -166,7 +164,7 @@ mod tests {
       Ok(Flex {
         grow: 2.0,
         shrink: 2.0,
-        basis: LengthUnit::zero()
+        basis: Length::zero()
       })
     );
   }

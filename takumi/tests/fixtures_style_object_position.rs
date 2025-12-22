@@ -1,7 +1,7 @@
 use takumi::layout::{
   node::ImageNode,
   style::{
-    BackgroundPosition, LengthUnit::Percentage, ObjectFit, PositionComponent, PositionKeywordX,
+    BackgroundPosition, Length::Percentage, ObjectFit, PositionComponent, PositionKeywordX,
     PositionKeywordY, SpacePair, StyleBuilder,
   },
 };

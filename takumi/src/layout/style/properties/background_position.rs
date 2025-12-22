@@ -3,7 +3,7 @@ use smallvec::SmallVec;
 use taffy::{Point, Size};
 
 use crate::{
-  layout::style::{FromCss, LengthUnit, ParseResult, SpacePair, tw::TailwindPropertyParser},
+  layout::style::{FromCss, Length, ParseResult, SpacePair, tw::TailwindPropertyParser},
   rendering::Sizing,
 };
 
@@ -37,10 +37,10 @@ pub enum PositionComponent {
   /// A vertical keyword.
   KeywordY(PositionKeywordY),
   /// An absolute length value.
-  Length(LengthUnit),
+  Length(Length),
 }
 
-impl From<PositionComponent> for LengthUnit {
+impl From<PositionComponent> for Length {
   fn from(component: PositionComponent) -> Self {
     match component {
       PositionComponent::KeywordX(keyword) => match keyword {
@@ -65,8 +65,8 @@ pub struct BackgroundPosition(pub SpacePair<PositionComponent>);
 impl BackgroundPosition {
   pub(crate) fn to_point(self, sizing: &Sizing, border_box: Size<f32>) -> Point<f32> {
     Point {
-      x: LengthUnit::from(self.0.x).to_px(sizing, border_box.width),
-      y: LengthUnit::from(self.0.y).to_px(sizing, border_box.height),
+      x: Length::from(self.0.x).to_px(sizing, border_box.width),
+      y: Length::from(self.0.y).to_px(sizing, border_box.height),
     }
   }
 }
@@ -145,7 +145,7 @@ impl<'i> FromCss<'i> for BackgroundPosition {
 
 impl<'i> FromCss<'i> for PositionComponent {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    if let Ok(v) = input.try_parse(LengthUnit::from_css) {
+    if let Ok(v) = input.try_parse(Length::from_css) {
       return Ok(PositionComponent::Length(v));
     }
 

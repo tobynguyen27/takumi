@@ -3,7 +3,7 @@ use taffy::{AbsoluteAxis, Point, Rect, Size};
 use zeno::{Fill, PathBuilder, PathData, Placement};
 
 use crate::{
-  layout::style::{Axis, Color, FromCss, LengthUnit, ParseResult, Sides, SpacePair},
+  layout::style::{Axis, Color, FromCss, Length, ParseResult, Sides, SpacePair},
   rendering::{BorderProperties, MaskMemory, RenderContext, Sizing},
 };
 
@@ -37,16 +37,16 @@ pub enum ShapeRadius {
   /// Uses the length from the center to the farthest side of the reference box
   FarthestSide,
   /// A specific length value
-  Length(LengthUnit),
+  Length(Length),
 }
 
 /// Represents a position for circle() and ellipse() functions.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ShapePosition(pub SpacePair<LengthUnit>);
+pub struct ShapePosition(pub SpacePair<Length>);
 
 impl Default for ShapePosition {
   fn default() -> Self {
-    Self(SpacePair::from_single(LengthUnit::Percentage(50.0)))
+    Self(SpacePair::from_single(Length::Percentage(50.0)))
   }
 }
 
@@ -57,9 +57,9 @@ impl Default for ShapePosition {
 #[derive(Debug, Clone, PartialEq)]
 pub struct InsetShape {
   /// Sides of the inset.
-  pub inset: Sides<LengthUnit>,
+  pub inset: Sides<Length>,
   /// Optional border radius for rounded corners
-  pub border_radius: Option<Sides<LengthUnit>>,
+  pub border_radius: Option<Sides<Length>>,
 }
 
 /// Represents a circle() shape.
@@ -83,7 +83,7 @@ pub struct EllipseShape {
 }
 
 /// Represents a single coordinate pair in a polygon.
-pub type PolygonCoordinate = SpacePair<LengthUnit>;
+pub type PolygonCoordinate = SpacePair<Length>;
 
 /// Represents a polygon() shape.
 #[derive(Debug, Clone, PartialEq)]
@@ -246,7 +246,7 @@ impl<'i> FromCss<'i> for ShapeRadius {
     let location = parser.current_source_location();
 
     // Try parsing as length first
-    if let Ok(length) = parser.try_parse(LengthUnit::from_css) {
+    if let Ok(length) = parser.try_parse(Length::from_css) {
       return Ok(ShapeRadius::Length(length));
     }
 
@@ -262,12 +262,12 @@ impl<'i> FromCss<'i> for ShapeRadius {
 
 impl<'i> FromCss<'i> for ShapePosition {
   fn from_css(parser: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let first = LengthUnit::from_css(parser)?;
+    let first = Length::from_css(parser)?;
 
     // If there's a second value, parse it; otherwise default to 50%
     let second = parser
-      .try_parse(LengthUnit::from_css)
-      .unwrap_or(LengthUnit::Percentage(50.0));
+      .try_parse(Length::from_css)
+      .unwrap_or(Length::Percentage(50.0));
 
     Ok(ShapePosition(SpacePair::from_pair(first, second)))
   }
@@ -369,7 +369,7 @@ impl<'i> FromCss<'i> for BasicShape {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use LengthUnit::*;
+  use Length::*;
 
   #[test]
   fn test_parse_inset_simple() {
@@ -435,8 +435,8 @@ mod tests {
         radius_x: ShapeRadius::Length(Px(50.0)),
         radius_y: ShapeRadius::Length(Px(50.0)),
         position: ShapePosition(SpacePair {
-          x: LengthUnit::Percentage(25.0),
-          y: LengthUnit::Percentage(75.0),
+          x: Length::Percentage(25.0),
+          y: Length::Percentage(75.0),
         }),
       }))
     );
@@ -450,8 +450,8 @@ mod tests {
         radius_x: ShapeRadius::ClosestSide,
         radius_y: ShapeRadius::ClosestSide,
         position: ShapePosition(SpacePair {
-          x: LengthUnit::Percentage(25.0),
-          y: LengthUnit::Percentage(75.0),
+          x: Length::Percentage(25.0),
+          y: Length::Percentage(75.0),
         }),
       }))
     );
@@ -477,8 +477,8 @@ mod tests {
         radius_x: ShapeRadius::Length(Px(50.0)),
         radius_y: ShapeRadius::Length(Px(30.0)),
         position: ShapePosition(SpacePair {
-          x: LengthUnit::Percentage(25.0),
-          y: LengthUnit::Percentage(75.0),
+          x: Length::Percentage(25.0),
+          y: Length::Percentage(75.0),
         }),
       }))
     );
@@ -492,9 +492,9 @@ mod tests {
         fill_rule: None,
         coordinates: coords,
       })) if coords.len() == 3 &&
-            coords[0] == SpacePair { x: LengthUnit::Percentage(50.0), y: LengthUnit::Percentage(0.0) } &&
-            coords[1] == SpacePair { x: LengthUnit::Percentage(0.0), y: LengthUnit::Percentage(100.0) } &&
-            coords[2] == SpacePair { x: LengthUnit::Percentage(100.0), y: LengthUnit::Percentage(100.0) }
+            coords[0] == SpacePair { x: Length::Percentage(50.0), y: Length::Percentage(0.0) } &&
+            coords[1] == SpacePair { x: Length::Percentage(0.0), y: Length::Percentage(100.0) } &&
+            coords[2] == SpacePair { x: Length::Percentage(100.0), y: Length::Percentage(100.0) }
     ));
   }
 
@@ -536,8 +536,8 @@ mod tests {
     assert_eq!(
       BasicShape::from_str("circle(50%)"),
       Ok(BasicShape::Ellipse(EllipseShape {
-        radius_x: ShapeRadius::Length(LengthUnit::Percentage(50.0)),
-        radius_y: ShapeRadius::Length(LengthUnit::Percentage(50.0)),
+        radius_x: ShapeRadius::Length(Length::Percentage(50.0)),
+        radius_y: ShapeRadius::Length(Length::Percentage(50.0)),
         position: ShapePosition::default(),
       }))
     );

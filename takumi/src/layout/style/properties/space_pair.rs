@@ -2,7 +2,7 @@ use cssparser::Parser;
 use taffy::{LengthPercentage, Point, Size};
 
 use crate::{
-  layout::style::{FromCss, LengthUnit, Overflow, ParseResult},
+  layout::style::{FromCss, Length, Overflow, ParseResult},
   rendering::Sizing,
 };
 
@@ -16,7 +16,7 @@ pub struct SpacePair<T: Copy, const Y_FIRST: bool = false> {
 }
 
 /// A pair of gap values which has the vertical value first.
-pub type Gap = SpacePair<LengthUnit<false>, true>;
+pub type Gap = SpacePair<Length<false>, true>;
 
 impl<T: Copy + Default, const Y_FIRST: bool> Default for SpacePair<T, Y_FIRST> {
   fn default() -> Self {
@@ -62,7 +62,7 @@ impl<T: Copy, const Y_FIRST: bool> SpacePair<T, Y_FIRST> {
   }
 }
 
-impl<const DEFAULT_AUTO: bool, const Y_FIRST: bool> SpacePair<LengthUnit<DEFAULT_AUTO>, Y_FIRST> {
+impl<const DEFAULT_AUTO: bool, const Y_FIRST: bool> SpacePair<Length<DEFAULT_AUTO>, Y_FIRST> {
   pub(crate) fn resolve_to_size(self, sizing: &Sizing) -> Size<LengthPercentage> {
     Size {
       width: self.x.resolve_to_length_percentage(sizing),
@@ -87,7 +87,7 @@ impl SpacePair<Overflow> {
 }
 
 /// A pair of values for horizontal and vertical border radii.
-pub type BorderRadiusPair = SpacePair<LengthUnit<false>>;
+pub type BorderRadiusPair = SpacePair<Length<false>>;
 
 impl BorderRadiusPair {
   pub(crate) fn to_px(self, sizing: &Sizing, border_box: Size<f32>) -> SpacePair<f32> {

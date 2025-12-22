@@ -3,7 +3,7 @@ use std::{borrow::Cow, fmt::Debug};
 use cssparser::{BasicParseErrorKind, ParseError, Parser};
 use smallvec::SmallVec;
 
-use crate::layout::style::{Color, ColorInput, FromCss, LengthUnit, ParseResult};
+use crate::layout::style::{Color, ColorInput, FromCss, Length, ParseResult};
 
 /// Represents a box shadow with all its properties.
 ///
@@ -17,13 +17,13 @@ pub struct BoxShadow {
   /// Whether the shadow is inset (inside the element) or outset (outside the element).
   pub inset: bool,
   /// Horizontal offset of the shadow.
-  pub offset_x: LengthUnit,
+  pub offset_x: Length,
   /// Vertical offset of the shadow.
-  pub offset_y: LengthUnit,
+  pub offset_y: Length,
   /// Blur radius of the shadow. Higher values create a more blurred shadow.
-  pub blur_radius: LengthUnit,
+  pub blur_radius: Length,
   /// Spread radius of the shadow. Positive values expand the shadow, negative values shrink it.
-  pub spread_radius: LengthUnit,
+  pub spread_radius: Length,
   /// Color of the shadow.
   pub color: ColorInput,
 }
@@ -88,18 +88,14 @@ impl<'i> FromCss<'i> for BoxShadow {
       if lengths.is_none() {
         let value = input.try_parse::<_, _, ParseError<Cow<'i, str>>>(|input| {
           // Parse the required horizontal and vertical offsets
-          let horizontal = LengthUnit::from_css(input)?;
-          let vertical = LengthUnit::from_css(input)?;
+          let horizontal = Length::from_css(input)?;
+          let vertical = Length::from_css(input)?;
 
           // Parse optional blur radius (defaults to 0)
-          let blur = input
-            .try_parse(LengthUnit::from_css)
-            .unwrap_or(LengthUnit::zero());
+          let blur = input.try_parse(Length::from_css).unwrap_or(Length::zero());
 
           // Parse optional spread radius (defaults to 0)
-          let spread = input
-            .try_parse(LengthUnit::from_css)
-            .unwrap_or(LengthUnit::zero());
+          let spread = input.try_parse(Length::from_css).unwrap_or(Length::zero());
 
           Ok((horizontal, vertical, blur, spread))
         });
@@ -143,7 +139,7 @@ mod tests {
   use super::*;
   use crate::layout::style::{
     Color,
-    LengthUnit::{self, Px},
+    Length::{self, Px},
   };
 
   #[test]
@@ -154,8 +150,8 @@ mod tests {
       Ok(BoxShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
-        spread_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
+        spread_radius: Length::zero(),
         color: ColorInput::Value(Color::transparent()),
         inset: false,
       })
@@ -171,7 +167,7 @@ mod tests {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
         blur_radius: Px(6.0),
-        spread_radius: LengthUnit::zero(),
+        spread_radius: Length::zero(),
         color: ColorInput::Value(Color::transparent()),
         inset: false,
       })
@@ -202,8 +198,8 @@ mod tests {
       Ok(BoxShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
-        spread_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
+        spread_radius: Length::zero(),
         color: ColorInput::Value(Color([255, 0, 0, 255])),
         inset: false,
       })
@@ -218,8 +214,8 @@ mod tests {
       Ok(BoxShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
-        spread_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
+        spread_radius: Length::zero(),
         color: ColorInput::Value(Color::transparent()),
         inset: true,
       })
@@ -234,8 +230,8 @@ mod tests {
       Ok(BoxShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
-        spread_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
+        spread_radius: Length::zero(),
         color: ColorInput::Value(Color([255, 0, 0, 255])),
         inset: false,
       })
@@ -250,8 +246,8 @@ mod tests {
       Ok(BoxShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
-        spread_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
+        spread_radius: Length::zero(),
         color: ColorInput::Value(Color([255, 0, 0, 255])),
         inset: true,
       })
@@ -266,8 +262,8 @@ mod tests {
       Ok(BoxShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
-        spread_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
+        spread_radius: Length::zero(),
         color: ColorInput::Value(Color([255, 0, 0, 255])),
         inset: false,
       })
@@ -282,8 +278,8 @@ mod tests {
       Ok(BoxShadow {
         offset_x: Px(2.0),
         offset_y: Px(4.0),
-        blur_radius: LengthUnit::zero(),
-        spread_radius: LengthUnit::zero(),
+        blur_radius: Length::zero(),
+        spread_radius: Length::zero(),
         color: ColorInput::Value(Color([255, 0, 0, 128])), // 0.5 * 255 = 128
         inset: false,
       })

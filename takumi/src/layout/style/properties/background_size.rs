@@ -1,7 +1,7 @@
 use cssparser::{Parser, Token, match_ignore_ascii_case};
 use smallvec::SmallVec;
 
-use crate::layout::style::{FromCss, LengthUnit, ParseResult, tw::TailwindPropertyParser};
+use crate::layout::style::{FromCss, Length, ParseResult, tw::TailwindPropertyParser};
 
 /// Parsed `background-size` for one layer.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -13,9 +13,9 @@ pub enum BackgroundSize {
   /// Explicit width and height values.
   Explicit {
     /// Width value for the background image.
-    width: LengthUnit,
+    width: Length,
     /// Height value for the background image.
-    height: LengthUnit,
+    height: Length,
   },
 }
 
@@ -32,18 +32,16 @@ impl TailwindPropertyParser for BackgroundSize {
 impl Default for BackgroundSize {
   fn default() -> Self {
     BackgroundSize::Explicit {
-      width: LengthUnit::Auto,
-      height: LengthUnit::Auto,
+      width: Length::Auto,
+      height: Length::Auto,
     }
   }
 }
 
 impl<'i> FromCss<'i> for BackgroundSize {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    if let Ok(width) = input.try_parse(LengthUnit::from_css) {
-      let height = input
-        .try_parse(LengthUnit::from_css)
-        .unwrap_or(LengthUnit::Auto);
+    if let Ok(width) = input.try_parse(Length::from_css) {
+      let height = input.try_parse(Length::from_css).unwrap_or(Length::Auto);
 
       return Ok(BackgroundSize::Explicit { width, height });
     }
@@ -99,8 +97,8 @@ mod tests {
     assert_eq!(
       BackgroundSize::from_str("50%\t"),
       Ok(BackgroundSize::Explicit {
-        width: LengthUnit::Percentage(50.0),
-        height: LengthUnit::Auto,
+        width: Length::Percentage(50.0),
+        height: Length::Auto,
       })
     );
   }
@@ -110,8 +108,8 @@ mod tests {
     assert_eq!(
       BackgroundSize::from_str("auto"),
       Ok(BackgroundSize::Explicit {
-        width: LengthUnit::Auto,
-        height: LengthUnit::Auto,
+        width: Length::Auto,
+        height: Length::Auto,
       })
     );
   }
@@ -121,8 +119,8 @@ mod tests {
     assert_eq!(
       BackgroundSize::from_str("100px auto"),
       Ok(BackgroundSize::Explicit {
-        width: LengthUnit::Px(100.0),
-        height: LengthUnit::Auto,
+        width: Length::Px(100.0),
+        height: Length::Auto,
       })
     );
   }
@@ -139,8 +137,8 @@ mod tests {
       Ok(smallvec![
         BackgroundSize::Cover,
         BackgroundSize::Explicit {
-          width: LengthUnit::Percentage(50.0),
-          height: LengthUnit::Auto,
+          width: Length::Percentage(50.0),
+          height: Length::Auto,
         }
       ])
     );
@@ -152,8 +150,8 @@ mod tests {
       BackgroundSizes::from_str("25%, contain"),
       Ok(smallvec![
         BackgroundSize::Explicit {
-          width: LengthUnit::Percentage(25.0),
-          height: LengthUnit::Auto,
+          width: Length::Percentage(25.0),
+          height: Length::Auto,
         },
         BackgroundSize::Contain
       ])

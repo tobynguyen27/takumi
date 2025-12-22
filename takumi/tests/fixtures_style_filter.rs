@@ -1,6 +1,6 @@
 use takumi::layout::{
   node::{ContainerNode, ImageNode, NodeKind, TextNode},
-  style::{LengthUnit::*, *},
+  style::{Length::*, *},
 };
 
 mod test_utils;

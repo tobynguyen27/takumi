@@ -1,6 +1,6 @@
 use takumi::layout::{
   node::{ContainerNode, NodeKind},
-  style::{LengthUnit::*, *},
+  style::{Length::*, *},
 };
 
 use smallvec::smallvec;

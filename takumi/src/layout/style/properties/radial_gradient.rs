@@ -4,7 +4,7 @@ use smallvec::SmallVec;
 use super::gradient_utils::{color_from_stops, resolve_stops_along_axis};
 use crate::{
   layout::style::{
-    BackgroundPosition, Color, FromCss, Gradient, GradientStop, LengthUnit, ParseResult,
+    BackgroundPosition, Color, FromCss, Gradient, GradientStop, Length, ParseResult,
     ResolvedGradientStop,
   },
   rendering::RenderContext,
@@ -105,8 +105,8 @@ impl RadialGradient {
 impl RadialGradientDrawContext {
   /// Builds a drawing context from a gradient and a target viewport.
   pub fn new(gradient: &RadialGradient, width: f32, height: f32, context: &RenderContext) -> Self {
-    let cx = LengthUnit::from(gradient.center.0.x).to_px(&context.sizing, width);
-    let cy = LengthUnit::from(gradient.center.0.y).to_px(&context.sizing, height);
+    let cx = Length::from(gradient.center.0.x).to_px(&context.sizing, width);
+    let cy = Length::from(gradient.center.0.y).to_px(&context.sizing, height);
 
     // Distances to sides and corners
     let dx_left = cx;
@@ -266,7 +266,7 @@ impl<'i> FromCss<'i> for RadialSize {
 mod tests {
   use super::*;
   use crate::layout::style::{
-    LengthUnit, PositionComponent, PositionKeywordX, PositionKeywordY, SpacePair, StopPosition,
+    Length, PositionComponent, PositionKeywordX, PositionKeywordY, SpacePair, StopPosition,
   };
   use crate::{GlobalContext, rendering::RenderContext};
 
@@ -358,8 +358,8 @@ mod tests {
         shape: RadialShape::Ellipse,
         size: RadialSize::FarthestCorner,
         center: BackgroundPosition(SpacePair::from_pair(
-          PositionComponent::Length(LengthUnit::Percentage(25.0)),
-          PositionComponent::Length(LengthUnit::Percentage(70.0)),
+          PositionComponent::Length(Length::Percentage(25.0)),
+          PositionComponent::Length(Length::Percentage(70.0)),
         )),
         stops: vec![
           GradientStop::ColorHint {
@@ -387,16 +387,16 @@ mod tests {
         shape: RadialShape::Circle,
         size: RadialSize::FarthestCorner,
         center: BackgroundPosition(SpacePair::from_single(PositionComponent::Length(
-          LengthUnit::Px(25.0),
+          Length::Px(25.0),
         ))),
         stops: vec![
           GradientStop::ColorHint {
             color: Color([211, 211, 211, 255]).into(),
-            hint: Some(StopPosition(LengthUnit::Percentage(2.0))),
+            hint: Some(StopPosition(Length::Percentage(2.0))),
           },
           GradientStop::ColorHint {
             color: Color::transparent().into(),
-            hint: Some(StopPosition(LengthUnit::Percentage(0.0))),
+            hint: Some(StopPosition(Length::Percentage(0.0))),
           },
         ],
       })
@@ -417,15 +417,15 @@ mod tests {
         stops: vec![
           GradientStop::ColorHint {
             color: Color([255, 0, 0, 255]).into(),
-            hint: Some(StopPosition(LengthUnit::Percentage(0.0))),
+            hint: Some(StopPosition(Length::Percentage(0.0))),
           },
           GradientStop::ColorHint {
             color: Color([0, 255, 0, 255]).into(),
-            hint: Some(StopPosition(LengthUnit::Percentage(50.0))),
+            hint: Some(StopPosition(Length::Percentage(50.0))),
           },
           GradientStop::ColorHint {
             color: Color([0, 0, 255, 255]).into(),
-            hint: Some(StopPosition(LengthUnit::Percentage(100.0))),
+            hint: Some(StopPosition(Length::Percentage(100.0))),
           },
         ],
       })
@@ -441,15 +441,15 @@ mod tests {
       stops: vec![
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Percentage(0.0))),
+          hint: Some(StopPosition(Length::Percentage(0.0))),
         },
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Percentage(50.0))),
+          hint: Some(StopPosition(Length::Percentage(50.0))),
         },
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Px(100.0))),
+          hint: Some(StopPosition(Length::Px(100.0))),
         },
       ],
     };
@@ -475,15 +475,15 @@ mod tests {
       stops: vec![
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Px(0.0))),
+          hint: Some(StopPosition(Length::Px(0.0))),
         },
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Px(0.0))),
+          hint: Some(StopPosition(Length::Px(0.0))),
         },
         GradientStop::ColorHint {
           color: Color::black().into(),
-          hint: Some(StopPosition(LengthUnit::Px(0.0))),
+          hint: Some(StopPosition(Length::Px(0.0))),
         },
       ],
     };
