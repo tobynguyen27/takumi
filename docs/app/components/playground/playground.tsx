@@ -1,6 +1,6 @@
 import { RotateCcwIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { PanelGroupProps } from "react-resizable-panels";
+import type { GroupProps } from "react-resizable-panels";
 import { useSearchParams } from "react-router";
 import type { z } from "zod/mini";
 import defaultTemplate from "~/playground/default?raw";
@@ -21,12 +21,12 @@ import { ComponentEditor } from "./component-editor";
 
 const mobileViewportWidth = 640;
 
-function useDirection() {
-  const [direction, setDirection] =
-    useState<PanelGroupProps["direction"]>("horizontal");
+function useOrientation() {
+  const [orientation, setOrientation] =
+    useState<GroupProps["orientation"]>("horizontal");
 
   const resize = () => {
-    setDirection(
+    setOrientation(
       window.innerWidth < mobileViewportWidth ? "vertical" : "horizontal",
     );
   };
@@ -39,7 +39,7 @@ function useDirection() {
     return () => removeEventListener("resize", resize);
   });
 
-  return direction;
+  return orientation;
 }
 
 export default function Playground() {
@@ -50,7 +50,7 @@ export default function Playground() {
   const currentRequestIdRef = useRef(0);
 
   const workerRef = useRef<Worker | undefined>(undefined);
-  const direction = useDirection();
+  const orientation = useOrientation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const codeQuery = searchParams.get("code");
@@ -132,7 +132,7 @@ export default function Playground() {
 
   return (
     <div className="h-[calc(100dvh-3.5rem)]">
-      <ResizablePanelGroup direction={direction}>
+      <ResizablePanelGroup orientation={orientation}>
         <ResizablePanel defaultSize={50}>
           {code && (
             <>

@@ -10,7 +10,7 @@
   "devDependencies": {
     "@types/react": "catalog:",
     "typescript": "catalog:",
-    "wrangler": "^4.54.0"
+    "wrangler": "^4.56.0"
   },
   "dependencies": {
     "@takumi-rs/helpers": "workspace:*",

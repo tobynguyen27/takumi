@@ -7,6 +7,7 @@ import {
 import lastModified from "fumadocs-mdx/plugins/last-modified";
 import { transformerTwoslash } from "fumadocs-twoslash";
 import { createFileSystemTypesCache } from "fumadocs-twoslash/cache-fs";
+import type { ShikiTransformer } from "shiki";
 import z from "zod";
 
 export const docs = defineDocs({
@@ -37,7 +38,7 @@ export default defineConfig({
             dir: ".react-router/twoslash",
             cwd: process.cwd(),
           }),
-        }),
+        }) as ShikiTransformer,
       ],
     },
   },
