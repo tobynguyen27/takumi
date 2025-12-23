@@ -107,20 +107,20 @@ fn draw_glyph_run(
 
 pub(crate) fn draw_inline_box<N: Node<N>>(
   inline_box: &PositionedInlineBox,
-  item: &InlineNodeItem<'_, '_, N>,
+  node: &InlineNodeItem<'_, '_, N>,
   canvas: &mut Canvas,
   transform: Affine,
 ) -> Result<()> {
-  if item.context.opacity == 0 {
+  if node.context.opacity == 0 {
     return Ok(());
   }
 
   let context = RenderContext {
     transform: transform * Affine::translation(inline_box.x, inline_box.y),
-    ..item.context.clone()
+    ..node.context.clone()
   };
 
-  item.node.draw_content(
+  node.node.draw_content(
     &context,
     canvas,
     Layout {

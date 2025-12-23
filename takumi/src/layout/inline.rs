@@ -15,9 +15,26 @@ use crate::{
   },
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum InlineLayoutStage {
+  Measure,
+  Draw,
+}
+
 pub(crate) struct InlineNodeItem<'c, 'g, N: Node<N>> {
   pub(crate) node: &'c N,
   pub(crate) context: &'c RenderContext<'g>,
+}
+
+pub(crate) enum ProcessedInlineSpan<'c, 'g, N: Node<N>> {
+  Text {
+    text: String,
+    style: SizedFontStyle<'c>,
+  },
+  Box {
+    node: InlineNodeItem<'c, 'g, N>,
+    inline_box: InlineBox,
+  },
 }
 
 pub(crate) enum InlineItem<'c, 'g, N: Node<N>> {
@@ -81,12 +98,11 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
   available_space: Size<AvailableSpace>,
   max_width: f32,
   max_height: Option<MaxHeight>,
-  style: &SizedFontStyle,
-  global: &'_ GlobalContext,
-  measure_only: bool,
-) -> (InlineLayout, String, Vec<InlineNodeItem<'c, 'g, N>>) {
-  let mut boxes = Vec::new();
-  let mut text_spans = Vec::new();
+  style: &'c SizedFontStyle,
+  global: &'g GlobalContext,
+  stage: InlineLayoutStage,
+) -> (InlineLayout, String, Vec<ProcessedInlineSpan<'c, 'g, N>>) {
+  let mut spans: Vec<ProcessedInlineSpan<'c, 'g, N>> = Vec::new();
 
   let (mut layout, text) = global.font_context.tree_builder(style.into(), |builder| {
     let mut idx = 0;
@@ -99,13 +115,18 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
           let collapsed =
             apply_white_space_collapse(&transformed, style.parent.white_space_collapse());
 
-          builder.push_style_span((&context.style.to_sized_font_style(context)).into());
+          let span_style = context.style.to_sized_font_style(context);
+
+          builder.push_style_span((&span_style).into());
           builder.push_text(&collapsed);
           builder.pop_style_span();
 
           index_pos += collapsed.len();
 
-          text_spans.push((idx, collapsed.into_owned()));
+          spans.push(ProcessedInlineSpan::Text {
+            text: collapsed.into_owned(),
+            style: span_style,
+          });
         }
         InlineItem::Node(item) => {
           let size = item.node.measure(
@@ -122,7 +143,10 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
             height: size.height,
           };
 
-          boxes.push(item);
+          spans.push(ProcessedInlineSpan::Box {
+            node: item,
+            inline_box: inline_box.clone(),
+          });
 
           builder.push_inline_box(inline_box);
 
@@ -134,8 +158,27 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
 
   break_lines(&mut layout, max_width, max_height);
 
-  if measure_only {
-    return (layout, text, boxes);
+  if stage == InlineLayoutStage::Measure {
+    return (layout, text, spans);
+  }
+
+  // Handle ellipsis when text overflows
+  if style.parent.should_handle_ellipsis() {
+    let is_overflowing = layout
+      .lines()
+      .last()
+      .is_some_and(|last_line| last_line.text_range().end < text.len());
+
+    if is_overflowing {
+      make_ellipsis_layout(
+        &mut layout,
+        &mut spans,
+        max_width,
+        max_height,
+        style,
+        global,
+      );
+    }
   }
 
   let text_wrap_style = style
@@ -158,7 +201,7 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
     Default::default(),
   );
 
-  (layout, text, boxes)
+  (layout, text, spans)
 }
 
 pub(crate) fn create_inline_constraint(
@@ -257,6 +300,75 @@ pub(crate) fn break_lines(
       }
 
       breaker.finish();
+    }
+  }
+}
+
+/// Truncates text and inline boxes in the layout and appends an ellipsis character.
+/// This function handles both text spans with their individual styles and inline boxes.
+fn make_ellipsis_layout<'c, 'g: 'c, N: Node<N> + 'c>(
+  layout: &mut InlineLayout,
+  spans: &mut Vec<ProcessedInlineSpan<'c, 'g, N>>,
+  max_width: f32,
+  max_height: Option<MaxHeight>,
+  root_style: &'c SizedFontStyle,
+  global: &GlobalContext,
+) {
+  loop {
+    let (mut new_layout, text) = global
+      .font_context
+      .tree_builder(root_style.into(), |builder| {
+        for span in spans.iter() {
+          match span {
+            ProcessedInlineSpan::Text { text, style } => {
+              builder.push_style_span(style.into());
+              builder.push_text(text);
+              builder.pop_style_span();
+            }
+            ProcessedInlineSpan::Box { inline_box, .. } => {
+              builder.push_inline_box(inline_box.clone());
+            }
+          }
+        }
+
+        builder.push_text(root_style.parent.ellipsis_char());
+      });
+
+    break_lines(&mut new_layout, max_width, max_height);
+
+    // If there are no spans, return the new layout
+    if spans.is_empty() {
+      *layout = new_layout;
+      return;
+    }
+
+    // Check if all content (including ellipsis) is visible
+    if let Some(last_line) = new_layout.lines().last()
+      && last_line.text_range().end == text.len()
+    {
+      *layout = new_layout;
+      return;
+    }
+
+    // Try to truncate from the last span
+    let Some(last_span) = spans.last_mut() else {
+      *layout = new_layout;
+      return;
+    };
+
+    match last_span {
+      ProcessedInlineSpan::Box { .. } => {
+        // Remove the last inline box if it overflows
+        spans.pop();
+      }
+      ProcessedInlineSpan::Text { text, .. } => {
+        if let Some((char_idx, _)) = text.char_indices().next_back() {
+          text.truncate(char_idx);
+        } else {
+          // Text span is empty, remove it
+          spans.pop();
+        }
+      }
     }
   }
 }

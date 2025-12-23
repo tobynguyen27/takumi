@@ -1,17 +1,16 @@
-use std::{borrow::Cow, mem::take};
+use std::mem::take;
 
-use parley::InlineBox;
 use taffy::{AvailableSpace, Layout, NodeId, Size, TaffyTree};
 
 use crate::{
-  GlobalContext, Result,
+  Result,
   layout::{
     inline::{
-      InlineContentKind, InlineItem, InlineLayout, InlineNodeItem, break_lines,
+      InlineContentKind, InlineItem, InlineLayoutStage, InlineNodeItem, ProcessedInlineSpan,
       create_inline_constraint, create_inline_layout, measure_inline_layout,
     },
     node::Node,
-    style::{Display, InheritedStyle, SizedFontStyle},
+    style::{Display, InheritedStyle},
   },
   rendering::{
     Canvas, MaxHeight, RenderContext, Sizing,
@@ -61,7 +60,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
       None => Some(MaxHeight::Absolute(layout.content_box_height())),
     };
 
-    let (inline_layout, _, boxes) = create_inline_layout(
+    let (inline_layout, _, spans) = create_inline_layout(
       self.inline_items_iter(),
       Size {
         width: AvailableSpace::Definite(layout.content_box_width()),
@@ -71,16 +70,21 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
       max_height,
       &font_style,
       self.context.global,
-      true,
+      InlineLayoutStage::Draw,
     );
+
+    let boxes = spans.iter().filter_map(|span| match span {
+      ProcessedInlineSpan::Box { node, .. } => Some(node),
+      _ => None,
+    });
 
     // Draw the inline layout without a callback first
     let positioned_inline_boxes =
       draw_inline_layout(&self.context, canvas, layout, inline_layout, &font_style)?;
 
     // Then handle the inline boxes directly by zipping the node refs with their positioned boxes
-    for (inline_box, positioned) in boxes.iter().zip(positioned_inline_boxes.iter()) {
-      draw_inline_box(positioned, inline_box, canvas, self.context.transform)?;
+    for (node, positioned) in boxes.zip(positioned_inline_boxes.iter()) {
+      draw_inline_box(positioned, node, canvas, self.context.transform)?;
     }
     Ok(())
   }
@@ -267,7 +271,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
         max_height,
         &font_style,
         self.context.global,
-        true,
+        InlineLayoutStage::Measure,
       );
 
       return measure_inline_layout(&mut layout, max_width, max_height);
@@ -290,70 +294,6 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     InlineItemIterator {
       stack: vec![(self, 0)], // (node, depth)
       current_node_content: None,
-    }
-  }
-}
-
-fn create_ellipsis_layout<N: Node<N>>(
-  global: &GlobalContext,
-  boxes: &mut Vec<(&N, &RenderContext, InlineBox)>,
-  text_spans: &mut Vec<(Cow<str>, SizedFontStyle)>,
-  root_font_style: &SizedFontStyle,
-  max_width: f32,
-  max_height: Option<MaxHeight>,
-) -> InlineLayout {
-  loop {
-    let (mut layout, text) = global
-      .font_context
-      .tree_builder(root_font_style.into(), |builder| {
-        for (text, style) in text_spans.iter() {
-          builder.push_style_span((style).into());
-          builder.push_text(text);
-          builder.pop_style_span();
-        }
-
-        for (_, _, inline_box) in boxes.iter() {
-          builder.push_inline_box(inline_box.clone());
-        }
-
-        builder.push_text(root_font_style.parent.ellipsis_char());
-      });
-
-    break_lines(&mut layout, max_width, max_height);
-
-    if text_spans.is_empty() && boxes.is_empty() {
-      return layout;
-    }
-
-    if let Some(last_line) = layout.lines().last()
-      && last_line.text_range().end == text.len()
-    {
-      return layout;
-    }
-
-    if boxes
-      .last()
-      .is_some_and(|(_, _, inline_box)| inline_box.index == text.len())
-    {
-      boxes.pop();
-      continue;
-    }
-
-    let Some((last_span, _)) = text_spans.last_mut() else {
-      return layout;
-    };
-
-    if let Some((char_idx, _)) = last_span.char_indices().last() {
-      match last_span {
-        Cow::Borrowed(span) => {
-          *last_span = Cow::Borrowed(&span[..char_idx]);
-        }
-        Cow::Owned(span) => {
-          span.truncate(char_idx);
-        }
-      }
-    } else {
-      text_spans.pop();
     }
   }
 }

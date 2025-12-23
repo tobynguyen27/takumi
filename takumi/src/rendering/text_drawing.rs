@@ -1,4 +1,4 @@
-use std::{borrow::Cow, convert::Into, ops::Range};
+use std::{borrow::Cow, convert::Into};
 
 use image::{
   ImageError, RgbaImage,
@@ -11,7 +11,7 @@ use taffy::{Layout, Point, Size};
 use zeno::{Command, Join, PathData, Stroke};
 
 use crate::{
-  GlobalContext, Result,
+  Result,
   layout::{
     inline::{InlineBrush, InlineLayout, break_lines},
     style::{
@@ -598,61 +598,6 @@ pub(crate) fn make_pretty_text(inline_layout: &mut InlineLayout, max_width: f32)
     break_lines(inline_layout, max_width, None);
     false
   }
-}
-
-/// Construct a new string with an ellipsis appended such that it fits within `max_width`.
-pub(crate) fn make_ellipsis_text<'s>(
-  render_text: &'s str,
-  text_range: Range<usize>,
-  font_style: &SizedFontStyle,
-  global: &GlobalContext,
-  max_width: f32,
-  ellipsis_char: &'s str,
-) -> Cow<'s, str> {
-  let mut truncated_text = &render_text[text_range.start..text_range.end];
-  let mut text_with_ellipsis = String::with_capacity(truncated_text.len() + ellipsis_char.len());
-
-  while !truncated_text.is_empty() {
-    // try to calculate the last line only with the truncated text and ellipsis character
-    text_with_ellipsis.clear();
-
-    text_with_ellipsis.push_str(truncated_text);
-    text_with_ellipsis.push_str(ellipsis_char);
-
-    let (mut inline_layout, _) = global
-      .font_context
-      .tree_builder(font_style.into(), |builder| {
-        builder.push_text(&text_with_ellipsis);
-      });
-
-    break_lines(&mut inline_layout, max_width, Some(MaxHeight::Lines(2)));
-
-    // if the text fits, return the text with ellipsis character
-    if inline_layout.lines().count() == 1 {
-      let before_last_line = &render_text[..text_range.start];
-
-      // build the text with ellipsis character
-      let mut text_with_ellipsis =
-        String::with_capacity(before_last_line.len() + truncated_text.len() + ellipsis_char.len());
-
-      text_with_ellipsis.push_str(before_last_line);
-      text_with_ellipsis.push_str(truncated_text);
-      text_with_ellipsis.push_str(ellipsis_char);
-
-      return Cow::Owned(text_with_ellipsis);
-    }
-
-    // try to shrink by one char
-    if let Some((char_idx, _)) = truncated_text.char_indices().last() {
-      truncated_text = &truncated_text[..char_idx];
-    } else {
-      // the text is empty, break out
-      break;
-    }
-  }
-
-  // if there's nothing left, returns nothing
-  Cow::Borrowed("")
 }
 
 #[cfg(test)]

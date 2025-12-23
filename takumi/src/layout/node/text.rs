@@ -8,8 +8,8 @@ use crate::{
   layout::{
     Viewport,
     inline::{
-      InlineContentKind, InlineItem, create_inline_constraint, create_inline_layout,
-      measure_inline_layout,
+      InlineContentKind, InlineItem, InlineLayoutStage, create_inline_constraint,
+      create_inline_layout, measure_inline_layout,
     },
     node::Node,
     style::{InheritedStyle, Style, tw::TailwindValues},
@@ -103,7 +103,7 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
       max_height,
       &font_style,
       context.global,
-      false,
+      InlineLayoutStage::Draw,
     );
 
     draw_inline_layout(context, canvas, layout, inline_layout, &font_style)?;
@@ -135,7 +135,7 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
       max_height,
       &font_style,
       context.global,
-      true,
+      InlineLayoutStage::Measure,
     );
 
     measure_inline_layout(&mut layout, max_width, max_height)
