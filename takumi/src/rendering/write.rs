@@ -309,11 +309,23 @@ pub fn write_image<T: Write>(
     ImageOutputFormat::WebP => {
       let encoder = WebPEncoder::new(destination);
 
+      let has_alpha = has_any_alpha_pixel(image);
+
+      let image_data = if has_alpha {
+        Cow::Borrowed(image.as_raw())
+      } else {
+        Cow::Owned(strip_alpha_channel(image))
+      };
+
       encoder.encode(
-        image.as_raw(),
+        &image_data,
         image.width(),
         image.height(),
-        image_webp::ColorType::Rgba8,
+        if has_alpha {
+          image_webp::ColorType::Rgba8
+        } else {
+          image_webp::ColorType::Rgb8
+        },
       )?;
     }
   }
