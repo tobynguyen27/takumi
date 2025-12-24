@@ -12,6 +12,7 @@ import { __iconNode as layoutTemplateIconNode } from "lucide-react/dist/esm/icon
 import { __iconNode as leafIconNode } from "lucide-react/dist/esm/icons/leaf";
 import { __iconNode as toyBrickIconNode } from "lucide-react/dist/esm/icons/toy-brick";
 import { __iconNode as typeIconNode } from "lucide-react/dist/esm/icons/type";
+import { __iconNode as windIconNode } from "lucide-react/dist/esm/icons/wind";
 import { __iconNode as zapIconNode } from "lucide-react/dist/esm/icons/zap";
 import { createElement } from "react";
 
@@ -36,6 +37,7 @@ const icons = {
   Layers: layersIconNode,
   Zap: zapIconNode,
   LayoutTemplate: layoutTemplateIconNode,
+  Wind: windIconNode,
 };
 
 export const source = loader({
