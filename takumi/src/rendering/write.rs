@@ -83,19 +83,17 @@ fn strip_alpha_channel(image: &RgbaImage) -> Vec<u8> {
 }
 
 fn has_any_alpha_pixel(image: &RgbaImage) -> bool {
-  let raw = image.as_raw();
-
   #[cfg(feature = "rayon")]
   {
-    raw
-      .par_chunks_exact(4)
+    image
+      .par_pixels()
       .with_min_len(1024)
-      .any(|chunk| chunk[3] != u8::MAX)
+      .any(|pixel| pixel[3] != u8::MAX)
   }
 
   #[cfg(not(feature = "rayon"))]
   {
-    raw.chunks_exact(4).any(|chunk| chunk[3] != u8::MAX)
+    image.pixels().any(|pixel| pixel[3] != u8::MAX)
   }
 }
 

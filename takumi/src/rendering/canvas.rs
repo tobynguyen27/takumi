@@ -524,18 +524,23 @@ fn draw_pixel(
 
 #[inline(always)]
 pub(crate) fn blend_pixel(bottom: &mut Rgba<u8>, top: Rgba<u8>) {
-  if top.0[3] == 0 {
-    return;
-  }
+  match (bottom.0[3], top.0[3]) {
+    // Source is fully transparent, no operation needed
+    (_, 0) => {}
+    // Destination is fully transparent, or source is fully opaque: direct assignment
+    (0, _) | (_, 255) => *bottom = top,
+    // Destination is fully opaque: use integer math to preserve alpha = 255
+    // This avoids floating point precision errors from image::Rgba::blend
+    (255, src_a) => {
+      let src_a = src_a as u16;
+      let inv_a = 255 - src_a;
 
-  if bottom.0[3] == 0 {
-    // If the destination pixel is fully transparent, we directly assign the new color.
-    // This is a performance optimization: blending with a fully transparent pixel is
-    // equivalent to assignment, so we skip the blend operation. This deviates from the
-    // standard alpha blending approach for efficiency.
-    *bottom = top;
-  } else {
-    bottom.blend(&top);
+      bottom.0[0] = fast_div_255(top.0[0] as u16 * src_a + bottom.0[0] as u16 * inv_a);
+      bottom.0[1] = fast_div_255(top.0[1] as u16 * src_a + bottom.0[1] as u16 * inv_a);
+      bottom.0[2] = fast_div_255(top.0[2] as u16 * src_a + bottom.0[2] as u16 * inv_a);
+    }
+    // Both have partial transparency: use standard blend
+    _ => bottom.blend(&top),
   }
 }
 
