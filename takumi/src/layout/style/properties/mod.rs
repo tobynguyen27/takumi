@@ -109,6 +109,45 @@ pub trait FromCss<'i> {
 
     Self::from_css(&mut parser)
   }
+
+  /// Returns a human-readable description of valid values for this type.
+  /// Used in error messages to help developers understand what values are accepted.
+  fn value_description() -> Option<Cow<'static, str>> {
+    None
+  }
+
+  /// Returns the list of valid enum values for this type.
+  /// Used for composable error descriptions in complex types like Sides<T> or SpacePair<T>.
+  fn enum_values() -> Option<&'static [&'static str]> {
+    None
+  }
+}
+
+/// Helper function to merge enum values into a human-readable format.
+/// - `["fill"]` → `"'fill'"`
+/// - `["fill", "contain"]` → `"'fill' or 'contain'"`
+/// - `["fill", "contain", "cover"]` → `"'fill', 'contain' or 'cover'"`
+#[doc(hidden)]
+pub fn merge_enum_values(values: &[&str]) -> String {
+  match values.len() {
+    0 => String::new(),
+    1 => format!("'{}'", values[0]),
+    2 => format!("'{}' or '{}'", values[0], values[1]),
+    _ => {
+      let all_but_last = values[..values.len() - 1]
+        .iter()
+        .map(|v| format!("'{}'", v))
+        .collect::<Vec<_>>()
+        .join(", ");
+      format!("{} or '{}'", all_but_last, values[values.len() - 1])
+    }
+  }
+}
+
+/// Helper function to create a human-readable error description from enum values.
+#[doc(hidden)]
+pub fn create_enum_error_description(values: &[&str]) -> String {
+  format!("a value of {}.", merge_enum_values(values))
 }
 
 /// Macro to implement From trait for Taffy enum conversions.
@@ -118,6 +157,74 @@ macro_rules! impl_from_taffy_enum {
       fn from(value: $from_ty) -> Self {
         match value {
           $(<$from_ty>::$variant => <$to_ty>::$variant,)*
+        }
+      }
+    }
+  };
+}
+
+/// Declares a CSS enum parser with automatic value list generation.
+macro_rules! declare_css_enum_parser {
+  (
+    $enum_type:ty,
+    $($css_value:expr => $variant:expr),* $(,)?
+  ) => {
+    impl<'i> FromCss<'i> for $enum_type {
+      fn enum_values() -> Option<&'static [&'static str]> {
+        Some(&[$($css_value),*])
+      }
+
+      fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+        use cssparser::Token;
+
+        let location = input.current_source_location();
+
+        let expected_msg = || {
+          Self::value_description()
+            .map(|d| d.into_owned())
+            .unwrap_or_else(|| {
+              format!(
+                "a value of {}.",
+                merge_enum_values(&[$($css_value),*])
+              )
+            })
+        };
+
+        let make_error = |value_str: &str| {
+          location.new_custom_error(Cow::Owned(format!(
+            "invalid value '{}', expected {}",
+            value_str,
+            expected_msg()
+          )))
+        };
+
+        match input.next() {
+          Ok(token) => {
+            match token {
+              Token::Ident(ident) => {
+                match_ignore_ascii_case! { ident.as_ref(),
+                  $($css_value => Ok($variant),)*
+                  _ => Err(make_error(&ident))
+                }
+              }
+              token => {
+                let token_display = match token {
+                  Token::Number { value, .. } => format!("{}", value),
+                  Token::Dimension { value, unit, .. } => format!("{}{}", value, unit),
+                  Token::Percentage { unit_value, .. } => format!("{}%", unit_value * 100.0),
+                  Token::Hash(hash) | Token::IDHash(hash) => format!("#{}", hash),
+                  _ => format!("{:?}", token),
+                };
+                Err(make_error(&token_display))
+              }
+            }
+          }
+          Err(_) => {
+            Err(location.new_custom_error(Cow::Owned(format!(
+              "expected {}",
+              expected_msg()
+            ))))
+          }
         }
       }
     }
@@ -142,21 +249,14 @@ pub enum ObjectFit {
   None,
 }
 
-impl<'i> FromCss<'i> for ObjectFit {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "fill" => Ok(ObjectFit::Fill),
-      "contain" => Ok(ObjectFit::Contain),
-      "cover" => Ok(ObjectFit::Cover),
-      "scale-down" => Ok(ObjectFit::ScaleDown),
-      "none" => Ok(ObjectFit::None),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  ObjectFit,
+  "fill" => ObjectFit::Fill,
+  "contain" => ObjectFit::Contain,
+  "cover" => ObjectFit::Cover,
+  "scale-down" => ObjectFit::ScaleDown,
+  "none" => ObjectFit::None
+);
 
 impl TailwindPropertyParser for ObjectFit {
   fn parse_tw(token: &str) -> Option<Self> {
@@ -180,21 +280,14 @@ pub enum BackgroundClip {
   BorderArea,
 }
 
-impl<'i> FromCss<'i> for BackgroundClip {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "border-box" => Ok(BackgroundClip::BorderBox),
-      "padding-box" => Ok(BackgroundClip::PaddingBox),
-      "content-box" => Ok(BackgroundClip::ContentBox),
-      "text" => Ok(BackgroundClip::Text),
-      "border-area" => Ok(BackgroundClip::BorderArea),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  BackgroundClip,
+  "border-box" => BackgroundClip::BorderBox,
+  "padding-box" => BackgroundClip::PaddingBox,
+  "content-box" => BackgroundClip::ContentBox,
+  "text" => BackgroundClip::Text,
+  "border-area" => BackgroundClip::BorderArea
+);
 
 impl TailwindPropertyParser for BackgroundClip {
   fn parse_tw(token: &str) -> Option<Self> {
@@ -231,6 +324,12 @@ impl<'i> FromCss<'i> for BorderRadius {
       SpacePair::from_pair(widths.0[3], heights.0[3]),
     ])))
   }
+
+  fn value_description() -> Option<Cow<'static, str>> {
+    Some(Cow::Borrowed(
+      "1 to 4 length values for width, optionally followed by '/' and 1 to 4 length values for height",
+    ))
+  }
 }
 
 /// Defines how the width and height of an element are calculated.
@@ -245,18 +344,11 @@ pub enum BoxSizing {
   BorderBox,
 }
 
-impl<'i> FromCss<'i> for BoxSizing {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "content-box" => Ok(BoxSizing::ContentBox),
-      "border-box" => Ok(BoxSizing::BorderBox),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  BoxSizing,
+  "content-box" => BoxSizing::ContentBox,
+  "border-box" => BoxSizing::BorderBox
+);
 
 impl_from_taffy_enum!(BoxSizing, taffy::BoxSizing, ContentBox, BorderBox);
 
@@ -280,22 +372,15 @@ pub enum TextAlign {
   End,
 }
 
-impl<'i> FromCss<'i> for TextAlign {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "left" => Ok(TextAlign::Left),
-      "right" => Ok(TextAlign::Right),
-      "center" => Ok(TextAlign::Center),
-      "justify" => Ok(TextAlign::Justify),
-      "start" => Ok(TextAlign::Start),
-      "end" => Ok(TextAlign::End),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  TextAlign,
+  "left" => TextAlign::Left,
+  "right" => TextAlign::Right,
+  "center" => TextAlign::Center,
+  "justify" => TextAlign::Justify,
+  "start" => TextAlign::Start,
+  "end" => TextAlign::End
+);
 
 impl TailwindPropertyParser for TextAlign {
   fn parse_tw(token: &str) -> Option<Self> {
@@ -321,18 +406,11 @@ pub enum Position {
   Absolute,
 }
 
-impl<'i> FromCss<'i> for Position {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "relative" => Ok(Position::Relative),
-      "absolute" => Ok(Position::Absolute),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  Position,
+  "relative" => Position::Relative,
+  "absolute" => Position::Absolute
+);
 
 impl_from_taffy_enum!(Position, taffy::Position, Relative, Absolute);
 
@@ -352,20 +430,13 @@ pub enum FlexDirection {
   ColumnReverse,
 }
 
-impl<'i> FromCss<'i> for FlexDirection {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "row" => Ok(FlexDirection::Row),
-      "column" => Ok(FlexDirection::Column),
-      "row-reverse" => Ok(FlexDirection::RowReverse),
-      "column-reverse" => Ok(FlexDirection::ColumnReverse),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  FlexDirection,
+  "row" => FlexDirection::Row,
+  "column" => FlexDirection::Column,
+  "row-reverse" => FlexDirection::RowReverse,
+  "column-reverse" => FlexDirection::ColumnReverse
+);
 
 impl_from_taffy_enum!(
   FlexDirection,
@@ -412,26 +483,19 @@ pub enum JustifyContent {
   SpaceAround,
 }
 
-impl<'i> FromCss<'i> for JustifyContent {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "normal" => Ok(JustifyContent::Normal),
-      "start" => Ok(JustifyContent::Start),
-      "end" => Ok(JustifyContent::End),
-      "flex-start" => Ok(JustifyContent::FlexStart),
-      "flex-end" => Ok(JustifyContent::FlexEnd),
-      "center" => Ok(JustifyContent::Center),
-      "stretch" => Ok(JustifyContent::Stretch),
-      "space-between" => Ok(JustifyContent::SpaceBetween),
-      "space-around" => Ok(JustifyContent::SpaceAround),
-      "space-evenly" => Ok(JustifyContent::SpaceEvenly),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  JustifyContent,
+  "normal" => JustifyContent::Normal,
+  "start" => JustifyContent::Start,
+  "end" => JustifyContent::End,
+  "flex-start" => JustifyContent::FlexStart,
+  "flex-end" => JustifyContent::FlexEnd,
+  "center" => JustifyContent::Center,
+  "stretch" => JustifyContent::Stretch,
+  "space-between" => JustifyContent::SpaceBetween,
+  "space-around" => JustifyContent::SpaceAround,
+  "space-evenly" => JustifyContent::SpaceEvenly
+);
 
 impl TailwindPropertyParser for JustifyContent {
   fn parse_tw(token: &str) -> Option<Self> {
@@ -477,21 +541,14 @@ pub enum Display {
   Block,
 }
 
-impl<'i> FromCss<'i> for Display {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "none" => Ok(Display::None),
-      "flex" => Ok(Display::Flex),
-      "grid" => Ok(Display::Grid),
-      "inline" => Ok(Display::Inline),
-      "block" => Ok(Display::Block),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  Display,
+  "none" => Display::None,
+  "flex" => Display::Flex,
+  "grid" => Display::Grid,
+  "inline" => Display::Inline,
+  "block" => Display::Block
+);
 
 impl Display {
   /// Returns true if the display is inline.
@@ -555,24 +612,17 @@ pub enum AlignItems {
   Stretch,
 }
 
-impl<'i> FromCss<'i> for AlignItems {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! {token,
-      "normal" => Ok(AlignItems::Normal),
-      "start" => Ok(AlignItems::Start),
-      "end" => Ok(AlignItems::End),
-      "flex-start" => Ok(AlignItems::FlexStart),
-      "flex-end" => Ok(AlignItems::FlexEnd),
-      "center" => Ok(AlignItems::Center),
-      "baseline" => Ok(AlignItems::Baseline),
-      "stretch" => Ok(AlignItems::Stretch),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  AlignItems,
+  "normal" => AlignItems::Normal,
+  "start" => AlignItems::Start,
+  "end" => AlignItems::End,
+  "flex-start" => AlignItems::FlexStart,
+  "flex-end" => AlignItems::FlexEnd,
+  "center" => AlignItems::Center,
+  "baseline" => AlignItems::Baseline,
+  "stretch" => AlignItems::Stretch
+);
 
 impl TailwindPropertyParser for AlignItems {
   fn parse_tw(token: &str) -> Option<Self> {
@@ -609,19 +659,12 @@ pub enum FlexWrap {
   WrapReverse,
 }
 
-impl<'i> FromCss<'i> for FlexWrap {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "nowrap" => Ok(FlexWrap::NoWrap),
-      "wrap" => Ok(FlexWrap::Wrap),
-      "wrap-reverse" => Ok(FlexWrap::WrapReverse),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  FlexWrap,
+  "nowrap" => FlexWrap::NoWrap,
+  "wrap" => FlexWrap::Wrap,
+  "wrap-reverse" => FlexWrap::WrapReverse
+);
 
 impl_from_taffy_enum!(FlexWrap, taffy::FlexWrap, NoWrap, Wrap, WrapReverse);
 
@@ -639,20 +682,13 @@ pub enum TextTransform {
   Capitalize,
 }
 
-impl<'i> FromCss<'i> for TextTransform {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "none" => Ok(TextTransform::None),
-      "uppercase" => Ok(TextTransform::Uppercase),
-      "lowercase" => Ok(TextTransform::Lowercase),
-      "capitalize" => Ok(TextTransform::Capitalize),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  TextTransform,
+  "none" => TextTransform::None,
+  "uppercase" => TextTransform::Uppercase,
+  "lowercase" => TextTransform::Lowercase,
+  "capitalize" => TextTransform::Capitalize
+);
 
 /// Represents a font family for text rendering.
 /// Multi value fallback is supported.
@@ -749,19 +785,12 @@ pub enum ImageScalingAlgorithm {
   Pixelated,
 }
 
-impl<'i> FromCss<'i> for ImageScalingAlgorithm {
-  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let location = input.current_source_location();
-    let token = input.expect_ident()?;
-
-    match_ignore_ascii_case! { token,
-      "auto" => Ok(ImageScalingAlgorithm::Auto),
-      "smooth" => Ok(ImageScalingAlgorithm::Smooth),
-      "pixelated" => Ok(ImageScalingAlgorithm::Pixelated),
-      _ => Err(location.new_unexpected_token_error(Token::Ident(token.clone()))),
-    }
-  }
-}
+declare_css_enum_parser!(
+  ImageScalingAlgorithm,
+  "auto" => ImageScalingAlgorithm::Auto,
+  "smooth" => ImageScalingAlgorithm::Smooth,
+  "pixelated" => ImageScalingAlgorithm::Pixelated
+);
 
 impl From<ImageScalingAlgorithm> for FilterType {
   fn from(algorithm: ImageScalingAlgorithm) -> Self {
