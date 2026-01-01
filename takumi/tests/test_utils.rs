@@ -2,7 +2,7 @@ use std::{
   fs::File,
   io::Read,
   path::{Path, PathBuf},
-  sync::Arc,
+  sync::{Arc, LazyLock},
 };
 
 use image::load_from_memory;
@@ -102,17 +102,18 @@ pub fn create_test_viewport() -> Viewport {
   (1200, 630).into()
 }
 
+static CONTEXT: LazyLock<GlobalContext> = LazyLock::new(create_test_context);
+
 /// Helper function to run style width tests
 #[allow(dead_code)]
 pub fn run_style_width_test(node: NodeKind, fixture_name: &str) {
-  let context = create_test_context();
   let viewport = create_test_viewport();
 
   let image = render(
     RenderOptionsBuilder::default()
       .viewport(viewport)
       .node(node)
-      .global(&context)
+      .global(&CONTEXT)
       .build()
       .unwrap(),
   )
@@ -136,7 +137,6 @@ pub fn run_webp_animation_test(
 ) {
   assert_ne!(nodes.len(), 0);
 
-  let context = create_test_context();
   let viewport = create_test_viewport();
 
   let frames: Vec<_> = nodes
@@ -147,7 +147,7 @@ pub fn run_webp_animation_test(
           RenderOptionsBuilder::default()
             .viewport(viewport)
             .node(node)
-            .global(&context)
+            .global(&CONTEXT)
             .build()
             .unwrap(),
         )
@@ -170,7 +170,6 @@ pub fn run_png_animation_test(
 ) {
   assert_ne!(nodes.len(), 0);
 
-  let context = create_test_context();
   let viewport = create_test_viewport();
 
   let frames: Vec<_> = nodes
@@ -181,7 +180,7 @@ pub fn run_png_animation_test(
           RenderOptionsBuilder::default()
             .viewport(viewport)
             .node(node)
-            .global(&context)
+            .global(&CONTEXT)
             .build()
             .unwrap(),
         )
