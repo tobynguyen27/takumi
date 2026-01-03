@@ -53,31 +53,34 @@ fn create_filter_card(filter: &str, image_size_px: f32, label_font_size_px: f32)
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ImageNode {
-        preset: None,
-        tw: None,
-        src: "assets/images/yeecord.png".into(),
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(image_size_px))
-            .height(Px(image_size_px))
-            .filter(Filters::from_str(filter).unwrap())
-            .build()
-            .unwrap(),
-        ),
-        width: None,
-        height: None,
-      }
+    children: Some(
+      [
+        ImageNode {
+          preset: None,
+          tw: None,
+          src: "assets/images/yeecord.png".into(),
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(image_size_px))
+              .height(Px(image_size_px))
+              .filter(Filters::from_str(filter).unwrap())
+              .build()
+              .unwrap(),
+          ),
+          width: None,
+          height: None,
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: None,
+          text: filter.to_string(),
+        }
+        .into(),
+      ]
       .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: None,
-        text: filter.to_string(),
-      }
-      .into(),
-    ]),
+    ),
   }
   .into()
 }

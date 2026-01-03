@@ -105,8 +105,8 @@ fn test_style_border_width_with_radius() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -121,8 +121,9 @@ fn test_style_border_width_with_radius() {
         ),
         children: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_border_width_with_radius.png");
@@ -141,8 +142,8 @@ fn test_style_box_shadow() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -163,8 +164,9 @@ fn test_style_box_shadow() {
         ),
         children: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_box_shadow.png");
@@ -183,8 +185,8 @@ fn test_style_box_shadow_inset() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -206,8 +208,9 @@ fn test_style_box_shadow_inset() {
         ),
         children: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_box_shadow_inset.png");
@@ -226,8 +229,8 @@ fn test_style_position() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -242,8 +245,9 @@ fn test_style_position() {
         ),
         children: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_position.png");
@@ -286,8 +290,8 @@ fn test_style_border_radius_width_offset() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -301,8 +305,8 @@ fn test_style_border_radius_width_offset() {
             .build()
             .unwrap(),
         ),
-        children: Some(vec![
-          TextNode {
+        children: Some(
+          [TextNode {
             preset: None,
             tw: None,
             text: "The newest blog post".to_string(),
@@ -317,11 +321,13 @@ fn test_style_border_radius_width_offset() {
                 .unwrap(),
             ),
           }
+          .into()]
           .into(),
-        ]),
+        ),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_border_radius_width_offset.png");
@@ -342,8 +348,8 @@ fn test_style_border_radius_circle_avatar() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -358,8 +364,8 @@ fn test_style_border_radius_circle_avatar() {
             .build()
             .unwrap(),
         ),
-        children: Some(vec![
-          ImageNode {
+        children: Some(
+          [ImageNode {
             preset: None,
             tw: None,
             style: Some(
@@ -376,11 +382,13 @@ fn test_style_border_radius_circle_avatar() {
             width: None,
             height: None,
           }
+          .into()]
           .into(),
-        ]),
+        ),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_border_radius_circle_avatar.png");
@@ -414,7 +422,7 @@ fn test_style_border_width_on_image_node() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![from_value(avatar).unwrap()]),
+    children: Some([from_value(avatar).unwrap()].into()),
   };
 
   run_style_width_test(container.into(), "style_border_width_on_image_node.png");

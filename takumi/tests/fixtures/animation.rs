@@ -38,8 +38,8 @@ fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
             .build()
             .unwrap(),
         ),
-        children: Some(vec![
-          ContainerNode {
+        children: Some(
+          [ContainerNode {
             preset: None,
             tw: None,
             style: Some(
@@ -48,8 +48,8 @@ fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
                 .build()
                 .unwrap(),
             ),
-            children: Some(vec![
-              TextNode {
+            children: Some(
+              [TextNode {
                 preset: None,
                 tw: None,
                 style: Some(
@@ -63,11 +63,13 @@ fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
                 ),
                 text: "Takumi Renders Animated image 🔥".to_string(),
               }
+              .into()]
               .into(),
-            ]),
+            ),
           }
+          .into()]
           .into(),
-        ]),
+        ),
       }
       .into();
 

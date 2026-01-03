@@ -24,7 +24,7 @@ pub struct ContainerNode<Nodes: Node<Nodes>> {
   /// The styling properties for this container
   pub style: Option<Style>,
   /// The child nodes contained within this container
-  pub children: Option<Vec<Nodes>>,
+  pub children: Option<Box<[Nodes]>>,
   /// The tailwind properties for this container node
   pub tw: Option<TailwindValues>,
 }
@@ -60,7 +60,7 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for ContainerNode<Nodes> {
     style.inherit(parent_style)
   }
 
-  fn take_children(&mut self) -> Option<Vec<Nodes>> {
+  fn take_children(&mut self) -> Option<Box<[Nodes]>> {
     self.children.take()
   }
 

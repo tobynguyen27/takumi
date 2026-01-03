@@ -21,7 +21,7 @@ use crate::{
 pub(crate) struct NodeTree<'g, N: Node<N>> {
   pub(crate) context: RenderContext<'g>,
   pub(crate) node: Option<N>,
-  pub(crate) children: Option<Vec<NodeTree<'g, N>>>,
+  pub(crate) children: Option<Box<[NodeTree<'g, N>]>>,
 }
 
 impl<'g, N: Node<N>> NodeTree<'g, N> {
@@ -140,10 +140,11 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     };
 
     let children = node.take_children().map(|children| {
-      children
-        .into_iter()
-        .map(|child| Self::from_node_impl(&context, child))
-        .collect::<Vec<_>>()
+      Box::from_iter(
+        children
+          .into_iter()
+          .map(|child| Self::from_node_impl(&context, child)),
+      )
     });
 
     let Some(mut children) = children else {
@@ -215,7 +216,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     Self {
       context,
       node: Some(node),
-      children: Some(final_children),
+      children: Some(final_children.into_boxed_slice()),
     }
   }
 
@@ -320,7 +321,7 @@ fn flush_inline_group<'g, N: Node<N>>(
         fetched_resources: Default::default(), // anonymous box has nothing to render, so provide an empty map.
         ..*context
       },
-      children: Some(take(inline_group)),
+      children: Some(take(inline_group).into_boxed_slice()),
       node: None,
     });
   }

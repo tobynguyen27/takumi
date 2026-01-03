@@ -27,44 +27,47 @@ fn clip_path_text_stroke_filled() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .position(Position::Absolute)
-            .top(Some(Percentage(50.0)))
-            .left(Some(Percentage(50.0)))
-            .translate(Some(SpacePair::from_single(Percentage(-50.0))))
-            .color(ColorInput::Value(Color::white())) // White fill
-            .clip_path(Some(BasicShape::from_str("inset(0 0 50% 0)").unwrap()))
-            .build()
-            .unwrap(),
-        ),
-        text: text.to_string(),
-      }
+    children: Some(
+      [
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .position(Position::Absolute)
+              .top(Some(Percentage(50.0)))
+              .left(Some(Percentage(50.0)))
+              .translate(Some(SpacePair::from_single(Percentage(-50.0))))
+              .color(ColorInput::Value(Color::white())) // White fill
+              .clip_path(Some(BasicShape::from_str("inset(0 0 50% 0)").unwrap()))
+              .build()
+              .unwrap(),
+          ),
+          text: text.to_string(),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .position(Position::Absolute)
+              .top(Some(Percentage(50.0)))
+              .left(Some(Percentage(50.0)))
+              .translate(Some(SpacePair::from_single(Percentage(-50.0))))
+              .color(ColorInput::Value(Color::transparent())) // Transparent fill
+              .webkit_text_stroke_width(Some(Px(2.0)))
+              .webkit_text_stroke_color(Some(ColorInput::Value(Color([128, 128, 128, 255])))) // Semi-transparent white stroke
+              .clip_path(Some(BasicShape::from_str("inset(50% 0 0 0)").unwrap()))
+              .build()
+              .unwrap(),
+          ),
+          text: text.to_string(),
+        }
+        .into(),
+      ]
       .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .position(Position::Absolute)
-            .top(Some(Percentage(50.0)))
-            .left(Some(Percentage(50.0)))
-            .translate(Some(SpacePair::from_single(Percentage(-50.0))))
-            .color(ColorInput::Value(Color::transparent())) // Transparent fill
-            .webkit_text_stroke_width(Some(Px(2.0)))
-            .webkit_text_stroke_color(Some(ColorInput::Value(Color([128, 128, 128, 255])))) // Semi-transparent white stroke
-            .clip_path(Some(BasicShape::from_str("inset(50% 0 0 0)").unwrap()))
-            .build()
-            .unwrap(),
-        ),
-        text: text.to_string(),
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "clip_path_text_stroke_filled.png");
@@ -88,26 +91,29 @@ fn clip_path_triangle_vercel() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      // Triangle with clip-path
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(128.0))
-            .height(Px(128.0))
-            .background_color(ColorInput::Value(Color::black())) // Black triangle
-            .clip_path(Some(
-              BasicShape::from_str("polygon(0% 100%, 100% 100%, 50% 12.25%)").unwrap(),
-            ))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        // Triangle with clip-path
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(128.0))
+              .height(Px(128.0))
+              .background_color(ColorInput::Value(Color::black())) // Black triangle
+              .clip_path(Some(
+                BasicShape::from_str("polygon(0% 100%, 100% 100%, 50% 12.25%)").unwrap(),
+              ))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "clip_path_triangle_vercel.png");
@@ -131,31 +137,34 @@ fn clip_path_triangle_gradient() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      // Triangle with gradient background and clip-path
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(300.0))
-            .height(Px(300.0))
-            .background_image(Some(
-              BackgroundImages::from_str(
-                "linear-gradient(45deg, #ff3b30, #ff9500, #ffcc00, #34c759, #007aff, #5856d6)",
-              )
+    children: Some(
+      [
+        // Triangle with gradient background and clip-path
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(300.0))
+              .height(Px(300.0))
+              .background_image(Some(
+                BackgroundImages::from_str(
+                  "linear-gradient(45deg, #ff3b30, #ff9500, #ffcc00, #34c759, #007aff, #5856d6)",
+                )
+                .unwrap(),
+              ))
+              .clip_path(Some(
+                BasicShape::from_str("polygon(0% 100%, 100% 100%, 50% 12.25%)").unwrap(),
+              ))
+              .build()
               .unwrap(),
-            ))
-            .clip_path(Some(
-              BasicShape::from_str("polygon(0% 100%, 100% 100%, 50% 12.25%)").unwrap(),
-            ))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "clip_path_triangle_gradient.png");
@@ -179,24 +188,27 @@ fn clip_path_circle() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      // Circle with clip-path
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(200.0))
-            .height(Px(200.0))
-            .background_color(ColorInput::Value(Color([255, 0, 100, 255]))) // Pink background
-            .clip_path(Some(BasicShape::from_str("circle(50%)").unwrap()))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        // Circle with clip-path
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(200.0))
+              .height(Px(200.0))
+              .background_color(ColorInput::Value(Color([255, 0, 100, 255]))) // Pink background
+              .clip_path(Some(BasicShape::from_str("circle(50%)").unwrap()))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "clip_path_circle.png");
@@ -220,26 +232,29 @@ fn clip_path_inset_rounded() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      // Inset with border radius and clip-path
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(200.0))
-            .height(Px(200.0))
-            .background_color(ColorInput::Value(Color([100, 200, 255, 255]))) // Light blue background
-            .clip_path(Some(
-              BasicShape::from_str("inset(50px 0 round 20px)").unwrap(),
-            ))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        // Inset with border radius and clip-path
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(200.0))
+              .height(Px(200.0))
+              .background_color(ColorInput::Value(Color([100, 200, 255, 255]))) // Light blue background
+              .clip_path(Some(
+                BasicShape::from_str("inset(50px 0 round 20px)").unwrap(),
+              ))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "clip_path_inset_rounded.png");

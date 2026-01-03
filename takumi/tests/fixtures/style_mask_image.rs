@@ -124,8 +124,8 @@ fn test_style_mask_image_on_image_node() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -136,26 +136,30 @@ fn test_style_mask_image_on_image_node() {
             .build()
             .unwrap(),
         ),
-        children: Some(vec![
-          ImageNode {
-            preset: None,
-            tw: None,
-            style: Some(
-              StyleBuilder::default()
-                .width(Percentage(100.0))
-                .height(Percentage(100.0))
-                .build()
-                .unwrap(),
-            ),
-            src: "assets/images/yeecord.png".into(),
-            width: None,
-            height: None,
-          }
+        children: Some(
+          vec![
+            ImageNode {
+              preset: None,
+              tw: None,
+              style: Some(
+                StyleBuilder::default()
+                  .width(Percentage(100.0))
+                  .height(Percentage(100.0))
+                  .build()
+                  .unwrap(),
+              ),
+              src: "assets/images/yeecord.png".into(),
+              width: None,
+              height: None,
+            }
+            .into(),
+          ]
           .into(),
-        ]),
+        ),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_mask_image_on_image.png");

@@ -45,18 +45,15 @@ fn text_inline() {
     ),
   ];
 
-  let children = texts
-    .iter()
-    .map(|(text, style)| {
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(style.clone()),
-        text: text.to_string(),
-      }
-      .into()
-    })
-    .collect::<Vec<_>>();
+  let children = Box::from_iter(texts.iter().map(|(text, style)| {
+    TextNode {
+      preset: None,
+      tw: None,
+      style: Some(style.clone()),
+      text: text.to_string(),
+    }
+    .into()
+  }));
 
   let container = ContainerNode {
     preset: None,
@@ -138,8 +135,8 @@ fn inline_image() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -150,10 +147,11 @@ fn inline_image() {
             .build()
             .unwrap(),
         ),
-        children: Some(children),
+        children: Some(children.into_boxed_slice()),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "inline_image.png");
@@ -187,8 +185,8 @@ fn inline_block_in_inline() {
           .build()
           .unwrap(),
       ),
-      children: Some(vec![
-        TextNode {
+      children: Some(
+        [TextNode {
           preset: None,
           tw: None,
           style: Some(
@@ -199,8 +197,9 @@ fn inline_block_in_inline() {
           ),
           text: "Block inside inline".to_string(),
         }
+        .into()]
         .into(),
-      ]),
+      ),
     }
     .into(),
     TextNode {
@@ -230,7 +229,7 @@ fn inline_block_in_inline() {
         .build()
         .unwrap(),
     ),
-    children: Some(children),
+    children: Some(children.into_boxed_slice()),
   };
 
   run_style_width_test(container.into(), "inline_block_in_inline.png");

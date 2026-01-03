@@ -23,15 +23,16 @@ fn create_test_container(opacity: f32) -> NodeKind {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
+    children: Some(
+      [TextNode {
         preset: None,
         tw: None,
         style: None,
         text: opacity.to_string(),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   }
   .into()
 }
@@ -52,12 +53,15 @@ fn test_style_opacity() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      create_test_container(0.1),
-      create_test_container(0.3),
-      create_test_container(0.5),
-      create_test_container(1.0),
-    ]),
+    children: Some(
+      [
+        create_test_container(0.1),
+        create_test_container(0.3),
+        create_test_container(0.5),
+        create_test_container(1.0),
+      ]
+      .into(),
+    ),
   };
 
   run_style_width_test(container.into(), "style_opacity.png");
@@ -80,53 +84,57 @@ fn test_style_opacity_image_with_text() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Length::Rem(20.0))
-            .height(Length::Rem(20.0))
-            .opacity(PercentageNumber(0.5))
-            .build()
-            .unwrap(),
-        ),
-        children: Some(vec![
-          ImageNode {
-            preset: None,
-            tw: None,
-            style: Some(
-              StyleBuilder::default()
-                .width(Length::Percentage(100.0))
-                .height(Length::Percentage(100.0))
-                .build()
-                .unwrap(),
-            ),
-            src: "assets/images/yeecord.png".into(),
-            width: None,
-            height: None,
-          }
-          .into(),
-        ]),
-      }
+    children: Some(
+      [
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Length::Rem(20.0))
+              .height(Length::Rem(20.0))
+              .opacity(PercentageNumber(0.5))
+              .build()
+              .unwrap(),
+          ),
+          children: Some(
+            [ImageNode {
+              preset: None,
+              tw: None,
+              style: Some(
+                StyleBuilder::default()
+                  .width(Length::Percentage(100.0))
+                  .height(Length::Percentage(100.0))
+                  .build()
+                  .unwrap(),
+              ),
+              src: "assets/images/yeecord.png".into(),
+              width: None,
+              height: None,
+            }
+            .into()]
+            .into(),
+          ),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .font_size(Some(Length::Rem(3.0)))
+              .font_weight(FontWeight::from(700.0))
+              .color(ColorInput::Value(Color([60, 60, 60, 255])))
+              .opacity(PercentageNumber(0.5))
+              .build()
+              .unwrap(),
+          ),
+          text: "0.5".to_string(),
+        }
+        .into(),
+      ]
       .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .font_size(Some(Length::Rem(3.0)))
-            .font_weight(FontWeight::from(700.0))
-            .color(ColorInput::Value(Color([60, 60, 60, 255])))
-            .opacity(PercentageNumber(0.5))
-            .build()
-            .unwrap(),
-        ),
-        text: "0.5".to_string(),
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_opacity_image_with_text.png");

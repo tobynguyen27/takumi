@@ -23,50 +23,53 @@ fn test_style_flex_basis() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .flex_basis(Some(Px(100.0)))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .flex_basis(Some(Px(100.0)))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .flex_basis(Some(Px(100.0)))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .flex_basis(Some(Px(100.0)))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .flex_basis(Some(Px(100.0)))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .flex_basis(Some(Px(100.0)))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_flex_basis.png");
@@ -87,50 +90,53 @@ fn test_style_flex_direction() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_flex_direction.png");
@@ -151,53 +157,56 @@ fn test_style_gap() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      // First child
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        // First child
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        // Second child
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        // Third child
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-      // Second child
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-      // Third child
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_gap.png");
@@ -221,32 +230,35 @@ fn test_style_grid_template_columns() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_grid_template_columns.png");
@@ -270,32 +282,35 @@ fn test_style_grid_template_rows() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_grid_template_rows.png");

@@ -19,8 +19,8 @@ fn create_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -34,8 +34,8 @@ fn create_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
             .build()
             .unwrap(),
         ),
-        children: Some(vec![
-          ImageNode {
+        children: Some(
+          [ImageNode {
             preset: None,
             tw: None,
             style: Some(
@@ -51,11 +51,13 @@ fn create_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
             height: None,
             src: "assets/images/yeecord.png".into(),
           }
+          .into()]
           .into(),
-        ]),
+        ),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   }
   .into()
 }
@@ -74,8 +76,7 @@ fn create_text_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some([ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -89,7 +90,7 @@ fn create_text_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
             .build()
             .unwrap(),
         ),
-        children: Some(vec![
+        children: Some([
           TextNode {
             preset: None,
             tw: None,
@@ -103,11 +104,9 @@ fn create_text_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
               .unwrap(),
           ),
           text: "This is a very long text that should overflow the container and demonstrate text overflow behavior with a large font size of 4rem.".to_string(),
-        }.into(),
-        ]),
+        }.into()].into()),
       }
-      .into(),
-    ]),
+      .into()].into()),
   }
   .into()
 }

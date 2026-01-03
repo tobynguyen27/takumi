@@ -46,7 +46,7 @@ pub fn say_hello_to(name: &str) {
     preset: None,
     tw: None,
     style: Default::default(),
-    children: Some(vec![text.into()]),
+    children: Some([text.into()].into()),
   };
 
   // Create render options

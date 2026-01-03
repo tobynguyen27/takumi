@@ -24,50 +24,53 @@ fn test_style_align_items() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_align_items.png");
@@ -88,50 +91,53 @@ fn test_style_justify_content() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
+    children: Some(
+      [
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Px(50.0))
+              .height(Px(50.0))
+              .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
+              .build()
+              .unwrap(),
+          ),
+          children: None,
+        }
+        .into(),
+      ]
       .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([0, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Px(50.0))
-            .height(Px(50.0))
-            .background_color(ColorInput::Value(Color([255, 255, 0, 255])))
-            .build()
-            .unwrap(),
-        ),
-        children: None,
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_justify_content.png");

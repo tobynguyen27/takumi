@@ -86,7 +86,7 @@ fn text_typography_variable_width() {
         .build()
         .unwrap(),
     ),
-    children: Some(nodes),
+    children: Some(nodes.into_boxed_slice()),
   };
 
   run_style_width_test(container.into(), "text_typography_variable_width.png");
@@ -125,7 +125,7 @@ fn text_typography_variable_weight() {
         .build()
         .unwrap(),
     ),
-    children: Some(nodes),
+    children: Some(nodes.into_boxed_slice()),
   };
 
   run_style_width_test(container.into(), "text_typography_variable_weight.png");
@@ -284,64 +284,67 @@ fn text_transform_all() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Percentage(100.0))
-            .font_size(Some(Px(28.0)))
-            .text_transform(TextTransform::None)
-            .build()
-            .unwrap(),
-        ),
-        text: "None: The quick Brown Fox".to_string(),
-      }
+    children: Some(
+      [
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Percentage(100.0))
+              .font_size(Some(Px(28.0)))
+              .text_transform(TextTransform::None)
+              .build()
+              .unwrap(),
+          ),
+          text: "None: The quick Brown Fox".to_string(),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Percentage(100.0))
+              .font_size(Some(Px(28.0)))
+              .text_transform(TextTransform::Uppercase)
+              .build()
+              .unwrap(),
+          ),
+          text: "Uppercase: The quick Brown Fox".to_string(),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Percentage(100.0))
+              .font_size(Some(Px(28.0)))
+              .text_transform(TextTransform::Lowercase)
+              .build()
+              .unwrap(),
+          ),
+          text: "Lowercase: The QUICK Brown FOX".to_string(),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Percentage(100.0))
+              .font_size(Some(Px(28.0)))
+              .text_transform(TextTransform::Capitalize)
+              .build()
+              .unwrap(),
+          ),
+          text: "Capitalize: the quick brown fox".to_string(),
+        }
+        .into(),
+      ]
       .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Percentage(100.0))
-            .font_size(Some(Px(28.0)))
-            .text_transform(TextTransform::Uppercase)
-            .build()
-            .unwrap(),
-        ),
-        text: "Uppercase: The quick Brown Fox".to_string(),
-      }
-      .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Percentage(100.0))
-            .font_size(Some(Px(28.0)))
-            .text_transform(TextTransform::Lowercase)
-            .build()
-            .unwrap(),
-        ),
-        text: "Lowercase: The QUICK Brown FOX".to_string(),
-      }
-      .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Percentage(100.0))
-            .font_size(Some(Px(28.0)))
-            .text_transform(TextTransform::Capitalize)
-            .build()
-            .unwrap(),
-        ),
-        text: "Capitalize: the quick brown fox".to_string(),
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "text_transform_all.png");
@@ -368,8 +371,8 @@ fn text_mask_image_gradient_and_emoji() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
+    children: Some(
+      [TextNode {
         preset: None,
         tw: None,
         style: Some(
@@ -385,8 +388,9 @@ fn text_mask_image_gradient_and_emoji() {
         ),
         text: "Gradient Mask Emoji: 🪓 🦊 💩".to_string(),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "text_mask_image_gradient_emoji.png");
@@ -488,33 +492,36 @@ fn text_wrap_nowrap() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      // Wrap text
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .text_wrap_mode(Some(TextWrapMode::Wrap))
-            .build()
-            .unwrap(),
-        ),
-        text: format!("wrap: {}", long_text),
-      }
+    children: Some(
+      [
+        // Wrap text
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .text_wrap_mode(Some(TextWrapMode::Wrap))
+              .build()
+              .unwrap(),
+          ),
+          text: format!("wrap: {}", long_text),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .text_wrap_mode(Some(TextWrapMode::NoWrap))
+              .build()
+              .unwrap(),
+          ),
+          text: format!("nowrap: {}", long_text),
+        }
+        .into(),
+      ]
       .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .text_wrap_mode(Some(TextWrapMode::NoWrap))
-            .build()
-            .unwrap(),
-        ),
-        text: format!("nowrap: {}", long_text),
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "text_wrap_nowrap.png");
@@ -538,56 +545,59 @@ fn text_whitespace_collapse() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .white_space_collapse(Some(WhiteSpaceCollapse::Collapse))
-            .build()
-            .unwrap(),
-        ),
-        text: "collapse: Multiple    spaces   and\ttabs\t\tare    collapsed".to_string(),
-      }
+    children: Some(
+      [
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .white_space_collapse(Some(WhiteSpaceCollapse::Collapse))
+              .build()
+              .unwrap(),
+          ),
+          text: "collapse: Multiple    spaces   and\ttabs\t\tare    collapsed".to_string(),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .white_space_collapse(Some(WhiteSpaceCollapse::Preserve))
+              .build()
+              .unwrap(),
+          ),
+          text: "preserve: Multiple    spaces   and\ttabs\t\tare    preserved".to_string(),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .white_space_collapse(Some(WhiteSpaceCollapse::PreserveSpaces))
+              .build()
+              .unwrap(),
+          ),
+          text: "preserve-spaces: Multiple    spaces   preserved\nbut\nbreaks\nremoved".to_string(),
+        }
+        .into(),
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .white_space_collapse(Some(WhiteSpaceCollapse::PreserveBreaks))
+              .build()
+              .unwrap(),
+          ),
+          text: "preserve-breaks: Spaces    collapsed\n but\nline\nbreaks\npreserved".to_string(),
+        }
+        .into(),
+      ]
       .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .white_space_collapse(Some(WhiteSpaceCollapse::Preserve))
-            .build()
-            .unwrap(),
-        ),
-        text: "preserve: Multiple    spaces   and\ttabs\t\tare    preserved".to_string(),
-      }
-      .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .white_space_collapse(Some(WhiteSpaceCollapse::PreserveSpaces))
-            .build()
-            .unwrap(),
-        ),
-        text: "preserve-spaces: Multiple    spaces   preserved\nbut\nbreaks\nremoved".to_string(),
-      }
-      .into(),
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .white_space_collapse(Some(WhiteSpaceCollapse::PreserveBreaks))
-            .build()
-            .unwrap(),
-        ),
-        text: "preserve-breaks: Spaces    collapsed\n but\nline\nbreaks\npreserved".to_string(),
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "text_whitespace_collapse.png");
@@ -609,7 +619,7 @@ fn text_ellipsis_text_nowrap() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
+    children: Some([
       TextNode {
     preset: None,
         tw: None,
@@ -627,7 +637,7 @@ fn text_ellipsis_text_nowrap() {
         text: "This is a very long piece of text that should demonstrate text wrapping behavior when it exceeds the container width. The quick brown fox jumps over the lazy dog.".to_string(),
       }
       .into(),
-    ]),
+    ].into()),
   };
 
   run_style_width_test(container.into(), "text_ellipsis_text_nowrap.png");
@@ -651,47 +661,50 @@ fn text_wrap_style_all() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      // Auto (default) - standard line breaking
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .text_wrap_style(Some(TextWrapStyle::Auto))
-            .build()
-            .unwrap(),
-        ),
-        text: "Auto: The quick brown fox jumps over the lazy dog.".to_string(),
-      }
+    children: Some(
+      [
+        // Auto (default) - standard line breaking
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .text_wrap_style(Some(TextWrapStyle::Auto))
+              .build()
+              .unwrap(),
+          ),
+          text: "Auto: The quick brown fox jumps over the lazy dog.".to_string(),
+        }
+        .into(),
+        // Balance - evenly distributes text across lines
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .text_wrap_style(Some(TextWrapStyle::Balance))
+              .build()
+              .unwrap(),
+          ),
+          text: "Balance: The quick brown fox jumps over the lazy dog.".to_string(),
+        }
+        .into(),
+        // Pretty - avoids orphans on the last line (text ends with short word "it")
+        TextNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .text_wrap_style(Some(TextWrapStyle::Pretty))
+              .build()
+              .unwrap(),
+          ),
+          text: "Pretty: The quick brown fox jumps over the lazy dog and catches it.".to_string(),
+        }
+        .into(),
+      ]
       .into(),
-      // Balance - evenly distributes text across lines
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .text_wrap_style(Some(TextWrapStyle::Balance))
-            .build()
-            .unwrap(),
-        ),
-        text: "Balance: The quick brown fox jumps over the lazy dog.".to_string(),
-      }
-      .into(),
-      // Pretty - avoids orphans on the last line (text ends with short word "it")
-      TextNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .text_wrap_style(Some(TextWrapStyle::Pretty))
-            .build()
-            .unwrap(),
-        ),
-        text: "Pretty: The quick brown fox jumps over the lazy dog and catches it.".to_string(),
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "text_wrap_style_all.png");

@@ -23,8 +23,8 @@ fn test_style_padding() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -37,8 +37,9 @@ fn test_style_padding() {
         ),
         children: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_padding.png");

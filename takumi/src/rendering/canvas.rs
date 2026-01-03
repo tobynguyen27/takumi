@@ -127,11 +127,11 @@ pub(crate) enum CanvasConstrain {
     inverse_transform: Affine,
   },
   ClipPath {
-    mask: Vec<u8>,
+    mask: Box<[u8]>,
     placement: Placement,
   },
   MaskImage {
-    mask: Vec<u8>,
+    mask: Box<[u8]>,
     from: Point<u32>,
     to: Point<u32>,
     inverse_transform: Affine,
@@ -158,7 +158,7 @@ impl CanvasConstrain {
       }
 
       return Ok(CanvasConstrainResult::Some(CanvasConstrain::ClipPath {
-        mask: mask.to_vec(),
+        mask: mask.into(),
         placement,
       }));
     }
@@ -169,7 +169,7 @@ impl CanvasConstrain {
 
     if let Some(mask) = create_mask(context, layout.size, mask_memory)? {
       return Ok(CanvasConstrainResult::Some(CanvasConstrain::MaskImage {
-        mask,
+        mask: mask.into_boxed_slice(),
         from: Point { x: 0, y: 0 },
         to: Point {
           x: layout.size.width as u32,

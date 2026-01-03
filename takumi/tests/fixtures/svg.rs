@@ -22,21 +22,24 @@ fn create_luma_logo_container() -> ContainerNode<NodeKind> {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![NodeKind::Image(ImageNode {
-      preset: None,
-      tw: None,
-      style: Some(
-        StyleBuilder::default()
-          .width(Px(204.0))
-          .height(Px(76.0))
-          .object_fit(ObjectFit::Contain)
-          .build()
-          .unwrap(),
-      ),
-      width: None,
-      height: None,
-      src: "assets/images/luma.svg".into(),
-    })]),
+    children: Some(
+      [NodeKind::Image(ImageNode {
+        preset: None,
+        tw: None,
+        style: Some(
+          StyleBuilder::default()
+            .width(Px(204.0))
+            .height(Px(76.0))
+            .object_fit(ObjectFit::Contain)
+            .build()
+            .unwrap(),
+        ),
+        width: None,
+        height: None,
+        src: "assets/images/luma.svg".into(),
+      })]
+      .into(),
+    ),
   }
 }
 

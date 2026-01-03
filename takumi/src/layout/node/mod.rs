@@ -28,7 +28,7 @@ use crate::{
 macro_rules! impl_node_enum {
   ($name:ident, $($variant:ident => $variant_type:ty),*) => {
     impl $crate::layout::node::Node<$name> for $name {
-      fn take_children(&mut self) -> Option<Vec<$name>> {
+      fn take_children(&mut self) -> Option<Box<[$name]>> {
         match self {
           $( $name::$variant(inner) => inner.take_children(), )*
         }
@@ -207,7 +207,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
   }
 
   /// Return reference to children nodes.
-  fn take_children(&mut self) -> Option<Vec<N>> {
+  fn take_children(&mut self) -> Option<Box<[N]>> {
     None
   }
 

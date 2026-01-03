@@ -25,8 +25,8 @@ fn test_rotate_image() {
         .unwrap(),
     ),
     tw: None,
-    children: Some(vec![
-      ImageNode {
+    children: Some(
+      [ImageNode {
         preset: None,
         style: Some(
           StyleBuilder::default()
@@ -39,8 +39,9 @@ fn test_rotate_image() {
         width: None,
         height: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(image.into(), "style_rotate_image.png");
@@ -61,8 +62,8 @@ fn test_rotate() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         style: Some(
           StyleBuilder::default()
@@ -76,8 +77,9 @@ fn test_rotate() {
         children: None,
         tw: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_rotate.png");
@@ -96,12 +98,9 @@ fn test_style_transform_origin_center() {
         .build()
         .unwrap(),
     ),
-    children: Some(
-      ROTATED_ANGLES
-        .iter()
-        .map(|angle| create_rotated_container(*angle, BackgroundPosition::default()).into())
-        .collect(),
-    ),
+    children: Some(Box::from_iter(ROTATED_ANGLES.iter().map(|angle| {
+      create_rotated_container(*angle, BackgroundPosition::default()).into()
+    }))),
   };
 
   run_style_width_test(container.into(), "style_transform_origin_center.png");
@@ -197,15 +196,16 @@ fn test_style_transform_translate_and_scale() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
+    children: Some(
+      [TextNode {
         preset: None,
         text: "200px x 100px".to_string(),
         tw: None,
         style: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   let translated = ContainerNode {
@@ -221,8 +221,8 @@ fn test_style_transform_translate_and_scale() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ImageNode {
+    children: Some(
+      [ImageNode {
         preset: None,
         tw: None,
         src: "assets/images/yeecord.png".into(),
@@ -236,8 +236,9 @@ fn test_style_transform_translate_and_scale() {
         width: None,
         height: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   let scaled = ContainerNode {
@@ -254,15 +255,16 @@ fn test_style_transform_translate_and_scale() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
+    children: Some(
+      [TextNode {
         preset: None,
         text: "100px x 100px, scale(2.0, 2.0)".to_string(),
         tw: None,
         style: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   let rotated = ContainerNode {
@@ -280,23 +282,27 @@ fn test_style_transform_translate_and_scale() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
+    children: Some(
+      [TextNode {
         preset: None,
         text: "200px x 200px, rotate(45deg)".to_string(),
         tw: None,
         style: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
-  container.children = Some(vec![
-    position.into(),
-    translated.into(),
-    scaled.into(),
-    rotated.into(),
-  ]);
+  container.children = Some(
+    [
+      position.into(),
+      translated.into(),
+      scaled.into(),
+      rotated.into(),
+    ]
+    .into(),
+  );
 
   run_style_width_test(container.into(), "style_transform_translate_and_scale.png");
 }

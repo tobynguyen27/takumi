@@ -24,15 +24,16 @@ fn create_backdrop_card(filter: &str, label_font_size_px: f32) -> NodeKind {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
+    children: Some(
+      [TextNode {
         preset: None,
         tw: None,
         style: None,
         text: filter.to_string(),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   }
   .into()
 }
@@ -111,8 +112,8 @@ fn test_style_backdrop_filter_frosted_glass() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -129,38 +130,42 @@ fn test_style_backdrop_filter_frosted_glass() {
             .build()
             .unwrap(),
         ),
-        children: Some(vec![
-          TextNode {
-            preset: None,
-            tw: None,
-            style: Some(
-              StyleBuilder::default()
-                .font_size(Some(Px(48.0)))
-                .font_weight(FontWeight::from(700.0))
-                .color(ColorInput::Value(Color([0, 0, 0, 200])))
-                .build()
-                .unwrap(),
-            ),
-            text: "Frosted Glass".to_string(),
-          }
+        children: Some(
+          [
+            TextNode {
+              preset: None,
+              tw: None,
+              style: Some(
+                StyleBuilder::default()
+                  .font_size(Some(Px(48.0)))
+                  .font_weight(FontWeight::from(700.0))
+                  .color(ColorInput::Value(Color([0, 0, 0, 200])))
+                  .build()
+                  .unwrap(),
+              ),
+              text: "Frosted Glass".to_string(),
+            }
+            .into(),
+            TextNode {
+              preset: None,
+              tw: None,
+              style: Some(
+                StyleBuilder::default()
+                  .font_size(Some(Px(24.0)))
+                  .color(ColorInput::Value(Color([0, 0, 0, 150])))
+                  .build()
+                  .unwrap(),
+              ),
+              text: "backdrop-filter: blur(16px)".to_string(),
+            }
+            .into(),
+          ]
           .into(),
-          TextNode {
-            preset: None,
-            tw: None,
-            style: Some(
-              StyleBuilder::default()
-                .font_size(Some(Px(24.0)))
-                .color(ColorInput::Value(Color([0, 0, 0, 150])))
-                .build()
-                .unwrap(),
-            ),
-            text: "backdrop-filter: blur(16px)".to_string(),
-          }
-          .into(),
-        ]),
+        ),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   }
   .into();
 

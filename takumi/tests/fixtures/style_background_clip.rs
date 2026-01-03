@@ -24,8 +24,8 @@ fn create_container_with_background_clip(
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -43,8 +43,9 @@ fn create_container_with_background_clip(
         ),
         children: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   }
 }
 
@@ -105,8 +106,8 @@ fn test_style_background_clip_text_gradient() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
+    children: Some(
+      [TextNode {
         preset: None,
         tw: None,
         style: Some(
@@ -122,8 +123,9 @@ fn test_style_background_clip_text_gradient() {
         ),
         text: "Gradient Text".to_string(),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_background_clip_text_gradient.png");
@@ -149,8 +151,8 @@ fn test_style_background_clip_text_radial_gradient() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      TextNode {
+    children: Some(
+      [TextNode {
         preset: None,
         tw: None,
         style: Some(
@@ -164,8 +166,9 @@ fn test_style_background_clip_text_radial_gradient() {
         ),
         text: "Radial Gradient".to_string(),
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_background_clip_text_radial.png");
@@ -186,8 +189,8 @@ fn test_style_background_clip_border_area() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -205,8 +208,9 @@ fn test_style_background_clip_border_area() {
         ),
         children: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_background_clip_border_area.png");
@@ -230,8 +234,8 @@ fn test_style_background_clip_with_gradient_background() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      ContainerNode {
+    children: Some(
+      [ContainerNode {
         preset: None,
         tw: None,
         style: Some(
@@ -248,8 +252,9 @@ fn test_style_background_clip_with_gradient_background() {
         ),
         children: None,
       }
+      .into()]
       .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(
@@ -277,7 +282,7 @@ fn test_style_background_clip_text_multiline() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
+    children: Some([
       TextNode {
     preset: None,
         tw: None,
@@ -294,7 +299,7 @@ fn test_style_background_clip_text_multiline() {
         text: "This is a multiline text with a beautiful gradient background clipped to the text shape. It demonstrates how background-clip: text works with longer content.".to_string(),
       }
       .into(),
-    ]),
+    ].into()),
   };
 
   run_style_width_test(container.into(), "style_background_clip_text_multiline.png");
@@ -317,107 +322,113 @@ fn test_style_background_clip_comparison() {
         .build()
         .unwrap(),
     ),
-    children: Some(vec![
-      // Border Box
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Percentage(100.0))
-            .height(Px(80.0))
-            .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
-            .background_clip(BackgroundClip::BorderBox)
-            .padding(Sides([Px(15.0); 4]))
-            .border_width(Some(Sides([Px(8.0); 4])))
-            .border_color(Some(ColorInput::Value(Color([0, 0, 0, 128]))))
-            .build()
-            .unwrap(),
-        ),
-        children: Some(vec![
-          TextNode {
-            preset: None,
-            tw: None,
-            style: Some(
-              StyleBuilder::default()
-                .font_size(Some(Px(20.0)))
-                .color(ColorInput::Value(Color::white()))
-                .build()
-                .unwrap(),
-            ),
-            text: "border-box".to_string(),
-          }
-          .into(),
-        ]),
-      }
+    children: Some(
+      [
+        // Border Box
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Percentage(100.0))
+              .height(Px(80.0))
+              .background_color(ColorInput::Value(Color([255, 0, 0, 255])))
+              .background_clip(BackgroundClip::BorderBox)
+              .padding(Sides([Px(15.0); 4]))
+              .border_width(Some(Sides([Px(8.0); 4])))
+              .border_color(Some(ColorInput::Value(Color([0, 0, 0, 128]))))
+              .build()
+              .unwrap(),
+          ),
+          children: Some(
+            [TextNode {
+              preset: None,
+              tw: None,
+              style: Some(
+                StyleBuilder::default()
+                  .font_size(Some(Px(20.0)))
+                  .color(ColorInput::Value(Color::white()))
+                  .build()
+                  .unwrap(),
+              ),
+              text: "border-box".to_string(),
+            }
+            .into()]
+            .into(),
+          ),
+        }
+        .into(),
+        // Padding Box
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Percentage(100.0))
+              .height(Px(80.0))
+              .background_color(ColorInput::Value(Color([0, 128, 255, 255])))
+              .background_clip(BackgroundClip::PaddingBox)
+              .padding(Sides([Px(15.0); 4]))
+              .border_width(Some(Sides([Px(8.0); 4])))
+              .border_color(Some(ColorInput::Value(Color([0, 0, 0, 128]))))
+              .build()
+              .unwrap(),
+          ),
+          children: Some(
+            [TextNode {
+              preset: None,
+              tw: None,
+              style: Some(
+                StyleBuilder::default()
+                  .font_size(Some(Px(20.0)))
+                  .color(ColorInput::Value(Color::white()))
+                  .build()
+                  .unwrap(),
+              ),
+              text: "padding-box".to_string(),
+            }
+            .into()]
+            .into(),
+          ),
+        }
+        .into(),
+        // Content Box
+        ContainerNode {
+          preset: None,
+          tw: None,
+          style: Some(
+            StyleBuilder::default()
+              .width(Percentage(100.0))
+              .height(Px(80.0))
+              .background_color(ColorInput::Value(Color([34, 197, 94, 255])))
+              .background_clip(BackgroundClip::ContentBox)
+              .padding(Sides([Px(15.0); 4]))
+              .border_width(Some(Sides([Px(8.0); 4])))
+              .border_color(Some(ColorInput::Value(Color([0, 0, 0, 128]))))
+              .build()
+              .unwrap(),
+          ),
+          children: Some(
+            [TextNode {
+              preset: None,
+              tw: None,
+              style: Some(
+                StyleBuilder::default()
+                  .font_size(Some(Px(20.0)))
+                  .color(ColorInput::Value(Color::white()))
+                  .build()
+                  .unwrap(),
+              ),
+              text: "content-box".to_string(),
+            }
+            .into()]
+            .into(),
+          ),
+        }
+        .into(),
+      ]
       .into(),
-      // Padding Box
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Percentage(100.0))
-            .height(Px(80.0))
-            .background_color(ColorInput::Value(Color([0, 128, 255, 255])))
-            .background_clip(BackgroundClip::PaddingBox)
-            .padding(Sides([Px(15.0); 4]))
-            .border_width(Some(Sides([Px(8.0); 4])))
-            .border_color(Some(ColorInput::Value(Color([0, 0, 0, 128]))))
-            .build()
-            .unwrap(),
-        ),
-        children: Some(vec![
-          TextNode {
-            preset: None,
-            tw: None,
-            style: Some(
-              StyleBuilder::default()
-                .font_size(Some(Px(20.0)))
-                .color(ColorInput::Value(Color::white()))
-                .build()
-                .unwrap(),
-            ),
-            text: "padding-box".to_string(),
-          }
-          .into(),
-        ]),
-      }
-      .into(),
-      // Content Box
-      ContainerNode {
-        preset: None,
-        tw: None,
-        style: Some(
-          StyleBuilder::default()
-            .width(Percentage(100.0))
-            .height(Px(80.0))
-            .background_color(ColorInput::Value(Color([34, 197, 94, 255])))
-            .background_clip(BackgroundClip::ContentBox)
-            .padding(Sides([Px(15.0); 4]))
-            .border_width(Some(Sides([Px(8.0); 4])))
-            .border_color(Some(ColorInput::Value(Color([0, 0, 0, 128]))))
-            .build()
-            .unwrap(),
-        ),
-        children: Some(vec![
-          TextNode {
-            preset: None,
-            tw: None,
-            style: Some(
-              StyleBuilder::default()
-                .font_size(Some(Px(20.0)))
-                .color(ColorInput::Value(Color::white()))
-                .build()
-                .unwrap(),
-            ),
-            text: "content-box".to_string(),
-          }
-          .into(),
-        ]),
-      }
-      .into(),
-    ]),
+    ),
   };
 
   run_style_width_test(container.into(), "style_background_clip_comparison.png");
