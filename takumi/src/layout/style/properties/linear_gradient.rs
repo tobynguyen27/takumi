@@ -73,18 +73,6 @@ impl Gradient for LinearGradient {
   }
 }
 
-impl LinearGradient {
-  /// Resolves gradient steps into color stops with positions expressed in pixels along the gradient axis.
-  /// Supports non-px length units when a `RenderContext` is provided.
-  pub(crate) fn resolve_stops_for_axis_size(
-    &self,
-    axis_size_px: f32,
-    context: &RenderContext,
-  ) -> SmallVec<[ResolvedGradientStop; 4]> {
-    resolve_stops_along_axis(&self.stops, axis_size_px, context)
-  }
-}
-
 /// Precomputed drawing context for repeated sampling of a `LinearGradient`.
 #[derive(Debug, Clone)]
 pub struct LinearGradientDrawContext {
@@ -119,7 +107,7 @@ impl LinearGradientDrawContext {
     let max_extent = ((width * dir_x.abs()) + (height * dir_y.abs())) / 2.0;
     let axis_length = 2.0 * max_extent;
 
-    let resolved_stops = gradient.resolve_stops_for_axis_size(axis_length.max(1e-6), context);
+    let resolved_stops = resolve_stops_along_axis(&gradient.stops, axis_length.max(1e-6), context);
 
     LinearGradientDrawContext {
       width,
@@ -902,8 +890,11 @@ mod tests {
     let context = GlobalContext::default();
     let ctx = RenderContext::new(&context, (200, 100).into(), Default::default());
 
-    let resolved = gradient
-      .resolve_stops_for_axis_size(ctx.sizing.viewport.width.unwrap_or_default() as f32, &ctx);
+    let resolved = resolve_stops_along_axis(
+      &gradient.stops,
+      ctx.sizing.viewport.width.unwrap_or_default() as f32,
+      &ctx,
+    );
     assert_eq!(resolved.len(), 3);
     assert!((resolved[0].position - 0.0).abs() < 1e-3);
     assert!((resolved[1].position - 100.0).abs() < 1e-3);
@@ -928,8 +919,11 @@ mod tests {
     let context = GlobalContext::default();
     let ctx = RenderContext::new(&context, (200, 100).into(), Default::default());
 
-    let resolved = gradient
-      .resolve_stops_for_axis_size(ctx.sizing.viewport.width.unwrap_or_default() as f32, &ctx);
+    let resolved = resolve_stops_along_axis(
+      &gradient.stops,
+      ctx.sizing.viewport.width.unwrap_or_default() as f32,
+      &ctx,
+    );
     assert_eq!(resolved.len(), 2);
     assert!((resolved[0].position - 0.0).abs() < 1e-3);
     assert!((resolved[1].position - 0.0).abs() < 1e-3);

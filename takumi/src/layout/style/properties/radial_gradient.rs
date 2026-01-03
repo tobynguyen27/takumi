@@ -104,18 +104,6 @@ impl Gradient for RadialGradient {
   }
 }
 
-impl RadialGradient {
-  /// Resolves gradient steps into color stops with positions expressed in pixels along the radial axis.
-  /// Supports non-px units when a `RenderContext` is provided.
-  pub(crate) fn resolve_stops_for_radius(
-    &self,
-    radius_scale_px: f32,
-    context: &RenderContext,
-  ) -> SmallVec<[ResolvedGradientStop; 4]> {
-    resolve_stops_along_axis(&self.stops, radius_scale_px, context)
-  }
-}
-
 impl RadialGradientDrawContext {
   /// Builds a drawing context from a gradient and a target viewport.
   pub fn new(gradient: &RadialGradient, width: f32, height: f32, context: &RenderContext) -> Self {
@@ -185,7 +173,7 @@ impl RadialGradientDrawContext {
       RadialShape::Circle => radius_x.max(radius_y),
       RadialShape::Ellipse => radius_x.max(radius_y),
     };
-    let resolved_stops = gradient.resolve_stops_for_radius(radius_scale.max(1e-6), context);
+    let resolved_stops = resolve_stops_along_axis(&gradient.stops, radius_scale.max(1e-6), context);
 
     RadialGradientDrawContext {
       width,
@@ -446,7 +434,8 @@ mod tests {
 
     let context = GlobalContext::default();
     let render_context = RenderContext::new(&context, (200, 100).into(), Default::default());
-    let resolved = gradient.resolve_stops_for_radius(
+    let resolved = resolve_stops_along_axis(
+      &gradient.stops,
       render_context.sizing.viewport.width.unwrap_or_default() as f32,
       &render_context,
     );
@@ -480,7 +469,8 @@ mod tests {
 
     let context = GlobalContext::default();
     let render_context = RenderContext::new(&context, (200, 100).into(), Default::default());
-    let resolved = gradient.resolve_stops_for_radius(
+    let resolved = resolve_stops_along_axis(
+      &gradient.stops,
       render_context.sizing.viewport.width.unwrap_or_default() as f32,
       &render_context,
     );

@@ -1,9 +1,11 @@
 use smallvec::SmallVec;
+use wide::f32x4;
 
 use super::{Color, GradientStop, ResolvedGradientStop};
 use crate::rendering::RenderContext;
 
 /// Interpolates between two colors in RGBA space, if t is 0.0 or 1.0, returns the first or second color.
+/// Uses SIMD to process all 4 color channels in parallel.
 pub(crate) fn interpolate_rgba(c1: Color, c2: Color, t: f32) -> Color {
   if t <= f32::EPSILON {
     return c1;
@@ -12,13 +14,33 @@ pub(crate) fn interpolate_rgba(c1: Color, c2: Color, t: f32) -> Color {
     return c2;
   }
 
-  let mut out = [0u8; 4];
+  // Convert u8 arrays to f32x4
+  let c1_f32 = f32x4::from([
+    c1.0[0] as f32,
+    c1.0[1] as f32,
+    c1.0[2] as f32,
+    c1.0[3] as f32,
+  ]);
 
-  for (i, value) in out.iter_mut().enumerate() {
-    *value = (c1.0[i] as f32 * (1.0 - t) + c2.0[i] as f32 * t).round() as u8;
-  }
+  let c2_f32 = f32x4::from([
+    c2.0[0] as f32,
+    c2.0[1] as f32,
+    c2.0[2] as f32,
+    c2.0[3] as f32,
+  ]);
 
-  Color(out)
+  // Interpolate: c1 * (1 - t) + c2 * t
+  let one_minus_t = 1.0 - t;
+  let result_f32 = c1_f32 * one_minus_t + c2_f32 * t;
+
+  // Round and convert back to u8
+  let result = result_f32.to_array();
+  Color([
+    result[0].round() as u8,
+    result[1].round() as u8,
+    result[2].round() as u8,
+    result[3].round() as u8,
+  ])
 }
 
 /// Returns the color for a pixel-space position along the resolved stops.
