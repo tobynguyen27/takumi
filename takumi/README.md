@@ -21,14 +21,14 @@ use takumi::{
 
 // Create a node tree with `ContainerNode` and `TextNode`
 let mut node = NodeKind::Container(ContainerNode {
-  children: Some(vec![
+  children: Some(Box::from([
     NodeKind::Text(TextNode {
       text: "Hello, world!".to_string(),
       style: None, // Construct with `StyleBuilder`
       tw: None, // Tailwind properties
       preset: None,
     }),
-  ]),
+  ])),
   preset: None,
   style: None,
   tw: None, // Tailwind properties

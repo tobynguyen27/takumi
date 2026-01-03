@@ -1,7 +1,6 @@
 use std::ops::{Mul, MulAssign};
 
 use cssparser::{Parser, Token, match_ignore_ascii_case};
-use smallvec::SmallVec;
 use taffy::{Point, Size};
 
 use crate::{
@@ -254,18 +253,18 @@ impl<'i> FromCss<'i> for Affine {
 }
 
 /// A collection of transform operations that can be applied together
-pub type Transforms = SmallVec<[Transform; 4]>;
+pub type Transforms = Box<[Transform]>;
 
 impl<'i> FromCss<'i> for Transforms {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut transforms = SmallVec::new();
+    let mut transforms = Vec::new();
 
     while !input.is_exhausted() {
       let transform = Transform::from_css(input)?;
       transforms.push(transform);
     }
 
-    Ok(transforms)
+    Ok(transforms.into_boxed_slice())
   }
 
   fn valid_tokens() -> &'static [CssToken] {

@@ -1,5 +1,4 @@
 use cssparser::{Parser, match_ignore_ascii_case};
-use smallvec::SmallVec;
 
 use crate::layout::style::{CssToken, FromCss, ParseResult, declare_enum_from_css_impl};
 
@@ -87,18 +86,18 @@ impl<'i> FromCss<'i> for BackgroundRepeat {
 }
 
 /// A list of background-repeat values (one per layer).
-pub type BackgroundRepeats = SmallVec<[BackgroundRepeat; 4]>;
+pub type BackgroundRepeats = Box<[BackgroundRepeat]>;
 
 impl<'i> FromCss<'i> for BackgroundRepeats {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut values = SmallVec::new();
+    let mut values = Vec::new();
     values.push(BackgroundRepeat::from_css(input)?);
 
     while input.expect_comma().is_ok() {
       values.push(BackgroundRepeat::from_css(input)?);
     }
 
-    Ok(values)
+    Ok(values.into_boxed_slice())
   }
 
   fn valid_tokens() -> &'static [CssToken] {

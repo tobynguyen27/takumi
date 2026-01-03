@@ -1,4 +1,3 @@
-use smallvec::smallvec;
 use std::f32::consts::PI;
 use takumi::layout::{
   node::{ContainerNode, NodeKind, TextNode},
@@ -44,7 +43,7 @@ fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
             tw: None,
             style: Some(
               StyleBuilder::default()
-                .transform(Some(smallvec![Transform::Translate(Px(0.0), Px(y_offset))]))
+                .transform(Some([Transform::Translate(Px(0.0), Px(y_offset))].into()))
                 .build()
                 .unwrap(),
             ),

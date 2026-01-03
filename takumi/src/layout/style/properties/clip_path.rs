@@ -91,7 +91,7 @@ pub struct PolygonShape {
   /// The fill rule to use
   pub fill_rule: Option<FillRule>,
   /// List of coordinate pairs defining the polygon vertices
-  pub coordinates: Vec<PolygonCoordinate>,
+  pub coordinates: Box<[PolygonCoordinate]>,
 }
 
 /// Represents a path() shape using an SVG path string.
@@ -100,7 +100,7 @@ pub struct PathShape {
   /// The fill rule to use
   pub fill_rule: Option<FillRule>,
   /// SVG path data string
-  pub path: String,
+  pub path: Box<str>,
 }
 
 /// Represents a basic shape function for clip-path.
@@ -216,7 +216,7 @@ impl BasicShape {
         }
       }
       BasicShape::Path(shape) => {
-        paths.extend(shape.path.as_str().commands());
+        paths.extend(shape.path.as_ref().commands());
       }
     }
 
@@ -354,7 +354,7 @@ impl<'i> FromCss<'i> for BasicShape {
 
             Ok(BasicShape::Polygon(PolygonShape {
               fill_rule,
-              coordinates,
+              coordinates: coordinates.into_boxed_slice(),
             }))
           }),
           "path" => parser.parse_nested_block(|input| {
@@ -363,7 +363,7 @@ impl<'i> FromCss<'i> for BasicShape {
               input.expect_comma()?;
             }
 
-            let path = input.expect_string()?.to_string();
+            let path = input.expect_string()?.as_ref().into();
 
             Ok(BasicShape::Path(PathShape {
               fill_rule,
@@ -537,7 +537,7 @@ mod tests {
       BasicShape::from_str("path('M 10 10 L 90 90')"),
       Ok(BasicShape::Path(PathShape {
         fill_rule: None,
-        path: "M 10 10 L 90 90".to_string(),
+        path: "M 10 10 L 90 90".into(),
       }))
     );
   }
@@ -548,7 +548,7 @@ mod tests {
       BasicShape::from_str("path(evenodd, 'M 10 10 L 90 90')"),
       Ok(BasicShape::Path(PathShape {
         fill_rule: Some(FillRule::EvenOdd),
-        path: "M 10 10 L 90 90".to_string(),
+        path: "M 10 10 L 90 90".into(),
       }))
     );
   }

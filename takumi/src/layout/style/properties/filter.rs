@@ -83,7 +83,7 @@ pub enum Filter {
 }
 
 /// A list of filter operations
-pub type Filters = SmallVec<[Filter; 2]>;
+pub type Filters = Box<[Filter]>;
 
 impl TailwindPropertyParser for Filters {
   fn parse_tw(_token: &str) -> Option<Self> {
@@ -501,14 +501,14 @@ fn apply_drop_shadow_filter(canvas: &mut RgbaImage, shadow: &SizedShadow) {
 
 impl<'i> FromCss<'i> for Filters {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut filters = SmallVec::new();
+    let mut filters = Vec::new();
 
     while !input.is_exhausted() {
       let filter = Filter::from_css(input)?;
       filters.push(filter);
     }
 
-    Ok(filters)
+    Ok(filters.into_boxed_slice())
   }
 
   fn valid_tokens() -> &'static [CssToken] {

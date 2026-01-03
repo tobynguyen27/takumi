@@ -4,7 +4,6 @@ pub(crate) mod parser;
 use std::{cmp::Ordering, ops::Neg, str::FromStr};
 
 use serde::{Deserializer, de::Error as DeError};
-use smallvec::smallvec;
 
 use crate::layout::{
   Viewport,
@@ -640,7 +639,7 @@ impl TailwindProperty {
         style.max_height = max_height.into();
       }
       TailwindProperty::Shadow(box_shadow) => {
-        style.box_shadow = Some(smallvec![box_shadow]).into();
+        style.box_shadow = [box_shadow].into();
       }
       TailwindProperty::Display(display) => {
         style.display = display.into();
@@ -658,16 +657,16 @@ impl TailwindProperty {
         style.object_fit = object_fit.into();
       }
       TailwindProperty::BackgroundPosition(background_position) => {
-        style.background_position = Some(smallvec![background_position]).into();
+        style.background_position = [background_position].into();
       }
       TailwindProperty::BackgroundSize(background_size) => {
-        style.background_size = Some(smallvec![background_size]).into();
+        style.background_size = [background_size].into();
       }
       TailwindProperty::BackgroundRepeat(background_repeat) => {
-        style.background_repeat = Some(smallvec![background_repeat]).into();
+        style.background_repeat = [background_repeat].into();
       }
       TailwindProperty::BackgroundImage(ref background_image) => {
-        style.background_image = Some(smallvec![background_image.clone()]).into();
+        style.background_image = [background_image.clone()].into();
       }
       TailwindProperty::BorderWidth(tw_border_width) => {
         style.border_width = Some(Sides([tw_border_width.0; 4])).into();
@@ -863,10 +862,10 @@ impl TailwindProperty {
         style.left = Some(length).into();
       }
       TailwindProperty::GridAutoColumns(grid_auto_size) => {
-        style.grid_auto_columns = Some(vec![grid_auto_size]).into();
+        style.grid_auto_columns = Some([grid_auto_size].into()).into();
       }
       TailwindProperty::GridAutoRows(grid_auto_size) => {
-        style.grid_auto_rows = Some(vec![grid_auto_size]).into();
+        style.grid_auto_rows = Some([grid_auto_size].into()).into();
       }
       TailwindProperty::GridColumn(ref tw_grid_span) => {
         style.grid_column = Some(tw_grid_span.clone()).into();
@@ -921,61 +920,61 @@ impl TailwindProperty {
         style.grid_row = Some(GridLine::span(grid_placement_span)).into();
       }
       TailwindProperty::Blur(tw_blur) => {
-        style.filter = smallvec![Filter::Blur(tw_blur.0)].into();
+        style.filter = [Filter::Blur(tw_blur.0)].into();
       }
       TailwindProperty::Brightness(percentage_number) => {
-        style.filter = smallvec![Filter::Brightness(percentage_number)].into();
+        style.filter = [Filter::Brightness(percentage_number)].into();
       }
       TailwindProperty::Contrast(percentage_number) => {
-        style.filter = smallvec![Filter::Contrast(percentage_number)].into();
+        style.filter = [Filter::Contrast(percentage_number)].into();
       }
       TailwindProperty::DropShadow(text_shadow) => {
-        style.filter = smallvec![Filter::DropShadow(text_shadow)].into();
+        style.filter = [Filter::DropShadow(text_shadow)].into();
       }
       TailwindProperty::Grayscale(percentage_number) => {
-        style.filter = smallvec![Filter::Grayscale(percentage_number)].into();
+        style.filter = [Filter::Grayscale(percentage_number)].into();
       }
       TailwindProperty::HueRotate(angle) => {
-        style.filter = smallvec![Filter::HueRotate(angle)].into();
+        style.filter = [Filter::HueRotate(angle)].into();
       }
       TailwindProperty::Invert(percentage_number) => {
-        style.filter = smallvec![Filter::Invert(percentage_number)].into();
+        style.filter = [Filter::Invert(percentage_number)].into();
       }
       TailwindProperty::Saturate(percentage_number) => {
-        style.filter = smallvec![Filter::Saturate(percentage_number)].into();
+        style.filter = [Filter::Saturate(percentage_number)].into();
       }
       TailwindProperty::Sepia(percentage_number) => {
-        style.filter = smallvec![Filter::Sepia(percentage_number)].into();
+        style.filter = [Filter::Sepia(percentage_number)].into();
       }
       TailwindProperty::Filter(ref filters) => {
         style.filter = filters.clone().into();
       }
       TailwindProperty::BackdropBlur(tw_blur) => {
-        style.backdrop_filter = smallvec![Filter::Blur(tw_blur.0)].into();
+        style.backdrop_filter = [Filter::Blur(tw_blur.0)].into();
       }
       TailwindProperty::BackdropBrightness(percentage_number) => {
-        style.backdrop_filter = smallvec![Filter::Brightness(percentage_number)].into();
+        style.backdrop_filter = [Filter::Brightness(percentage_number)].into();
       }
       TailwindProperty::BackdropContrast(percentage_number) => {
-        style.backdrop_filter = smallvec![Filter::Contrast(percentage_number)].into();
+        style.backdrop_filter = [Filter::Contrast(percentage_number)].into();
       }
       TailwindProperty::BackdropGrayscale(percentage_number) => {
-        style.backdrop_filter = smallvec![Filter::Grayscale(percentage_number)].into();
+        style.backdrop_filter = [Filter::Grayscale(percentage_number)].into();
       }
       TailwindProperty::BackdropHueRotate(angle) => {
-        style.backdrop_filter = smallvec![Filter::HueRotate(angle)].into();
+        style.backdrop_filter = [Filter::HueRotate(angle)].into();
       }
       TailwindProperty::BackdropInvert(percentage_number) => {
-        style.backdrop_filter = smallvec![Filter::Invert(percentage_number)].into();
+        style.backdrop_filter = [Filter::Invert(percentage_number)].into();
       }
       TailwindProperty::BackdropOpacity(percentage_number) => {
-        style.backdrop_filter = smallvec![Filter::Opacity(percentage_number)].into();
+        style.backdrop_filter = [Filter::Opacity(percentage_number)].into();
       }
       TailwindProperty::BackdropSaturate(percentage_number) => {
-        style.backdrop_filter = smallvec![Filter::Saturate(percentage_number)].into();
+        style.backdrop_filter = [Filter::Saturate(percentage_number)].into();
       }
       TailwindProperty::BackdropSepia(percentage_number) => {
-        style.backdrop_filter = smallvec![Filter::Sepia(percentage_number)].into();
+        style.backdrop_filter = [Filter::Sepia(percentage_number)].into();
       }
       TailwindProperty::BackdropFilter(ref filters) => {
         style.backdrop_filter = filters.clone().into();

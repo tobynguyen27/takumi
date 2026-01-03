@@ -3,8 +3,6 @@ use takumi::layout::{
   style::{Length::*, *},
 };
 
-use smallvec::smallvec;
-
 use crate::test_utils::run_style_width_test;
 
 fn create_container(background_images: BackgroundImages) -> ContainerNode<NodeKind> {
@@ -229,10 +227,9 @@ fn test_background_image_grid_pattern() {
 
   assert_eq!(
     container.style.as_ref().unwrap().background_repeat,
-    CssValue::Value(Some(smallvec![
-      BackgroundRepeat::repeat(),
-      BackgroundRepeat::repeat()
-    ]))
+    CssValue::Value(Some(
+      [BackgroundRepeat::repeat(), BackgroundRepeat::repeat()].into()
+    ))
   );
 
   run_style_width_test(container.into(), "style_background_image_grid_pattern.png");

@@ -215,6 +215,28 @@ impl<T, const DEFAULT_INHERIT: bool> From<T> for CssValue<T, DEFAULT_INHERIT> {
   }
 }
 
+impl<T, const DEFAULT_INHERIT: bool> From<T> for CssValue<Option<T>, DEFAULT_INHERIT> {
+  fn from(value: T) -> Self {
+    CssValue::Value(Some(value))
+  }
+}
+
+impl<T, const N: usize, const DEFAULT_INHERIT: bool> From<[T; N]>
+  for CssValue<Box<[T]>, DEFAULT_INHERIT>
+{
+  fn from(value: [T; N]) -> Self {
+    CssValue::Value(Box::from(value))
+  }
+}
+
+impl<T, const N: usize, const DEFAULT_INHERIT: bool> From<[T; N]>
+  for CssValue<Option<Box<[T]>>, DEFAULT_INHERIT>
+{
+  fn from(value: [T; N]) -> Self {
+    CssValue::Value(Some(Box::from(value)))
+  }
+}
+
 impl<T: Default, const DEFAULT_INHERIT: bool> CssValue<T, DEFAULT_INHERIT> {
   /// Resolves this CssValue to a concrete value based on inheritance rules
   pub(crate) fn inherit_value(self, parent: &T) -> T

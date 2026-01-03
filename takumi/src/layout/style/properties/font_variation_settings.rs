@@ -1,6 +1,5 @@
 use cssparser::Parser;
 use parley::FontVariation;
-use smallvec::SmallVec;
 
 use crate::layout::style::{CssToken, FromCss, ParseResult};
 
@@ -8,11 +7,17 @@ use crate::layout::style::{CssToken, FromCss, ParseResult};
 ///
 /// This allows fine-grained control over variable font characteristics like weight,
 /// width, slant, and other custom axes defined in the font.
-pub type FontVariationSettings = SmallVec<[FontVariation; 4]>;
+pub type FontVariationSettings = Box<[FontVariation]>;
 
 impl<'i> FromCss<'i> for FontVariationSettings {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    Ok(FontVariation::parse_list(input.current_line()).collect::<SmallVec<[FontVariation; 4]>>())
+    Ok(Box::from_iter(FontVariation::parse_list(
+      input.current_line(),
+    )))
+  }
+
+  fn from_str(source: &'i str) -> ParseResult<'i, Self> {
+    Ok(Box::from_iter(FontVariation::parse_list(source)))
   }
 
   fn valid_tokens() -> &'static [CssToken] {

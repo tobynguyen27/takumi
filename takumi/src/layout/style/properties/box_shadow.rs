@@ -1,7 +1,6 @@
 use std::{borrow::Cow, fmt::Debug};
 
 use cssparser::{BasicParseErrorKind, ParseError, Parser};
-use smallvec::SmallVec;
 
 use crate::layout::style::{Color, ColorInput, CssToken, FromCss, Length, ParseResult};
 
@@ -29,11 +28,11 @@ pub struct BoxShadow {
 }
 
 /// Represents a collection of box shadows, have custom `FromCss` implementation for comma-separated values.
-pub type BoxShadows = SmallVec<[BoxShadow; 4]>;
+pub type BoxShadows = Box<[BoxShadow]>;
 
 impl<'i> FromCss<'i> for BoxShadows {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut shadows = SmallVec::new();
+    let mut shadows = Vec::new();
 
     loop {
       if input.is_exhausted() {
@@ -48,7 +47,7 @@ impl<'i> FromCss<'i> for BoxShadows {
       }
     }
 
-    Ok(shadows)
+    Ok(shadows.into_boxed_slice())
   }
 
   fn valid_tokens() -> &'static [CssToken] {

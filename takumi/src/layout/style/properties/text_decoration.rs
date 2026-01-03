@@ -1,5 +1,4 @@
 use cssparser::{Parser, Token};
-use smallvec::SmallVec;
 
 use crate::layout::style::{
   CssToken, FromCss, ParseResult, declare_enum_from_css_impl, properties::ColorInput,
@@ -24,18 +23,18 @@ declare_enum_from_css_impl!(
 );
 
 /// Represents a collection of text decoration lines.
-pub type TextDecorationLines = SmallVec<[TextDecorationLine; 3]>;
+pub type TextDecorationLines = Box<[TextDecorationLine]>;
 
 impl<'i> FromCss<'i> for TextDecorationLines {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut lines = SmallVec::new();
+    let mut lines = Vec::new();
 
     while !input.is_exhausted() {
       let line = TextDecorationLine::from_css(input)?;
       lines.push(line);
     }
 
-    Ok(lines)
+    Ok(lines.into_boxed_slice())
   }
 
   fn valid_tokens() -> &'static [CssToken] {
@@ -63,7 +62,7 @@ pub struct TextDecoration {
 
 impl<'i> FromCss<'i> for TextDecoration {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut line = TextDecorationLines::default();
+    let mut line = Vec::new();
     let mut style = None;
     let mut color = None;
 
@@ -93,7 +92,11 @@ impl<'i> FromCss<'i> for TextDecoration {
       ));
     }
 
-    Ok(TextDecoration { line, style, color })
+    Ok(TextDecoration {
+      line: line.into_boxed_slice(),
+      style,
+      color,
+    })
   }
 
   fn valid_tokens() -> &'static [CssToken] {
@@ -136,7 +139,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("underline"),
       Ok(TextDecoration {
-        line: smallvec::smallvec![TextDecorationLine::Underline],
+        line: [TextDecorationLine::Underline].into(),
         style: None,
         color: None,
       })
@@ -148,7 +151,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("line-through"),
       Ok(TextDecoration {
-        line: smallvec::smallvec![TextDecorationLine::LineThrough],
+        line: [TextDecorationLine::LineThrough].into(),
         style: None,
         color: None,
       })
@@ -160,7 +163,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("underline solid"),
       Ok(TextDecoration {
-        line: smallvec::smallvec![TextDecorationLine::Underline],
+        line: [TextDecorationLine::Underline].into(),
         style: Some(TextDecorationStyle::Solid),
         color: None,
       })
@@ -172,7 +175,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("line-through solid red"),
       Ok(TextDecoration {
-        line: smallvec::smallvec![TextDecorationLine::LineThrough],
+        line: [TextDecorationLine::LineThrough].into(),
         style: Some(TextDecorationStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
       })
@@ -184,10 +187,11 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("underline line-through solid red"),
       Ok(TextDecoration {
-        line: smallvec::smallvec![
+        line: [
           TextDecorationLine::Underline,
           TextDecorationLine::LineThrough
-        ],
+        ]
+        .into(),
         style: Some(TextDecorationStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
       })

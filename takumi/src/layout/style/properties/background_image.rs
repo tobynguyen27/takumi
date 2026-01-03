@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use cssparser::{Parser, Token, match_ignore_ascii_case};
-use smallvec::SmallVec;
 
 use crate::layout::style::{
   CssToken, FromCss, LinearGradient, NoiseV1, ParseResult, RadialGradient,
@@ -70,11 +69,11 @@ impl<'i> FromCss<'i> for BackgroundImage {
 }
 
 /// A collection of background images.
-pub type BackgroundImages = SmallVec<[BackgroundImage; 4]>;
+pub type BackgroundImages = Box<[BackgroundImage]>;
 
 impl<'i> FromCss<'i> for BackgroundImages {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut images = SmallVec::new();
+    let mut images = Vec::new();
 
     images.push(BackgroundImage::from_css(input)?);
 
@@ -82,7 +81,7 @@ impl<'i> FromCss<'i> for BackgroundImages {
       images.push(BackgroundImage::from_css(input)?);
     }
 
-    Ok(images)
+    Ok(images.into_boxed_slice())
   }
 
   fn valid_tokens() -> &'static [CssToken] {

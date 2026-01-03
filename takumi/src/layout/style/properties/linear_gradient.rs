@@ -43,7 +43,7 @@ pub struct LinearGradient {
   /// The angle of the gradient.
   pub angle: Angle,
   /// The steps of the gradient.
-  pub stops: SmallVec<[GradientStop; 4]>,
+  pub stops: Box<[GradientStop]>,
 }
 
 impl Gradient for LinearGradient {
@@ -327,7 +327,7 @@ impl<'i> FromCss<'i> for LinearGradient {
         Angle::new(180.0)
       };
 
-      let mut stops = SmallVec::new();
+      let mut stops = Vec::new();
 
       stops.push(GradientStop::from_css(input)?);
 
@@ -335,7 +335,10 @@ impl<'i> FromCss<'i> for LinearGradient {
         stops.push(GradientStop::from_css(input)?);
       }
 
-      Ok(LinearGradient { angle, stops })
+      Ok(LinearGradient {
+        angle,
+        stops: stops.into_boxed_slice(),
+      })
     })
   }
 
@@ -424,7 +427,6 @@ impl<'i> FromCss<'i> for Angle {
 #[cfg(test)]
 mod tests {
   use crate::GlobalContext;
-  use smallvec::smallvec;
 
   use super::*;
 
@@ -434,7 +436,7 @@ mod tests {
       LinearGradient::from_str("linear-gradient(to top right, #ff0000, #0000ff)"),
       Ok(LinearGradient {
         angle: Angle::new(45.0),
-        stops: smallvec![
+        stops: [
           GradientStop::ColorHint {
             color: ColorInput::Value(Color([255, 0, 0, 255])),
             hint: None,
@@ -444,6 +446,7 @@ mod tests {
             hint: None,
           },
         ]
+        .into(),
       })
     )
   }
@@ -524,7 +527,7 @@ mod tests {
       LinearGradient::from_str("linear-gradient(45deg, #ff0000, #0000ff)"),
       Ok(LinearGradient {
         angle: Angle::new(45.0),
-        stops: smallvec![
+        stops: [
           GradientStop::ColorHint {
             color: ColorInput::Value(Color([255, 0, 0, 255])),
             hint: None,
@@ -534,6 +537,7 @@ mod tests {
             hint: None,
           },
         ]
+        .into(),
       })
     )
   }
@@ -544,7 +548,7 @@ mod tests {
       LinearGradient::from_str("linear-gradient(to right, #ff0000 0%, #0000ff 100%)"),
       Ok(LinearGradient {
         angle: Angle::new(90.0), // "to right" = 90deg
-        stops: smallvec![
+        stops: [
           GradientStop::ColorHint {
             color: ColorInput::Value(Color([255, 0, 0, 255])),
             hint: Some(StopPosition(Length::Percentage(0.0))),
@@ -554,6 +558,7 @@ mod tests {
             hint: Some(StopPosition(Length::Percentage(100.0))),
           },
         ]
+        .into(),
       })
     );
   }
@@ -564,7 +569,7 @@ mod tests {
       LinearGradient::from_str("linear-gradient(to right, #ff0000, 50%, #0000ff)"),
       Ok(LinearGradient {
         angle: Angle::new(90.0), // "to right" = 90deg
-        stops: smallvec![
+        stops: [
           GradientStop::ColorHint {
             color: ColorInput::Value(Color([255, 0, 0, 255])),
             hint: None,
@@ -575,6 +580,7 @@ mod tests {
             hint: None,
           },
         ]
+        .into(),
       })
     );
   }
@@ -585,10 +591,11 @@ mod tests {
       LinearGradient::from_str("linear-gradient(to bottom, #ff0000)"),
       Ok(LinearGradient {
         angle: Angle::new(180.0),
-        stops: smallvec![GradientStop::ColorHint {
+        stops: [GradientStop::ColorHint {
           color: ColorInput::Value(Color([255, 0, 0, 255])),
           hint: None,
-        },]
+        }]
+        .into(),
       })
     );
   }
@@ -600,7 +607,7 @@ mod tests {
       LinearGradient::from_str("linear-gradient(#ff0000, #0000ff)"),
       Ok(LinearGradient {
         angle: Angle::new(180.0),
-        stops: smallvec![
+        stops: [
           GradientStop::ColorHint {
             color: ColorInput::Value(Color::from_rgb(0xff0000)),
             hint: None,
@@ -610,6 +617,7 @@ mod tests {
             hint: None,
           },
         ]
+        .into(),
       })
     );
   }
@@ -686,7 +694,7 @@ mod tests {
       LinearGradient::from_str("linear-gradient(45deg, #ff0000, 25%, #00ff00, 75%, #0000ff)"),
       Ok(LinearGradient {
         angle: Angle::new(45.0),
-        stops: smallvec![
+        stops: [
           GradientStop::ColorHint {
             color: Color([255, 0, 0, 255]).into(),
             hint: None,
@@ -702,6 +710,7 @@ mod tests {
             hint: None,
           },
         ]
+        .into(),
       })
     );
   }
@@ -710,7 +719,7 @@ mod tests {
   fn test_linear_gradient_at_simple() {
     let gradient = LinearGradient {
       angle: Angle::new(180.0), // "to bottom" (default) - Top to bottom
-      stops: smallvec![
+      stops: [
         GradientStop::ColorHint {
           color: Color([255, 0, 0, 255]).into(), // Red
           hint: Some(StopPosition(Length::Percentage(0.0))),
@@ -719,7 +728,8 @@ mod tests {
           color: Color([0, 0, 255, 255]).into(), // Blue
           hint: Some(StopPosition(Length::Percentage(100.0))),
         },
-      ],
+      ]
+      .into(),
     };
 
     // Test at the top (should be red)
@@ -747,7 +757,7 @@ mod tests {
   fn test_linear_gradient_at_horizontal() {
     let gradient = LinearGradient {
       angle: Angle::new(90.0), // "to right" - Left to right
-      stops: smallvec![
+      stops: [
         GradientStop::ColorHint {
           color: Color([255, 0, 0, 255]).into(), // Red
           hint: Some(StopPosition(Length::Percentage(0.0))),
@@ -756,7 +766,8 @@ mod tests {
           color: Color([0, 0, 255, 255]).into(), // Blue
           hint: Some(StopPosition(Length::Percentage(100.0))),
         },
-      ],
+      ]
+      .into(),
     };
 
     // Test at the left (should be red)
@@ -775,10 +786,11 @@ mod tests {
   fn test_linear_gradient_at_single_color() {
     let gradient = LinearGradient {
       angle: Angle::new(0.0),
-      stops: smallvec![GradientStop::ColorHint {
+      stops: [GradientStop::ColorHint {
         color: Color([255, 0, 0, 255]).into(), // Red
         hint: None,
-      }],
+      }]
+      .into(),
     };
 
     // Should always return the same color
@@ -793,7 +805,7 @@ mod tests {
   fn test_linear_gradient_at_no_steps() {
     let gradient = LinearGradient {
       angle: Angle::new(0.0),
-      stops: smallvec![],
+      stops: [].into(),
     };
 
     // Should return transparent
@@ -884,7 +896,7 @@ mod tests {
   fn resolve_stops_percentage_and_px_linear() {
     let gradient = LinearGradient {
       angle: Angle::new(0.0),
-      stops: smallvec![
+      stops: [
         GradientStop::ColorHint {
           color: Color::black().into(),
           hint: Some(StopPosition(Length::Percentage(0.0))),
@@ -897,7 +909,8 @@ mod tests {
           color: Color::black().into(),
           hint: Some(StopPosition(Length::Px(100.0))),
         },
-      ],
+      ]
+      .into(),
     };
 
     let context = GlobalContext::default();
@@ -918,7 +931,7 @@ mod tests {
   fn resolve_stops_equal_positions_allowed_linear() {
     let gradient = LinearGradient {
       angle: Angle::new(0.0),
-      stops: smallvec![
+      stops: [
         GradientStop::ColorHint {
           color: Color::black().into(),
           hint: Some(StopPosition(Length::Px(0.0))),
@@ -927,7 +940,8 @@ mod tests {
           color: Color::black().into(),
           hint: Some(StopPosition(Length::Px(0.0))),
         },
-      ],
+      ]
+      .into(),
     };
     let context = GlobalContext::default();
     let ctx = RenderContext::new(&context, (200, 100).into(), Default::default());

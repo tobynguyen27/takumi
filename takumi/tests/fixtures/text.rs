@@ -1,5 +1,4 @@
 use parley::FontVariation;
-use smallvec::smallvec;
 use swash::tag_from_bytes;
 use takumi::layout::{
   node::{ContainerNode, NodeKind, TextNode},
@@ -56,10 +55,13 @@ fn text_typography_variable_width() {
         tw: None,
         style: Some(
           StyleBuilder::default()
-            .font_variation_settings(Some(smallvec![FontVariation {
-              tag: tag_from_bytes(b"wdth"),
-              value: *width,
-            }]))
+            .font_variation_settings(Some(
+              [FontVariation {
+                tag: tag_from_bytes(b"wdth"),
+                value: *width,
+              }]
+              .into(),
+            ))
             .build()
             .unwrap(),
         ),
@@ -421,7 +423,7 @@ fn text_stroke_black_red() {
 #[test]
 fn text_shadow() {
   // #ffcc00 1px 0 10px
-  let shadows = smallvec![TextShadow {
+  let shadows = [TextShadow {
     offset_x: Px(1.0),
     offset_y: Px(0.0),
     blur_radius: Px(10.0),
@@ -435,7 +437,7 @@ fn text_shadow() {
       StyleBuilder::default()
         .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
         .font_size(Some(Px(48.0)))
-        .text_shadow(Some(shadows))
+        .text_shadow(Some(shadows.into()))
         .build()
         .unwrap(),
     ),
@@ -448,7 +450,7 @@ fn text_shadow() {
 #[test]
 fn text_shadow_no_blur_radius() {
   // 5px 5px #558abb
-  let shadows = smallvec![TextShadow {
+  let shadows = [TextShadow {
     offset_x: Px(5.0),
     offset_y: Px(5.0),
     blur_radius: Px(0.0),
@@ -462,7 +464,7 @@ fn text_shadow_no_blur_radius() {
       StyleBuilder::default()
         .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
         .font_size(Some(Px(72.0)))
-        .text_shadow(Some(shadows))
+        .text_shadow(Some(shadows.into()))
         .build()
         .unwrap(),
     ),

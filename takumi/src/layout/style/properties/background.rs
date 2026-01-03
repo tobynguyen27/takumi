@@ -1,5 +1,4 @@
 use cssparser::Parser;
-use smallvec::SmallVec;
 
 use crate::layout::style::*;
 
@@ -120,18 +119,18 @@ impl<'i> FromCss<'i> for Background {
 }
 
 /// A list of background properties (one per layer).
-pub type Backgrounds = SmallVec<[Background; 4]>;
+pub type Backgrounds = Box<[Background]>;
 
 impl<'i> FromCss<'i> for Backgrounds {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut backgrounds = SmallVec::new();
+    let mut backgrounds = Vec::new();
     backgrounds.push(Background::from_css(input)?);
 
     while input.expect_comma().is_ok() {
       backgrounds.push(Background::from_css(input)?);
     }
 
-    Ok(backgrounds)
+    Ok(backgrounds.into_boxed_slice())
   }
 
   fn valid_tokens() -> &'static [CssToken] {

@@ -20,7 +20,7 @@ pub struct RadialGradient {
   /// Center position
   pub center: BackgroundPosition,
   /// Gradient stops
-  pub stops: Vec<GradientStop>,
+  pub stops: Box<[GradientStop]>,
 }
 
 /// Supported shapes for radial gradients
@@ -180,10 +180,7 @@ impl RadialGradientDrawContext {
       }
     };
 
-    let radius_scale = match gradient.shape {
-      RadialShape::Circle => radius_x.max(radius_y),
-      RadialShape::Ellipse => radius_x.max(radius_y),
-    };
+    let radius_scale = radius_x.max(radius_y);
     let resolved_stops = resolve_stops_along_axis(&gradient.stops, radius_scale.max(1e-6), context);
 
     // Pre-compute color lookup table with adaptive size.
@@ -247,7 +244,7 @@ impl<'i> FromCss<'i> for RadialGradient {
         shape,
         size,
         center,
-        stops,
+        stops: stops.into_boxed_slice(),
       })
     })
   }
@@ -275,7 +272,7 @@ mod tests {
         shape: RadialShape::Ellipse,
         size: RadialSize::FarthestCorner,
         center: BackgroundPosition::default(),
-        stops: vec![
+        stops: [
           GradientStop::ColorHint {
             color: Color([255, 0, 0, 255]).into(),
             hint: None,
@@ -284,7 +281,8 @@ mod tests {
             color: Color([0, 0, 255, 255]).into(),
             hint: None,
           },
-        ],
+        ]
+        .into(),
       })
     );
   }
@@ -300,7 +298,7 @@ mod tests {
         shape: RadialShape::Circle,
         size: RadialSize::FarthestSide,
         center: BackgroundPosition::default(),
-        stops: vec![
+        stops: [
           GradientStop::ColorHint {
             color: Color([255, 0, 0, 255]).into(),
             hint: None,
@@ -309,7 +307,8 @@ mod tests {
             color: Color([0, 0, 255, 255]).into(),
             hint: None,
           },
-        ],
+        ]
+        .into(),
       })
     );
   }
@@ -328,7 +327,7 @@ mod tests {
           PositionComponent::KeywordX(PositionKeywordX::Left),
           PositionComponent::KeywordY(PositionKeywordY::Top),
         )),
-        stops: vec![
+        stops: [
           GradientStop::ColorHint {
             color: Color([255, 0, 0, 255]).into(),
             hint: None,
@@ -337,7 +336,8 @@ mod tests {
             color: Color([0, 0, 255, 255]).into(),
             hint: None,
           },
-        ],
+        ]
+        .into(),
       })
     );
   }
@@ -356,7 +356,7 @@ mod tests {
           PositionComponent::Length(Length::Percentage(25.0)),
           PositionComponent::Length(Length::Percentage(70.0)),
         )),
-        stops: vec![
+        stops: [
           GradientStop::ColorHint {
             color: Color::white().into(),
             hint: None,
@@ -365,7 +365,8 @@ mod tests {
             color: Color::black().into(),
             hint: None,
           },
-        ],
+        ]
+        .into(),
       })
     );
   }
@@ -384,7 +385,7 @@ mod tests {
         center: BackgroundPosition(SpacePair::from_single(PositionComponent::Length(
           Length::Px(25.0),
         ))),
-        stops: vec![
+        stops: [
           GradientStop::ColorHint {
             color: Color([211, 211, 211, 255]).into(),
             hint: Some(StopPosition(Length::Percentage(2.0))),
@@ -393,7 +394,8 @@ mod tests {
             color: Color::transparent().into(),
             hint: Some(StopPosition(Length::Percentage(0.0))),
           },
-        ],
+        ]
+        .into(),
       })
     );
   }
@@ -409,7 +411,7 @@ mod tests {
         shape: RadialShape::Circle,
         size: RadialSize::FarthestCorner,
         center: BackgroundPosition::default(),
-        stops: vec![
+        stops: [
           GradientStop::ColorHint {
             color: Color([255, 0, 0, 255]).into(),
             hint: Some(StopPosition(Length::Percentage(0.0))),
@@ -422,7 +424,8 @@ mod tests {
             color: Color([0, 0, 255, 255]).into(),
             hint: Some(StopPosition(Length::Percentage(100.0))),
           },
-        ],
+        ]
+        .into(),
       })
     );
   }
@@ -433,7 +436,7 @@ mod tests {
       shape: RadialShape::Ellipse,
       size: RadialSize::FarthestCorner,
       center: BackgroundPosition::default(),
-      stops: vec![
+      stops: [
         GradientStop::ColorHint {
           color: Color::black().into(),
           hint: Some(StopPosition(Length::Percentage(0.0))),
@@ -446,7 +449,8 @@ mod tests {
           color: Color::black().into(),
           hint: Some(StopPosition(Length::Px(100.0))),
         },
-      ],
+      ]
+      .into(),
     };
 
     let context = GlobalContext::default();
@@ -468,7 +472,7 @@ mod tests {
       shape: RadialShape::Ellipse,
       size: RadialSize::FarthestCorner,
       center: BackgroundPosition::default(),
-      stops: vec![
+      stops: [
         GradientStop::ColorHint {
           color: Color::black().into(),
           hint: Some(StopPosition(Length::Px(0.0))),
@@ -481,7 +485,8 @@ mod tests {
           color: Color::black().into(),
           hint: Some(StopPosition(Length::Px(0.0))),
         },
-      ],
+      ]
+      .into(),
     };
 
     let context = GlobalContext::default();
@@ -504,7 +509,7 @@ mod tests {
       shape: RadialShape::Circle,
       size: RadialSize::FarthestCorner,
       center: BackgroundPosition::default(), // default is center (50%, 50%)
-      stops: vec![
+      stops: [
         GradientStop::ColorHint {
           color: Color([255, 0, 0, 255]).into(), // Red at center
           hint: Some(StopPosition(Length::Percentage(0.0))),
@@ -513,7 +518,8 @@ mod tests {
           color: Color([0, 0, 255, 255]).into(), // Blue at edge
           hint: Some(StopPosition(Length::Percentage(100.0))),
         },
-      ],
+      ]
+      .into(),
     };
 
     let context = GlobalContext::default();
