@@ -381,121 +381,65 @@ pub(crate) fn apply_backdrop_filter(
 }
 
 /// Applies a drop-shadow filter effect to an image.
-/// This renders the shadow based on the source image's alpha channel.
-///
-/// The drop-shadow filter creates a shadow that follows the shape of the source
-/// image's alpha channel. The process is:
-/// 1. Create a shadow image large enough to contain the original + blur + offset
-/// 2. Copy the source alpha channel, filling with shadow color
-/// 3. Apply blur to the shadow
-/// 4. Composite: draw shadow at offset, then draw original on top
 fn apply_drop_shadow_filter(canvas: &mut RgbaImage, shadow: &SizedShadow) {
-  let canvas_width = canvas.width();
-  let canvas_height = canvas.height();
-
+  let (canvas_width, canvas_height) = canvas.dimensions();
   if canvas_width == 0 || canvas_height == 0 {
     return;
   }
 
-  // Calculate the padding needed for blur
-  let blur_padding = (shadow.blur_radius.ceil() as i32).max(0);
+  let blur_radius = shadow.blur_radius;
+  let padding = blur_radius.ceil() as u32;
 
-  // Calculate the offset as integers
-  let offset_x = shadow.offset_x as i32;
-  let offset_y = shadow.offset_y as i32;
-
-  // Calculate the required size for the composited result
-  // We need space for: shadow (original + blur padding + offset) and original
-  let min_x = (-blur_padding + offset_x).min(0);
-  let min_y = (-blur_padding + offset_y).min(0);
-  let max_x = (canvas_width as i32 + blur_padding + offset_x).max(canvas_width as i32);
-  let max_y = (canvas_height as i32 + blur_padding + offset_y).max(canvas_height as i32);
-
-  let result_width = (max_x - min_x) as u32;
-  let result_height = (max_y - min_y) as u32;
-
-  // The origin offset for placing content in the result image
-  let origin_x = -min_x;
-  let origin_y = -min_y;
-
-  // Create shadow image with enough space for blur
-  let shadow_width = canvas_width + (blur_padding as u32 * 2);
-  let shadow_height = canvas_height + (blur_padding as u32 * 2);
+  let shadow_width = canvas_width + 2 * padding;
+  let shadow_height = canvas_height + 2 * padding;
   let mut shadow_image = RgbaImage::new(shadow_width, shadow_height);
 
-  // Copy the source alpha channel and fill with shadow color
+  let offset_x = shadow.offset_x.round() as i32;
+  let offset_y = shadow.offset_y.round() as i32;
+
+  // Populate shadow image with source alpha and shadow color
   let shadow_color: Rgba<u8> = shadow.color.into();
+  let [sr, sg, sb, sa] = shadow_color.0;
+
+  let canvas_raw = canvas.as_raw();
+  let shadow_raw = shadow_image.as_mut();
+
   for y in 0..canvas_height {
+    let src_y_idx = (y * canvas_width) as usize * 4;
+    let dest_y = y as i32 + offset_y + padding as i32;
+
+    if dest_y < 0 || dest_y >= shadow_height as i32 {
+      continue;
+    }
+
+    let dest_y_offset = (dest_y as usize * shadow_width as usize) * 4;
+
     for x in 0..canvas_width {
-      let src_pixel = canvas.get_pixel(x, y);
-      let alpha = src_pixel.0[3];
-      if alpha > 0 {
-        // Place at center of shadow image (offset by blur_padding)
-        let dest_x = x + blur_padding as u32;
-        let dest_y = y + blur_padding as u32;
-        shadow_image.put_pixel(
-          dest_x,
-          dest_y,
-          Rgba([
-            shadow_color.0[0],
-            shadow_color.0[1],
-            shadow_color.0[2],
-            // Blend shadow alpha with source alpha
-            fast_div_255(shadow_color.0[3] as u16 * alpha as u16),
-          ]),
-        );
+      let alpha = canvas_raw[src_y_idx + x as usize * 4 + 3];
+      if alpha == 0 {
+        continue;
+      }
+
+      let dest_x = x as i32 + offset_x + padding as i32;
+      if dest_x >= 0 && dest_x < shadow_width as i32 {
+        let d_idx = dest_y_offset + dest_x as usize * 4;
+        shadow_raw[d_idx] = sr;
+        shadow_raw[d_idx + 1] = sg;
+        shadow_raw[d_idx + 2] = sb;
+        shadow_raw[d_idx + 3] = fast_div_255(sa as u16 * alpha as u16);
       }
     }
   }
 
-  // Apply blur to the shadow
-  apply_blur(&mut shadow_image, shadow.blur_radius, BlurType::Shadow);
+  // Apply blur to the shadow image
+  apply_blur(&mut shadow_image, blur_radius, BlurType::Shadow);
 
-  // Create the result image
-  let mut result = RgbaImage::new(result_width, result_height);
-
-  // Draw the shadow at its offset position
-  let shadow_dest_x = origin_x + offset_x - blur_padding;
-  let shadow_dest_y = origin_y + offset_y - blur_padding;
-  for y in 0..shadow_height {
-    for x in 0..shadow_width {
-      let dest_x = shadow_dest_x + x as i32;
-      let dest_y = shadow_dest_y + y as i32;
-      if dest_x >= 0 && dest_x < result_width as i32 && dest_y >= 0 && dest_y < result_height as i32
-      {
-        let shadow_pixel = shadow_image.get_pixel(x, y);
-        if shadow_pixel.0[3] > 0 {
-          blend_pixel(
-            result.get_pixel_mut(dest_x as u32, dest_y as u32),
-            *shadow_pixel,
-          );
-        }
-      }
-    }
-  }
-
-  // Draw the original image on top
-  for y in 0..canvas_height {
-    for x in 0..canvas_width {
-      let dest_x = (origin_x + x as i32) as u32;
-      let dest_y = (origin_y + y as i32) as u32;
-      let src_pixel = *canvas.get_pixel(x, y);
-      if src_pixel.0[3] > 0 {
-        blend_pixel(result.get_pixel_mut(dest_x, dest_y), src_pixel);
-      }
-    }
-  }
-
-  // Copy the result back to the canvas area
-  // The canvas should remain the same size, so we crop/extend as needed
-  for y in 0..canvas_height {
-    for x in 0..canvas_width {
-      let src_x = (origin_x + x as i32) as u32;
-      let src_y = (origin_y + y as i32) as u32;
-      if src_x < result_width && src_y < result_height {
-        *canvas.get_pixel_mut(x, y) = *result.get_pixel(src_x, src_y);
-      }
-    }
+  // Draw source element OVER the blurred shadow
+  // Since we already copied the source alpha to shadow_image, we can blend in-place
+  for (x, y, canvas_pixel) in canvas.enumerate_pixels_mut() {
+    let mut final_px = *shadow_image.get_pixel(x + padding, y + padding);
+    blend_pixel(&mut final_px, *canvas_pixel);
+    *canvas_pixel = final_px;
   }
 }
 
