@@ -221,7 +221,7 @@ pub enum TailwindProperty {
   /// `text-overflow` property.
   TextOverflow(TextOverflow),
   /// `text-wrap` property.
-  TextWrap(TextWrapMode),
+  TextWrap(TextWrap),
   /// `white-space` property.
   WhiteSpace(WhiteSpace),
   /// `word-break` property.
@@ -752,8 +752,8 @@ impl TailwindProperty {
         .into();
         style.overflow = SpacePair::from_single(Overflow::Hidden).into();
       }
-      TailwindProperty::TextWrap(text_wrap_mode) => {
-        style.text_wrap_mode = Some(text_wrap_mode).into();
+      TailwindProperty::TextWrap(text_wrap) => {
+        style.text_wrap = text_wrap.into();
       }
       TailwindProperty::WhiteSpace(white_space) => {
         style.white_space = white_space.into();

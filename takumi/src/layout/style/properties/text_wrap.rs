@@ -1,6 +1,8 @@
-use cssparser::Parser;
+use cssparser::{Parser, match_ignore_ascii_case};
 
-use crate::layout::style::{CssToken, FromCss, ParseResult, declare_enum_from_css_impl};
+use crate::layout::style::{
+  CssToken, FromCss, ParseResult, declare_enum_from_css_impl, tw::TailwindPropertyParser,
+};
 
 /// Controls how text should be wrapped.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -10,6 +12,30 @@ pub struct TextWrap {
   pub mode: Option<TextWrapMode>,
   /// Controls the style of text wrapping.
   pub style: TextWrapStyle,
+}
+
+impl TailwindPropertyParser for TextWrap {
+  fn parse_tw(token: &str) -> Option<Self> {
+    match_ignore_ascii_case! {token,
+      "wrap" => Some(TextWrap {
+        mode: Some(TextWrapMode::Wrap),
+        style: TextWrapStyle::default(),
+      }),
+      "nowrap" => Some(TextWrap {
+        mode: Some(TextWrapMode::NoWrap),
+        style: TextWrapStyle::default(),
+      }),
+      "balance" => Some(TextWrap {
+        mode: None,
+        style: TextWrapStyle::Balance,
+      }),
+      "pretty" => Some(TextWrap {
+        mode: None,
+        style: TextWrapStyle::Pretty,
+      }),
+      _ => None,
+    }
+  }
 }
 
 impl<'i> FromCss<'i> for TextWrap {
