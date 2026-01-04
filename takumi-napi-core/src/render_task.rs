@@ -18,7 +18,7 @@ use takumi::{
 };
 
 use crate::{
-  ArrayBufferFn, MaybeInitialized,
+  ArrayBufferFn, MaybeInitialized, buffer_from_object,
   renderer::{OutputFormat, RenderOptions, ResourceCache},
 };
 
@@ -88,7 +88,7 @@ impl<'g> RenderTask<'g> {
         array_buffer_fn.apply(ctx.value, ())?.then(move |ctx| {
           tx.send((
             task,
-            MaybeInitialized::Uninitialized(ctx.value.into_buffer(&ctx.env)?),
+            MaybeInitialized::Uninitialized(buffer_from_object(ctx.env, ctx.value)?),
           ))
           .map_err(|e| Error::from_reason(e.to_string()))?;
 

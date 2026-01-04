@@ -1,7 +1,6 @@
 use lru::LruCache;
-use napi::{De, bindgen_prelude::*};
+use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use serde::de::DeserializeOwned;
 use takumi::{
   GlobalContext,
   layout::node::NodeKind,
@@ -14,13 +13,12 @@ use takumi::{
 };
 
 use crate::{
-  FetchFn, FontInput, load_font_task::LoadFontTask,
-  put_persistent_image_task::PutPersistentImageTask, render_animation_task::RenderAnimationTask,
-  render_task::RenderTask,
+  FetchFn, FontInput, buffer_from_object, buffer_slice_from_object, deserialize_with_tracing,
+  load_font_task::LoadFontTask, put_persistent_image_task::PutPersistentImageTask,
+  render_animation_task::RenderAnimationTask, render_task::RenderTask,
 };
 use std::{
   num::NonZeroUsize,
-  ops::Deref,
   sync::{Arc, Mutex},
 };
 
@@ -426,41 +424,4 @@ impl Renderer {
       signal,
     ))
   }
-}
-
-fn buffer_from_object(env: Env, value: Object) -> Result<Buffer> {
-  if let Ok(buffer) = unsafe { ArrayBuffer::from_napi_value(env.raw(), value.raw()) } {
-    return Ok((*buffer).into());
-  }
-
-  unsafe { Buffer::from_napi_value(env.raw(), value.raw()) }
-}
-
-enum BufferOrSlice<'env> {
-  ArrayBuffer(ArrayBuffer<'env>),
-  Slice(BufferSlice<'env>),
-}
-
-impl<'env> Deref for BufferOrSlice<'env> {
-  type Target = [u8];
-
-  fn deref(&self) -> &Self::Target {
-    match self {
-      BufferOrSlice::ArrayBuffer(buffer) => buffer,
-      BufferOrSlice::Slice(buffer) => buffer,
-    }
-  }
-}
-
-fn buffer_slice_from_object<'env>(env: Env, value: Object) -> Result<BufferOrSlice<'env>> {
-  if let Ok(buffer) = unsafe { ArrayBuffer::from_napi_value(env.raw(), value.raw()) } {
-    return Ok(BufferOrSlice::ArrayBuffer(buffer));
-  }
-
-  unsafe { BufferSlice::from_napi_value(env.raw(), value.raw()).map(BufferOrSlice::Slice) }
-}
-
-fn deserialize_with_tracing<T: DeserializeOwned>(value: Object) -> Result<T> {
-  let mut de = De::new(&value);
-  T::deserialize(&mut de).map_err(|e| Error::from_reason(e.to_string()))
 }
