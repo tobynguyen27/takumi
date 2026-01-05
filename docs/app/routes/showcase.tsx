@@ -47,6 +47,8 @@ function Card({ project }: { project: Project }) {
           src={project.image}
           alt="Blur background"
           className="absolute inset-0 w-full h-full object-cover blur-xs scale-110 opacity-75 select-none pointer-events-none"
+          width={project.width}
+          height={project.height}
         />
         <img
           src={project.image}
