@@ -83,7 +83,7 @@ pub enum Filter {
 }
 
 /// A list of filter operations
-pub type Filters = Box<[Filter]>;
+pub type Filters = Vec<Filter>;
 
 impl TailwindPropertyParser for Filters {
   fn parse_tw(_token: &str) -> Option<Self> {
@@ -457,7 +457,7 @@ impl<'i> FromCss<'i> for Filters {
       filters.push(filter);
     }
 
-    Ok(filters.into_boxed_slice())
+    Ok(filters)
   }
 
   fn valid_tokens() -> &'static [CssToken] {

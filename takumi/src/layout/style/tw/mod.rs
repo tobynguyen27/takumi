@@ -493,6 +493,18 @@ impl Neg for TailwindProperty {
   }
 }
 
+/// Macro to append a filter to the existing filter list in style.
+/// If no filters exist, creates a new filter Vec with the single filter.
+macro_rules! append_filter {
+  ($style:expr, $field:ident, $filter:expr) => {{
+    if let crate::layout::style::CssValue::Value(existing_filters) = &mut $style.$field {
+      existing_filters.push($filter);
+    } else {
+      $style.$field = vec![$filter].into();
+    }
+  }};
+}
+
 impl TailwindProperty {
   /// Parse a single tailwind property from a token.
   pub fn parse(token: &str) -> Option<TailwindProperty> {
@@ -920,61 +932,65 @@ impl TailwindProperty {
         style.grid_row = Some(GridLine::span(grid_placement_span)).into();
       }
       TailwindProperty::Blur(tw_blur) => {
-        style.filter = [Filter::Blur(tw_blur.0)].into();
+        append_filter!(style, filter, Filter::Blur(tw_blur.0));
       }
       TailwindProperty::Brightness(percentage_number) => {
-        style.filter = [Filter::Brightness(percentage_number)].into();
+        append_filter!(style, filter, Filter::Brightness(percentage_number));
       }
       TailwindProperty::Contrast(percentage_number) => {
-        style.filter = [Filter::Contrast(percentage_number)].into();
+        append_filter!(style, filter, Filter::Contrast(percentage_number));
       }
       TailwindProperty::DropShadow(text_shadow) => {
-        style.filter = [Filter::DropShadow(text_shadow)].into();
+        append_filter!(style, filter, Filter::DropShadow(text_shadow));
       }
       TailwindProperty::Grayscale(percentage_number) => {
-        style.filter = [Filter::Grayscale(percentage_number)].into();
+        append_filter!(style, filter, Filter::Grayscale(percentage_number));
       }
       TailwindProperty::HueRotate(angle) => {
-        style.filter = [Filter::HueRotate(angle)].into();
+        append_filter!(style, filter, Filter::HueRotate(angle));
       }
       TailwindProperty::Invert(percentage_number) => {
-        style.filter = [Filter::Invert(percentage_number)].into();
+        append_filter!(style, filter, Filter::Invert(percentage_number));
       }
       TailwindProperty::Saturate(percentage_number) => {
-        style.filter = [Filter::Saturate(percentage_number)].into();
+        append_filter!(style, filter, Filter::Saturate(percentage_number));
       }
       TailwindProperty::Sepia(percentage_number) => {
-        style.filter = [Filter::Sepia(percentage_number)].into();
+        append_filter!(style, filter, Filter::Sepia(percentage_number));
       }
       TailwindProperty::Filter(ref filters) => {
         style.filter = filters.clone().into();
       }
       TailwindProperty::BackdropBlur(tw_blur) => {
-        style.backdrop_filter = [Filter::Blur(tw_blur.0)].into();
+        append_filter!(style, backdrop_filter, Filter::Blur(tw_blur.0));
       }
       TailwindProperty::BackdropBrightness(percentage_number) => {
-        style.backdrop_filter = [Filter::Brightness(percentage_number)].into();
+        append_filter!(
+          style,
+          backdrop_filter,
+          Filter::Brightness(percentage_number)
+        );
       }
       TailwindProperty::BackdropContrast(percentage_number) => {
-        style.backdrop_filter = [Filter::Contrast(percentage_number)].into();
+        append_filter!(style, backdrop_filter, Filter::Contrast(percentage_number));
       }
       TailwindProperty::BackdropGrayscale(percentage_number) => {
-        style.backdrop_filter = [Filter::Grayscale(percentage_number)].into();
+        append_filter!(style, backdrop_filter, Filter::Grayscale(percentage_number));
       }
       TailwindProperty::BackdropHueRotate(angle) => {
-        style.backdrop_filter = [Filter::HueRotate(angle)].into();
+        append_filter!(style, backdrop_filter, Filter::HueRotate(angle));
       }
       TailwindProperty::BackdropInvert(percentage_number) => {
-        style.backdrop_filter = [Filter::Invert(percentage_number)].into();
+        append_filter!(style, backdrop_filter, Filter::Invert(percentage_number));
       }
       TailwindProperty::BackdropOpacity(percentage_number) => {
-        style.backdrop_filter = [Filter::Opacity(percentage_number)].into();
+        append_filter!(style, backdrop_filter, Filter::Opacity(percentage_number));
       }
       TailwindProperty::BackdropSaturate(percentage_number) => {
-        style.backdrop_filter = [Filter::Saturate(percentage_number)].into();
+        append_filter!(style, backdrop_filter, Filter::Saturate(percentage_number));
       }
       TailwindProperty::BackdropSepia(percentage_number) => {
-        style.backdrop_filter = [Filter::Sepia(percentage_number)].into();
+        append_filter!(style, backdrop_filter, Filter::Sepia(percentage_number));
       }
       TailwindProperty::BackdropFilter(ref filters) => {
         style.backdrop_filter = filters.clone().into();
@@ -1250,6 +1266,37 @@ mod tests {
           },
         ]
       })
+    )
+  }
+
+  #[test]
+  fn test_filters_append() {
+    use crate::layout::style::{CssValue, Style, properties::Filter};
+
+    let mut style = Style::default();
+
+    // Apply blur
+    if let Some(blur_prop) = TailwindProperty::parse("blur-sm") {
+      blur_prop.apply(&mut style);
+    }
+
+    // Apply brightness - this should APPEND, not override
+    if let Some(brightness_prop) = TailwindProperty::parse("brightness-150") {
+      brightness_prop.apply(&mut style);
+    }
+
+    // Apply contrast - this should also APPEND
+    if let Some(contrast_prop) = TailwindProperty::parse("contrast-125") {
+      contrast_prop.apply(&mut style);
+    }
+
+    assert_eq!(
+      style.filter,
+      CssValue::Value(vec![
+        Filter::Blur(Length::Px(8.0)),
+        Filter::Brightness(PercentageNumber(1.5)),
+        Filter::Contrast(PercentageNumber(1.25))
+      ])
     )
   }
 }
