@@ -3,39 +3,38 @@ import { HomeLayout } from "fumadocs-ui/layouts/home";
 import { Heart, LayoutTemplate, Link2Icon } from "lucide-react";
 import { useMemo } from "react";
 import { baseOptions } from "~/layout-config";
-import { cn } from "~/lib/utils";
-import { showcaseProjects, showcaseTemplates } from "../data/showcase";
+import {
+  type Project,
+  showcaseProjects,
+  showcaseTemplates,
+} from "../data/showcase";
 
-function Card({
-  title,
-  image,
-  url,
-  className = "",
-}: {
-  title: string;
-  image?: string;
-  url: string;
-  className?: string;
-}) {
+function Card({ project }: { project: Project }) {
   const icon = useMemo(() => {
-    if (url.includes("github.com")) {
+    if (project.url.includes("github.com")) {
       return <SiGithub size={18} />;
     }
 
     return <Link2Icon size={18} />;
-  }, [url]);
+  }, [project.url]);
 
   return (
     <a
-      href={url}
+      href={project.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn("border rounded-lg overflow-hidden group", className)}
+      className="border rounded-lg overflow-hidden group"
     >
-      <img src={image} alt={title} className="object-cover aspect-1200/630" />
+      <img
+        src={project.image}
+        alt={project.title}
+        className="object-cover aspect-1200/630"
+        width={project.width}
+        height={project.height}
+      />
       <div className="px-4 py-2 border-t flex items-center gap-2 text-foreground/80 group-hover:text-foreground transition-colors duration-300">
         {icon}
-        <span className="font-medium">{title}</span>
+        <span className="font-medium">{project.title}</span>
       </div>
     </a>
   );
@@ -67,7 +66,7 @@ export default function Showcase() {
 
         <section className="mb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {showcaseProjects.map((project) => (
-            <Card key={project.url} {...project} />
+            <Card key={project.url} project={project} />
           ))}
         </section>
 
@@ -86,6 +85,8 @@ export default function Showcase() {
                 <img
                   src={item.image}
                   alt={`${item.title} layout example`}
+                  width={1200}
+                  height={630}
                   className="w-full h-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-700"
                 />
                 <h3 className="font-bold text-lg inline-flex items-center gap-2">

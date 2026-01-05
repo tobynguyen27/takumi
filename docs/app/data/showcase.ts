@@ -7,17 +7,23 @@ export const showcaseProjects: Project[] = [
     title: "Dcard",
     image: "https://fbthumb.dcard.tw/post/260376394",
     url: "https://dcard.tw",
+    width: 1200,
+    height: 630,
   },
   {
-    title: "Fumadocs",
+    title: "fuma-nama/fumadocs",
     image: "https://www.fumadocs.dev/og/image.webp",
-    url: "https://www.fumadocs.dev",
+    url: "https://github.com/fuma-nama/fumadocs",
+    width: 1200,
+    height: 630,
   },
   {
     title: "kane50613/image-bench",
     image:
       "https://image-bench.kane.tw/render?provider=takumi-webp&template=docs&width=800&height=400",
     url: "https://github.com/kane50613/image-bench",
+    width: 800,
+    height: 400,
   },
 ];
 
@@ -67,6 +73,8 @@ export interface Project {
   title: string;
   image: string;
   url: string;
+  width: number;
+  height: number;
 }
 
 export interface Template {
