@@ -1,0 +1,4 @@
+language: "en-US"
+reviews:
+  poem: false
+  sequence_diagrams: false
