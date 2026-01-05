@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { LayoutTemplate, Type, Zap } from "lucide-react";
 
 // Add your showcase projects here!
+// If no `title` provided, the hostname will be used as the title (or github owner/repo name).
 export const showcaseProjects: Project[] = [
   {
     image: "https://fbthumb.dcard.tw/post/260376394",
@@ -11,7 +12,7 @@ export const showcaseProjects: Project[] = [
   },
   {
     image: "https://www.fumadocs.dev/og/image.webp",
-    url: "https://github.com/fuma-nama/fumadocs",
+    url: "https://fumadocs.dev/",
     width: 1200,
     height: 630,
   },
@@ -19,6 +20,13 @@ export const showcaseProjects: Project[] = [
     image:
       "https://raw.githubusercontent.com/pi0/shiki-image/main/test/.snapshot/image.webp",
     url: "https://github.com/pi0/shiki-image",
+    width: 1200,
+    height: 630,
+  },
+  {
+    image:
+      "https://res.cloudinary.com/alfanjauhari/image/upload/og/works/gcbc.webp",
+    url: "https://www.alfanjauhari.com/",
     width: 1200,
     height: 630,
   },
@@ -31,7 +39,7 @@ export const showcaseProjects: Project[] = [
   {
     image:
       "https://image-bench.kane.tw/render?provider=takumi-webp&template=docs&width=800&height=400",
-    url: "https://github.com/kane50613/image-bench",
+    url: "https://image-bench.kane.tw",
     width: 800,
     height: 400,
   },
@@ -61,20 +69,17 @@ export const showcaseTemplates: Template[] = [
 export const showcaseFeatures: Feature[] = [
   {
     title: "Advanced Typography",
-    description:
-      "Full support for variable fonts, RTL, and complex text decorations like skip-ink. Perfectly legible at any scale.",
+    description: "Variable fonts, RTL, complex text decorations, and more.",
     icon: Type,
   },
   {
-    title: "Native Layout Engine",
-    description:
-      "A custom Rust-based Flexbox implementation that mirrors browser behavior with zero dependencies.",
+    title: "Satori Compatibility",
+    description: "Supports nearly all Satori features.",
     icon: LayoutTemplate,
   },
   {
     title: "Tailwind CSS First",
-    description:
-      "Use the tools you love. Takumi natively understands Tailwind utility classes for rapid development.",
+    description: "Native Tailwind parser built-in for maximum performance.",
     icon: Zap,
   },
 ];

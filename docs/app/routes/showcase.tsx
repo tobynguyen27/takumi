@@ -72,7 +72,7 @@ export default function Showcase() {
         content="See what's possible with Takumi - The high-performance image rendering engine."
       />
 
-      <div className="container py-24 px-4 mx-auto max-w-7xl">
+      <div className="container py-24 px-4 mx-auto max-w-8xl">
         <div className="flex flex-col items-center text-center mb-16">
           <div className="relative mb-6">
             <div className="absolute -inset-4 bg-primary/20 blur-2xl rounded-full animate-pulse duration-300" />
