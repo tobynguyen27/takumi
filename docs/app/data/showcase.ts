@@ -5,7 +5,7 @@ import { LayoutTemplate, Type, Zap } from "lucide-react";
 // If no `title` provided, the hostname will be used as the title (or github owner/repo name).
 export const showcaseProjects: Project[] = [
   {
-    image: "https://fbthumb.dcard.tw/post/260376394",
+    image: "/images/dcard-post-260376394.webp",
     url: "https://dcard.tw",
     width: 1200,
     height: 630,
