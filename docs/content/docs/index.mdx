@@ -31,6 +31,7 @@ By default Next.js bundles the `@takumi-rs/core` package, which requires native 
 
 ```ts title="next.config.ts"
 export const config = {
+  // [!code ++]
   serverExternalPackages: ["@takumi-rs/image-response"],
 };
 ```
@@ -41,12 +42,13 @@ Opt-out from the bundling by setting the `ssr.external` and `optimizeDeps.exclud
 ```ts title="vite.config.ts"
 export default defineConfig({
   optimizeDeps: {
-    // [!code highlight]
+    // [!code ++]
     exclude: ["@takumi-rs/core"],
   },
   ssr: {
-    // [!code highlight]
-    noExternal: ["@takumi-rs/image-response", "@takumi-rs/core"],
+    // [!code ++:2]
+    external: ["@takumi-rs/core"],
+    noExternal: ["@takumi-rs/image-response"],
   },
 });
 ```
@@ -72,12 +74,12 @@ import takumiPackageJson from "@takumi-rs/core/package.json" with {
 export default defineConfig({
   nitro: {
     externals: {
-      external: ["@takumi-rs/core"], // [!code highlight]
-      traceInclude: Object.keys(takumiPackageJson.optionalDependencies), // [!code highlight]
+      external: ["@takumi-rs/core"], // [!code ++]
+      traceInclude: Object.keys(takumiPackageJson.optionalDependencies), // [!code ++]
     }
   },
   optimizeDeps: {
-    // [!code highlight]
+    // [!code ++]
     exclude: ["@takumi-rs/core"],
   },
 });
@@ -90,10 +92,10 @@ export default defineConfig({
   publish = "dist/client"
 
 [functions]
-  // [!code highlight]
+  // [!code ++]
   node_bundler = "esbuild"
   directory = "netlify/functions"
-  // [!code highlight]
+  // [!code ++]
   included_files = ["node_modules/@takumi-rs/core-linux-x64-gnu/**/*.*"]
 ```
     
@@ -104,7 +106,7 @@ export default defineConfig({
 If you are using package manager with virtual store such as `pnpm` or `yarn`, add the following to your `.npmrc` file and re-run `pnpm i` to allow hoisting of the native binary.
 
 ```text title=".npmrc"
-public-hoist-pattern=@takumi-rs/core-*
+public-hoist-pattern[]=@takumi-rs/core-*
 ```
 </Callout>
 
@@ -118,12 +120,12 @@ Cloudflare Workers prohibited fetching WASM then initialize on the fly. You can 
 /** @jsxImportSource react */
 // ---cut-before---
 import { ImageResponse } from "@takumi-rs/image-response/wasm";
-import module from "@takumi-rs/wasm/takumi_wasm_bg.wasm"; // [!code highlight]
+import module from "@takumi-rs/wasm/takumi_wasm_bg.wasm"; // [!code ++]
 
 export default {
   fetch() {
     return new ImageResponse(<div />, {
-      module, // [!code highlight]
+      module, // [!code ++]
       // ...
     });
   },
@@ -135,7 +137,7 @@ And make sure you have `wrangler.jsonc` / `wrangler.toml` setup to load assets. 
 ```jsonc title="wrangler.jsonc"
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "compatibility_date": "2025-10-30",  // [!code highlight]
+  "compatibility_date": "2025-10-30",  // [!code ++]
   "rules": [
     {
       "type": "Data",
