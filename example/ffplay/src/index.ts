@@ -8,7 +8,7 @@ const height = 540;
 
 const renderer = new Renderer();
 
-// Start ffplay with proper flags for raw RGBA input
+// Start ffplay with proper flags for raw RGBA input and low-latency optimization
 const ffplay = spawn(
   [
     "ffplay",
@@ -20,6 +20,20 @@ const ffplay = spawn(
     `${width}x${height}`,
     "-framerate",
     `${fps}`,
+    // Optimization parameters for smooth playback
+    "-fflags",
+    "nobuffer", // Reduce buffering delay
+    "-flags",
+    "low_delay", // Low delay mode
+    "-framedrop", // Allow frame dropping to maintain sync
+    "-sync",
+    "video", // Sync to video stream
+    "-vf",
+    "setpts=N/FRAME_RATE/TB", // Reset presentation timestamps
+    "-probesize",
+    "32", // Reduce probe size
+    "-analyzeduration",
+    "0", // Don't analyze stream
     "-i",
     "pipe:0",
   ],
@@ -37,7 +51,13 @@ ffplay.exited.then(() => {
   cleanup();
 });
 
+// Prevent rendering delay accumulation
+let isRendering = false;
+
 const interval = setInterval(async () => {
+  if (isRendering) return; // Skip frame if still rendering
+
+  isRendering = true;
   try {
     // Render raw RGBA frame
     const frame = await renderer.render(createFrame(), {
@@ -50,6 +70,8 @@ const interval = setInterval(async () => {
   } catch (error) {
     console.error("Error rendering frame:", error);
     cleanup();
+  } finally {
+    isRendering = false;
   }
 }, 1000 / fps);
 
