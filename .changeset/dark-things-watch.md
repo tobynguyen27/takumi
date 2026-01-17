@@ -1,6 +1,5 @@
 ---
 "@takumi-rs/core": minor
-"@takumi-rs/helpers": minor
 ---
 
 **BREAKING: Externalize image fetching**
@@ -24,7 +23,6 @@ import { fetchResources } from "@takumi-rs/helpers";
 const renderer = new Renderer();
 const node = await fromJsx(<img src="https://example.com/image.png" />);
 
-// Fetch external resources
 const urls = extractResourceUrls(node);
 const fetchedResources = await fetchResources(urls);
 
