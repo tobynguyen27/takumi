@@ -110,14 +110,15 @@ describe("extractResourceUrls", () => {
 });
 
 describe("render", () => {
-  const fetchedResources = new Map<string, ArrayBuffer>();
-
-  fetchedResources.set(remoteUrl, remoteImage);
-
   const options: RenderOptions = {
     width: 1200,
     height: 630,
-    fetchedResources,
+    fetchedResources: [
+      {
+        src: remoteUrl,
+        data: remoteImage,
+      },
+    ],
   };
 
   test("webp", async () => {
