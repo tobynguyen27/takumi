@@ -3,7 +3,7 @@ use takumi::layout::{
   style::{PercentageNumber, *},
 };
 
-use crate::test_utils::run_style_width_test;
+use crate::test_utils::run_fixture_test;
 
 fn create_test_container(opacity: f32) -> NodeKind {
   ContainerNode {
@@ -64,7 +64,7 @@ fn test_style_opacity() {
     ),
   };
 
-  run_style_width_test(container.into(), "style_opacity.png");
+  run_fixture_test(container.into(), "style_opacity.png");
 }
 
 #[test]
@@ -137,5 +137,5 @@ fn test_style_opacity_image_with_text() {
     ),
   };
 
-  run_style_width_test(container.into(), "style_opacity_image_with_text.png");
+  run_fixture_test(container.into(), "style_opacity_image_with_text.png");
 }

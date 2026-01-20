@@ -3,7 +3,7 @@ use takumi::layout::{
   style::{Length::Percentage, ObjectFit, StyleBuilder},
 };
 
-use crate::test_utils::run_style_width_test;
+use crate::test_utils::run_fixture_test;
 
 #[test]
 fn test_style_object_fit_contain() {
@@ -23,7 +23,7 @@ fn test_style_object_fit_contain() {
     src: "assets/images/yeecord.png".into(),
   };
 
-  run_style_width_test(image.into(), "style_object_fit_contain.png");
+  run_fixture_test(image.into(), "style_object_fit_contain.png");
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn test_style_object_fit_cover() {
     src: "assets/images/yeecord.png".into(),
   };
 
-  run_style_width_test(image.into(), "style_object_fit_cover.png");
+  run_fixture_test(image.into(), "style_object_fit_cover.png");
 }
 
 #[test]
@@ -65,7 +65,7 @@ fn test_style_object_fit_fill() {
     height: None,
   };
 
-  run_style_width_test(image.into(), "style_object_fit_fill.png");
+  run_fixture_test(image.into(), "style_object_fit_fill.png");
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn test_style_object_fit_none() {
     height: None,
   };
 
-  run_style_width_test(image.into(), "style_object_fit_none.png");
+  run_fixture_test(image.into(), "style_object_fit_none.png");
 }
 
 #[test]
@@ -107,5 +107,5 @@ fn test_style_object_fit_scale_down() {
     height: None,
   };
 
-  run_style_width_test(image.into(), "style_object_fit_scale_down.png");
+  run_fixture_test(image.into(), "style_object_fit_scale_down.png");
 }

@@ -7,7 +7,7 @@ use takumi::layout::{
   },
 };
 
-use crate::test_utils::run_style_width_test;
+use crate::test_utils::run_fixture_test;
 
 #[test]
 fn test_style_padding() {
@@ -42,5 +42,5 @@ fn test_style_padding() {
     ),
   };
 
-  run_style_width_test(container.into(), "style_padding.png");
+  run_fixture_test(container.into(), "style_padding.png");
 }

@@ -98,15 +98,13 @@ fn create_test_context() -> GlobalContext {
   context
 }
 
-pub fn create_test_viewport() -> Viewport {
+fn create_test_viewport() -> Viewport {
   (1200, 630).into()
 }
 
 static CONTEXT: LazyLock<GlobalContext> = LazyLock::new(create_test_context);
 
-/// Helper function to run style width tests
-#[allow(dead_code)]
-pub fn run_style_width_test(node: NodeKind, fixture_name: &str) {
+pub fn run_fixture_test(node: NodeKind, fixture_name: &str) {
   let viewport = create_test_viewport();
 
   let image = render(

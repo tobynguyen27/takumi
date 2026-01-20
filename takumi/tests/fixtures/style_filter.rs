@@ -3,7 +3,7 @@ use takumi::layout::{
   style::{Length::*, *},
 };
 
-use crate::test_utils::run_style_width_test;
+use crate::test_utils::run_fixture_test;
 
 /// Helper function to create a filter test container with labeled images.
 /// All sizes are in pixels for simplicity.
@@ -100,7 +100,7 @@ fn test_style_filter_on_image_node() {
   ];
 
   let container = create_filter_test_container(&effects, 16.0, 128.0, 24.0);
-  run_style_width_test(container, "style_filter.png");
+  run_fixture_test(container, "style_filter.png");
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn test_style_filter_blur() {
   let blur_values = ["blur(0px)", "blur(2px)", "blur(5px)", "blur(10px)"];
 
   let container = create_filter_test_container(&blur_values, 16.0, 150.0, 24.0);
-  run_style_width_test(container, "style_filter_blur.png");
+  run_fixture_test(container, "style_filter_blur.png");
 }
 
 #[test]
@@ -121,7 +121,7 @@ fn test_style_filter_drop_shadow() {
   ];
 
   let container = create_filter_test_container(&shadow_values, 16.0, 120.0, 16.0);
-  run_style_width_test(container, "style_filter_drop_shadow.png");
+  run_fixture_test(container, "style_filter_drop_shadow.png");
 }
 
 #[test]
@@ -134,7 +134,7 @@ fn test_style_filter_combined() {
   ];
 
   let container = create_filter_test_container(&combined_filters, 16.0, 140.0, 16.0);
-  run_style_width_test(container, "style_filter_combined.png");
+  run_fixture_test(container, "style_filter_combined.png");
 }
 
 #[test]
@@ -142,5 +142,5 @@ fn test_style_filter_sepia() {
   let sepia_values = ["sepia(0%)", "sepia(50%)", "sepia(75%)", "sepia(100%)"];
 
   let container = create_filter_test_container(&sepia_values, 16.0, 150.0, 24.0);
-  run_style_width_test(container, "style_filter_sepia.png");
+  run_fixture_test(container, "style_filter_sepia.png");
 }

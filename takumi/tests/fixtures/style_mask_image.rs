@@ -3,7 +3,7 @@ use takumi::layout::{
   style::{Length::*, *},
 };
 
-use crate::test_utils::run_style_width_test;
+use crate::test_utils::run_fixture_test;
 
 fn create_container_with_mask(
   mask_image: BackgroundImages,
@@ -32,7 +32,7 @@ fn test_style_mask_image_linear_gradient() {
 
   let container = create_container_with_mask(mask_image, Color([255, 0, 0, 255]));
 
-  run_style_width_test(container.into(), "style_mask_image_linear_gradient.png");
+  run_fixture_test(container.into(), "style_mask_image_linear_gradient.png");
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_style_mask_image_radial_gradient() {
 
   let container = create_container_with_mask(mask_image, Color([0, 128, 255, 255]));
 
-  run_style_width_test(container.into(), "style_mask_image_radial_gradient.png");
+  run_fixture_test(container.into(), "style_mask_image_radial_gradient.png");
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn test_style_mask_image_radial_gradient_ellipse() {
 
   let container = create_container_with_mask(mask_image, Color([34, 197, 94, 255]));
 
-  run_style_width_test(container.into(), "style_mask_image_radial_ellipse.png");
+  run_fixture_test(container.into(), "style_mask_image_radial_ellipse.png");
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn test_style_mask_image_multiple_gradients() {
 
   let container = create_container_with_mask(mask_image, Color([255, 165, 0, 255]));
 
-  run_style_width_test(container.into(), "style_mask_image_multiple_gradients.png");
+  run_fixture_test(container.into(), "style_mask_image_multiple_gradients.png");
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn test_style_mask_image_diagonal_gradient() {
 
   let container = create_container_with_mask(mask_image, Color([138, 43, 226, 255]));
 
-  run_style_width_test(container.into(), "style_mask_image_diagonal_gradient.png");
+  run_fixture_test(container.into(), "style_mask_image_diagonal_gradient.png");
 }
 
 #[test]
@@ -103,7 +103,7 @@ fn test_style_mask_image_with_background_image() {
     children: None,
   };
 
-  run_style_width_test(container.into(), "style_mask_image_with_background.png");
+  run_fixture_test(container.into(), "style_mask_image_with_background.png");
 }
 
 #[test]
@@ -162,7 +162,7 @@ fn test_style_mask_image_on_image_node() {
     ),
   };
 
-  run_style_width_test(container.into(), "style_mask_image_on_image.png");
+  run_fixture_test(container.into(), "style_mask_image_on_image.png");
 }
 
 #[test]
@@ -174,7 +174,7 @@ fn test_style_mask_image_stripes_pattern() {
 
   let container = create_container_with_mask(mask_image, Color([255, 20, 147, 255]));
 
-  run_style_width_test(container.into(), "style_mask_image_stripes.png");
+  run_fixture_test(container.into(), "style_mask_image_stripes.png");
 }
 
 #[test]
@@ -186,5 +186,5 @@ fn test_style_mask_image_corner_fade() {
 
   let container = create_container_with_mask(mask_image, Color([0, 200, 200, 255]));
 
-  run_style_width_test(container.into(), "style_mask_image_corner_fade.png");
+  run_fixture_test(container.into(), "style_mask_image_corner_fade.png");
 }

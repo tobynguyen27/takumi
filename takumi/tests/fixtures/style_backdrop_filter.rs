@@ -3,7 +3,7 @@ use takumi::layout::{
   style::{Length::*, *},
 };
 
-use crate::test_utils::run_style_width_test;
+use crate::test_utils::run_fixture_test;
 
 /// Creates a single card with backdrop-filter for testing.
 fn create_backdrop_card(filter: &str, label_font_size_px: f32) -> NodeKind {
@@ -90,7 +90,7 @@ fn test_style_backdrop_filter() {
   }
   .into();
 
-  run_style_width_test(container, "style_backdrop_filter.png");
+  run_fixture_test(container, "style_backdrop_filter.png");
 }
 
 #[test]
@@ -169,5 +169,5 @@ fn test_style_backdrop_filter_frosted_glass() {
   }
   .into();
 
-  run_style_width_test(container, "style_backdrop_filter_frosted_glass.png");
+  run_fixture_test(container, "style_backdrop_filter_frosted_glass.png");
 }

@@ -7,7 +7,7 @@ use takumi::layout::{
   },
 };
 
-use crate::test_utils::run_style_width_test;
+use crate::test_utils::run_fixture_test;
 
 #[test]
 fn text_inline() {
@@ -74,7 +74,7 @@ fn text_inline() {
     children: Some(children),
   };
 
-  run_style_width_test(container.into(), "text_inline.png");
+  run_fixture_test(container.into(), "text_inline.png");
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn inline_image() {
     ),
   };
 
-  run_style_width_test(container.into(), "inline_image.png");
+  run_fixture_test(container.into(), "inline_image.png");
 }
 
 #[test]
@@ -232,7 +232,7 @@ fn inline_block_in_inline() {
     children: Some(children.into_boxed_slice()),
   };
 
-  run_style_width_test(container.into(), "inline_block_in_inline.png");
+  run_fixture_test(container.into(), "inline_block_in_inline.png");
 }
 
 #[test]
@@ -300,5 +300,5 @@ fn inline_span_background_color() {
     children: Some(children),
   };
 
-  run_style_width_test(container.into(), "inline_span_background_color.png");
+  run_fixture_test(container.into(), "inline_span_background_color.png");
 }

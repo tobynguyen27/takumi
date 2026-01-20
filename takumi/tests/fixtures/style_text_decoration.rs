@@ -3,7 +3,7 @@ use takumi::layout::{
   style::{Length::*, *},
 };
 
-use crate::test_utils::run_style_width_test;
+use crate::test_utils::run_fixture_test;
 
 #[test]
 fn test_style_text_decoration() {
@@ -32,5 +32,5 @@ fn test_style_text_decoration() {
     text: "Text Decoration with Underline, Line-Through, and Overline".to_string(),
   };
 
-  run_style_width_test(text.into(), "style_text_decoration.png");
+  run_fixture_test(text.into(), "style_text_decoration.png");
 }
