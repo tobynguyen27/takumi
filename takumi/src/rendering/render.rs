@@ -2,12 +2,17 @@ use std::{collections::HashMap, sync::Arc};
 
 use derive_builder::Builder;
 use image::RgbaImage;
+use parley::PositionedLayoutItem;
+use serde::Serialize;
 use taffy::{AvailableSpace, NodeId, TaffyError, TaffyTree, geometry::Size};
 
 use crate::{
   GlobalContext,
   layout::{
     Viewport,
+    inline::{
+      InlineLayoutStage, ProcessedInlineSpan, create_inline_constraint, create_inline_layout,
+    },
     node::Node,
     style::{
       Affine, Display, Filter, ImageScalingAlgorithm, InheritedStyle, SpacePair,
@@ -16,13 +21,11 @@ use crate::{
     tree::NodeTree,
   },
   rendering::{
-    BorderProperties, Canvas, CanvasConstrain, CanvasConstrainResult, Sizing, draw_debug_border,
-    overlay_image,
+    BorderProperties, Canvas, CanvasConstrain, CanvasConstrainResult, RenderContext, Sizing,
+    draw_debug_border, overlay_image,
   },
   resources::image::ImageSource,
 };
-
-use crate::rendering::RenderContext;
 
 #[derive(Clone, Builder)]
 /// Options for rendering a node. Construct using [`RenderOptionsBuilder`] to avoid breaking changes.
@@ -41,8 +44,42 @@ pub struct RenderOptions<'g, N: Node<N>> {
   pub(crate) fetched_resources: HashMap<Arc<str>, Arc<ImageSource>>,
 }
 
-/// Renders a node to an image.
-pub fn render<'g, N: Node<N>>(options: RenderOptions<'g, N>) -> Result<RgbaImage, crate::Error> {
+/// Information about a text run in an inline layout.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct MeasuredTextRun {
+  /// The text content of this run.
+  pub text: String,
+  /// The x position of the run.
+  pub x: f32,
+  /// The y position of the run.
+  pub y: f32,
+  /// The width of the run.
+  pub width: f32,
+  /// The height of the run.
+  pub height: f32,
+}
+
+/// The result of a layout measurement.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct MeasuredNode {
+  /// The width of the node.
+  pub width: f32,
+  /// The height of the node.
+  pub height: f32,
+  /// The transform matrix of the node.
+  pub transform: [f32; 6],
+  /// The children of the node (including inline boxes).
+  pub children: Vec<MeasuredNode>,
+  /// Text runs for inline layouts.
+  pub runs: Vec<MeasuredTextRun>,
+}
+
+/// Computes the taffy layout for a node and returns the taffy tree and root node ID.
+fn compute_taffy_layout<'g, N: Node<N>>(
+  options: RenderOptions<'g, N>,
+) -> Result<(TaffyTree<NodeTree<'g, N>>, NodeId), crate::Error> {
   let mut taffy = TaffyTree::new();
 
   let render_context = RenderContext {
@@ -72,12 +109,148 @@ pub fn render<'g, N: Node<N>>(options: RenderOptions<'g, N>) -> Result<RgbaImage
     },
   )?;
 
+  Ok((taffy, root_node_id))
+}
+
+/// Measures the layout of a node.
+pub fn measure_layout<'g, N: Node<N>>(
+  options: RenderOptions<'g, N>,
+) -> Result<MeasuredNode, crate::Error> {
+  let (taffy, root_node_id) = compute_taffy_layout(options)?;
+
+  collect_measure_result(&taffy, root_node_id, Affine::IDENTITY)
+}
+
+fn collect_measure_result<'g, Nodes: Node<Nodes>>(
+  taffy: &TaffyTree<NodeTree<'g, Nodes>>,
+  node_id: NodeId,
+  mut transform: Affine,
+) -> Result<MeasuredNode, crate::Error> {
+  let layout = *taffy.layout(node_id)?;
+
+  let Some(node) = taffy.get_node_context(node_id) else {
+    return Err(TaffyError::InvalidInputNode(node_id).into());
+  };
+
+  transform *= Affine::translation(layout.location.x, layout.location.y);
+
+  let mut local_transform = transform;
+  apply_transform(
+    &mut local_transform,
+    &node.context.style,
+    layout.size,
+    &node.context.sizing,
+  );
+
+  let mut children = Vec::new();
+  let mut runs = Vec::new();
+
+  // Handle inline layout
+  if node.should_create_inline_layout() {
+    let font_style = node.context.style.to_sized_font_style(&node.context);
+    let (max_width, max_height) = create_inline_constraint(
+      &node.context,
+      Size {
+        width: AvailableSpace::Definite(layout.content_box_width()),
+        height: AvailableSpace::Definite(layout.content_box_height()),
+      },
+      Size::NONE,
+    );
+
+    let (inline_layout, text, spans) = create_inline_layout(
+      node.inline_items_iter(),
+      Size {
+        width: AvailableSpace::Definite(layout.content_box_width()),
+        height: AvailableSpace::Definite(layout.content_box_height()),
+      },
+      max_width,
+      max_height,
+      &font_style,
+      node.context.global,
+      InlineLayoutStage::Measure,
+    );
+
+    for line in inline_layout.lines() {
+      for item in line.items() {
+        match item {
+          PositionedLayoutItem::GlyphRun(glyph_run) => {
+            let text_range = glyph_run.run().text_range();
+            let text = &text[text_range];
+            // Find the corresponding text span
+            let run = glyph_run.run();
+            let metrics = run.metrics();
+
+            runs.push(MeasuredTextRun {
+              text: text.to_string(),
+              x: glyph_run.offset(),
+              y: glyph_run.baseline() - metrics.ascent,
+              width: glyph_run.advance(),
+              height: metrics.ascent + metrics.descent,
+            });
+          }
+          PositionedLayoutItem::InlineBox(positioned_box) => {
+            let Some(inline_node) = spans.iter().find_map(|span| match span {
+              ProcessedInlineSpan::Box { node, inline_box }
+                if inline_box.id == positioned_box.id =>
+              {
+                Some(node)
+              }
+              _ => None,
+            }) else {
+              continue;
+            };
+
+            let size = inline_node.node.measure(
+              inline_node.context,
+              Size {
+                width: AvailableSpace::Definite(layout.content_box_width()),
+                height: AvailableSpace::Definite(layout.content_box_height()),
+              },
+              Size::NONE,
+              &taffy::Style::default(),
+            );
+
+            let x = positioned_box.x;
+            let y = line.metrics().baseline - positioned_box.height;
+            let inline_transform = Affine::translation(x, y) * local_transform;
+
+            children.push(MeasuredNode {
+              width: size.width,
+              height: size.height,
+              transform: inline_transform.to_cols_array(),
+              children: Vec::new(),
+              runs: Vec::new(),
+            });
+          }
+        }
+      }
+    }
+  }
+
+  for child_id in taffy.children(node_id)? {
+    children.push(collect_measure_result(taffy, child_id, local_transform)?);
+  }
+
+  Ok(MeasuredNode {
+    width: layout.size.width,
+    height: layout.size.height,
+    transform: local_transform.to_cols_array(),
+    children,
+    runs,
+  })
+}
+
+/// Renders a node to an image.
+pub fn render<'g, N: Node<N>>(options: RenderOptions<'g, N>) -> Result<RgbaImage, crate::Error> {
+  let viewport = options.viewport;
+  let (mut taffy, root_node_id) = compute_taffy_layout(options)?;
+
   let root_size = taffy
     .layout(root_node_id)?
     .size
     .map(|size| size.round() as u32);
 
-  let root_size = root_size.zip_map(options.viewport.into(), |size, viewport| {
+  let root_size = root_size.zip_map(viewport.into(), |size, viewport| {
     if let AvailableSpace::Definite(defined) = viewport {
       defined as u32
     } else {
