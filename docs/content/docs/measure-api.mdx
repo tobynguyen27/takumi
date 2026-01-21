@@ -1,0 +1,37 @@
+---
+title: The measure() API
+description: Measure the node layout without rendering it.
+icon: Ruler
+---
+
+This functionality is useful if you want to get the node layout for further calculations.
+
+```tsx twoslash tab="@takumi-rs/core"
+/** @jsxImportSource react */
+// ---cut-before---
+import { Renderer } from "@takumi-rs/core";
+import { fromJsx } from "@takumi-rs/helpers/jsx";
+
+const renderer = new Renderer();
+const node = await fromJsx(
+  <span tw="text-xl">I'm a text node</span>
+);
+
+// [!code ++]
+const { width, height } = await renderer.measure(node);
+```
+
+```tsx twoslash tab="@takumi-rs/wasm"
+/** @jsxImportSource react */
+// ---cut-before---
+import { Renderer } from "@takumi-rs/wasm";
+import { fromJsx } from "@takumi-rs/helpers/jsx";
+
+const renderer = new Renderer();
+const node = await fromJsx(
+  <span tw="text-xl">I'm a text node</span>
+);
+
+// [!code ++]
+const { width, height } = renderer.measure(node);
+```
