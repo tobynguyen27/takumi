@@ -1,3 +1,4 @@
+import { fetchResources } from "@takumi-rs/helpers";
 import { fromJsx } from "@takumi-rs/helpers/jsx";
 import initWasm, { extractResourceUrls, Renderer } from "@takumi-rs/wasm";
 import wasmUrl from "@takumi-rs/wasm/takumi_wasm_bg.wasm?url";
@@ -20,23 +21,6 @@ const exportsSchema = z.object({
 });
 
 let renderer: Renderer | undefined;
-
-// Cache for fetched resources to avoid repeated network requests
-const fetchCache = new Map<string, ArrayBuffer>();
-
-async function cachedFetch(url: string): Promise<ArrayBuffer> {
-  const cached = fetchCache.get(url);
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  const response = await fetch(url);
-  const buffer = await response.arrayBuffer();
-
-  fetchCache.set(url, buffer);
-
-  return buffer;
-}
 
 (async () => {
   const [_, normalFont, monoFont, emojiFont] = await Promise.all([
@@ -97,13 +81,7 @@ self.onmessage = async (event: MessageEvent) => {
 
         const resourceUrls = extractResourceUrls(node);
 
-        const fetchedResources = new Map(
-          await Promise.all(
-            resourceUrls.map(
-              async (url) => [url, await cachedFetch(url)] as const,
-            ),
-          ),
-        );
+        const fetchedResources = await fetchResources(resourceUrls);
 
         const start = performance.now();
         const dataUrl = renderer.renderAsDataUrl(node, {
