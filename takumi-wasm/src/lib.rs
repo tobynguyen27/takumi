@@ -102,6 +102,11 @@ export type MeasuredNode = {
   children: MeasuredNode[],
   runs: MeasuredTextRun[],
 };
+
+export type AnimationFrameSource = {
+  node: AnyNode,
+  durationMs: number,
+};
 "#;
 
 #[wasm_bindgen]
@@ -127,6 +132,9 @@ extern "C" {
 
   #[wasm_bindgen(typescript_type = "MeasuredNode")]
   pub type MeasuredNodeType;
+
+  #[wasm_bindgen(typescript_type = "AnimationFrameSource")]
+  pub type AnimationFrameSourceType;
 }
 
 #[derive(Deserialize, Default)]
@@ -188,22 +196,11 @@ enum FontStyle {
   Oblique,
 }
 
-#[wasm_bindgen]
-pub struct AnimationFrameSource {
-  node: AnyNode,
-  #[wasm_bindgen(js_name = durationMs)]
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AnimationFrameSource {
+  node: NodeKind,
   duration_ms: u32,
-}
-
-#[wasm_bindgen]
-impl AnimationFrameSource {
-  #[wasm_bindgen(constructor)]
-  pub fn new(
-    node: AnyNode,
-    #[wasm_bindgen(js_name = durationMs)] duration_ms: u32,
-  ) -> AnimationFrameSource {
-    AnimationFrameSource { node, duration_ms }
-  }
 }
 
 impl From<FontStyle> for takumi::parley::FontStyle {
@@ -420,27 +417,25 @@ impl Renderer {
   #[wasm_bindgen(js_name = renderAnimation)]
   pub fn render_animation(
     &self,
-    frames: Vec<AnimationFrameSource>,
+    frames: Vec<AnimationFrameSourceType>,
     options: RenderAnimationOptionsType,
   ) -> Result<Vec<u8>, JsValue> {
+    let frames: Vec<AnimationFrameSource> = from_value(frames.into()).map_err(map_error)?;
     let options: RenderAnimationOptions = from_value(options.into()).map_err(map_error)?;
 
     let rendered_frames: Vec<AnimationFrame> = frames
       .into_iter()
       .map(|frame| -> Result<AnimationFrame, JsValue> {
-        let node: NodeKind = from_value(frame.node.into()).map_err(map_error)?;
-        let duration_ms = frame.duration_ms;
-
         let render_options = RenderOptionsBuilder::default()
           .viewport((options.width, options.height).into())
-          .node(node)
+          .node(frame.node)
           .global(&self.context)
           .draw_debug_border(options.draw_debug_border.unwrap_or_default())
           .build()
           .map_err(|e| JsValue::from_str(&format!("Failed to build render options: {e}")))?;
 
         let image = render(render_options).map_err(map_error)?;
-        Ok(AnimationFrame::new(image, duration_ms))
+        Ok(AnimationFrame::new(image, frame.duration_ms))
       })
       .collect::<Result<Vec<_>, JsValue>>()?;
 
