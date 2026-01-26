@@ -8,7 +8,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: "0"
-  MACOSX_DEPLOYMENT_TARGET: '10.13'
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
   # Remove file paths to reduce binary size
   RUSTFLAGS: >-
     --remap-path-prefix=/home/runner=~
@@ -105,7 +105,9 @@ jobs:
 
       - name: Test Publish (--dry-run)
         working-directory: takumi
-        run: cargo publish --dry-run
+        run: |
+          sed -i '/\[patch.crates-io\]/,$d' ../Cargo.toml
+          cargo publish --dry-run
 
   build-helpers:
     name: Build @takumi-rs/helpers
@@ -120,7 +122,7 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile --filter ./takumi-helpers
-      
+
       - name: Test
         working-directory: takumi-helpers
         run: bun test
@@ -197,7 +199,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      
+
       - name: Setup Rust
         uses: ./.github/actions/setup-rust
         with:
@@ -440,7 +442,7 @@ jobs:
           path: |
             takumi-wasm/pkg/*
           if-no-files-found: error
-    
+
   test-wasm:
     name: Test @takumi-rs/wasm
     needs: [build-wasm, build-helpers]
@@ -475,7 +477,16 @@ jobs:
   pass-test:
     name: Pass Test
     runs-on: ubuntu-latest
-    needs: [biome-lint, test-rust, test-helpers, test-napi, test-image-response, test-template, test-wasm]
+    needs:
+      [
+        biome-lint,
+        test-rust,
+        test-helpers,
+        test-napi,
+        test-image-response,
+        test-template,
+        test-wasm,
+      ]
     steps:
       - name: Pass test
         run: echo "Pass test"
@@ -507,7 +518,7 @@ jobs:
         with:
           stage: release
           components: clippy,rustfmt
-      
+
       - name: Download helpers artifact
         uses: actions/download-artifact@v7
         with:
@@ -535,11 +546,14 @@ jobs:
         run: bun install --frozen-lockfile && echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
 
       # Trusted publishing requires npm 11.5.1
-      - name: Update npm version 
+      - name: Update npm version
         run: bun install -g npm@latest
 
       - uses: rust-lang/crates-io-auth-action@v1
         id: crates-io-auth
+
+      - name: Remove patches
+        run: sed -i '/\[patch.crates-io\]/,$d' Cargo.toml
 
       - name: Create Release Pull Request or Publish
         uses: changesets/action@v1
@@ -549,9 +563,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ steps.crates-io-auth.outputs.token }}
-          NPM_TOKEN: '' # https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868
+          NPM_TOKEN: "" # https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868
           NPM_CONFIG_PROVENANCE: true
-          
+
   deploy-docs:
     name: Deploy docs
     runs-on: ubuntu-latest
