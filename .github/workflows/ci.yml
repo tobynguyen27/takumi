@@ -25,7 +25,7 @@ concurrency:
 jobs:
   biome-lint:
     name: Biome Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
 
@@ -111,7 +111,7 @@ jobs:
 
   build-helpers:
     name: Build @takumi-rs/helpers
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
 
@@ -140,7 +140,7 @@ jobs:
 
   test-helpers:
     name: Test @takumi-rs/helpers
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: build-helpers
     steps:
       - uses: actions/checkout@v6
@@ -229,7 +229,7 @@ jobs:
 
   build-image-response:
     name: Build @takumi-rs/image-response
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: [build-helpers, build-napi, build-wasm]
     steps:
       - uses: actions/checkout@v6
@@ -273,7 +273,7 @@ jobs:
 
   test-image-response:
     name: Test @takumi-rs/image-response
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: build-image-response
     steps:
       - uses: actions/checkout@v6
@@ -316,7 +316,7 @@ jobs:
 
   test-template:
     name: Test Templates
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: [build-napi, build-helpers]
     steps:
       - uses: actions/checkout@v6
@@ -363,9 +363,9 @@ jobs:
             build: bun run build --target x86_64-apple-darwin
           - host: macos-15
             target: aarch64-apple-darwin
-          - host: ubuntu-latest
+          - host: ubuntu-slim
             target: x86_64-unknown-linux-gnu
-          - host: ubuntu-latest
+          - host: ubuntu-slim
             target: x86_64-unknown-linux-musl
           - host: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
@@ -446,7 +446,7 @@ jobs:
   test-wasm:
     name: Test @takumi-rs/wasm
     needs: [build-wasm, build-helpers]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
 
@@ -476,7 +476,7 @@ jobs:
 
   pass-test:
     name: Pass Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs:
       [
         biome-lint,
@@ -493,7 +493,7 @@ jobs:
 
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: pass-test
     if: github.ref == 'refs/heads/master'
     permissions:
@@ -568,7 +568,7 @@ jobs:
 
   deploy-docs:
     name: Deploy docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: pass-test
     steps:
       - uses: actions/checkout@v6
