@@ -172,6 +172,8 @@ define_style!(
   webkit_text_stroke_width: Option<Length<false>> where inherit = true,
   #[serde(rename = "WebkitTextStrokeColor", alias = "textStrokeColor")]
   webkit_text_stroke_color: Option<ColorInput> where inherit = true,
+  #[serde(rename = "WebkitTextFillColor", alias = "textFillColor")]
+  webkit_text_fill_color: Option<ColorInput> where inherit = true,
   text_shadow: Option<TextShadows> where inherit = true,
   text_decoration: TextDecoration,
   text_decoration_line: Option<TextDecorationLines> where inherit = true,
@@ -565,7 +567,10 @@ impl InheritedStyle {
           })
           .collect()
       }),
-      color: self.color.resolve(context.current_color),
+      color: self
+        .webkit_text_fill_color
+        .unwrap_or(self.color)
+        .resolve(context.current_color),
       text_stroke_color: self
         .webkit_text_stroke_color
         .or(self.webkit_text_stroke.and_then(|stroke| stroke.color))
