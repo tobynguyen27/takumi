@@ -166,11 +166,11 @@ define_style!(
   font_feature_settings: Option<FontFeatureSettings> where inherit = true,
   line_clamp: Option<LineClamp> where inherit = true,
   text_align: TextAlign where inherit = true,
-  #[serde(rename = "webkitTextStroke")]
+  #[serde(rename = "WebkitTextStroke", alias = "textStroke")]
   webkit_text_stroke: Option<TextStroke> where inherit = true,
-  #[serde(rename = "webkitTextStrokeWidth")]
+  #[serde(rename = "WebkitTextStrokeWidth", alias = "textStrokeWidth")]
   webkit_text_stroke_width: Option<Length<false>> where inherit = true,
-  #[serde(rename = "webkitTextStrokeColor")]
+  #[serde(rename = "WebkitTextStrokeColor", alias = "textStrokeColor")]
   webkit_text_stroke_color: Option<ColorInput> where inherit = true,
   text_shadow: Option<TextShadows> where inherit = true,
   text_decoration: TextDecoration,
