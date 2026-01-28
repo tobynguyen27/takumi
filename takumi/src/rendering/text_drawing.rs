@@ -258,7 +258,7 @@ fn draw_text_stroke_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
   };
 
   let mut stroke = Stroke::new(style.stroke_width);
-  stroke.scale = true;
+  stroke.scale = false;
   stroke.join = style.parent.stroke_linejoin.into();
 
   let (stroke_mask, stroke_placement) =
@@ -319,7 +319,7 @@ fn draw_text_stroke(
   }
 
   let mut stroke = Stroke::new(style.stroke_width);
-  stroke.scale = true;
+  stroke.scale = false;
   stroke.join = style.parent.stroke_linejoin.into();
 
   let (stroke_mask, stroke_placement) =
