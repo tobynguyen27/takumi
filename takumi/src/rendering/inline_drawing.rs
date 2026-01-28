@@ -23,7 +23,7 @@ fn draw_glyph_run<I: GenericImageView<Pixel = Rgba<u8>>>(
   canvas: &mut Canvas,
   layout: Layout,
   context: &RenderContext,
-  image_fill: Option<&I>,
+  clip_image: Option<&I>,
 ) -> Result<()> {
   let decoration_line = style
     .parent
@@ -82,13 +82,27 @@ fn draw_glyph_run<I: GenericImageView<Pixel = Rgba<u8>>>(
   // Draw each glyph using the batch-resolved cache
   for glyph in glyph_run.positioned_glyphs() {
     if let Some(cached_glyph) = resolved_glyphs.get(&glyph.id) {
-      draw_glyph(
+      if clip_image.is_some() {
+        draw_glyph(
+          glyph,
+          cached_glyph,
+          canvas,
+          style,
+          layout,
+          clip_image,
+          context.transform,
+          glyph_run.style().brush.color,
+          palette,
+        )?;
+      }
+
+      draw_glyph::<I>(
         glyph,
         cached_glyph,
         canvas,
         style,
         layout,
-        image_fill,
+        None,
         context.transform,
         glyph_run.style().brush.color,
         palette,
@@ -161,7 +175,7 @@ pub(crate) fn draw_inline_layout(
   inline_layout: InlineLayout,
   font_style: &SizedFontStyle,
 ) -> Result<Vec<PositionedInlineBox>> {
-  let fill_image = if context.style.background_clip == BackgroundClip::Text {
+  let clip_image = if context.style.background_clip == BackgroundClip::Text {
     let layers = collect_background_image_layers(context, layout.size)?;
 
     rasterize_layers(
@@ -191,7 +205,7 @@ pub(crate) fn draw_inline_layout(
             canvas,
             layout,
             context,
-            fill_image.as_ref(),
+            clip_image.as_ref(),
           )?;
         }
         PositionedLayoutItem::InlineBox(inline_box) => positioned_inline_boxes.push(inline_box),

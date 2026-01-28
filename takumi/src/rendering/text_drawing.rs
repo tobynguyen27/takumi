@@ -71,7 +71,7 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
   canvas: &mut Canvas,
   style: &SizedFontStyle,
   layout: Layout,
-  fill_image: Option<&I>,
+  clip_image: Option<&I>,
   mut transform: Affine,
   color: Color,
   palette: Option<ColorPalette>,
@@ -81,8 +81,8 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
     layout.border.top + layout.padding.top + glyph.y,
   );
 
-  match (glyph_content, fill_image) {
-    (ResolvedGlyph::Image(bitmap), Some(image_fill)) => {
+  match (glyph_content, clip_image) {
+    (ResolvedGlyph::Image(bitmap), Some(clip_image)) => {
       transform *= Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32);
 
       let mask = bitmap
@@ -95,7 +95,7 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
 
       let mut bottom = RgbaImage::new(bitmap.placement.width, bitmap.placement.height);
 
-      let fill_dimensions = image_fill.dimensions();
+      let fill_dimensions = clip_image.dimensions();
 
       overlay_area(
         &mut bottom,
@@ -115,7 +115,7 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
             return Color::transparent().into();
           }
 
-          let mut pixel = image_fill.get_pixel(source_x, source_y);
+          let mut pixel = clip_image.get_pixel(source_x, source_y);
 
           apply_mask_alpha_to_pixel(&mut pixel, alpha);
 
@@ -145,7 +145,7 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
 
       canvas.overlay_image(&image, Default::default(), transform, Default::default());
     }
-    (ResolvedGlyph::Outline(outline), Some(fill_image)) => {
+    (ResolvedGlyph::Outline(outline), Some(clip_image)) => {
       // If the transform is not invertible, we can't draw the glyph
       let Some(inverse) = transform.invert() else {
         return Ok(());
@@ -176,7 +176,7 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
           }
 
           let sampled_pixel = sample_transformed_pixel(
-            fill_image,
+            clip_image,
             &inverse,
             style.parent.image_rendering,
             (x as f32 + placement.left as f32).round(),
@@ -204,7 +204,7 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
         glyph,
         transform,
         &paths,
-        Some(fill_image),
+        Some(clip_image),
         Some(inverse),
       );
     }
@@ -223,6 +223,7 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
           palette,
           transform,
           canvas.constrains.last(),
+          color.0[3],
         );
       } else {
         let (mask, placement) = canvas.mask_memory.render(&paths, Some(transform), None);
@@ -236,7 +237,7 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
         );
       }
 
-      maybe_draw_text_stroke::<RgbaImage>(canvas, style, glyph, transform, &paths, None, None);
+      maybe_draw_text_stroke::<I>(canvas, style, glyph, transform, &paths, None, None);
     }
   }
 
@@ -249,7 +250,7 @@ fn maybe_draw_text_stroke<I: GenericImageView<Pixel = Rgba<u8>>>(
   glyph: Glyph,
   transform: Affine,
   paths: &[Command],
-  fill_image: Option<&I>,
+  clip_image: Option<&I>,
   inverse: Option<Affine>,
 ) {
   if style.stroke_width <= 0.0 {
@@ -265,7 +266,7 @@ fn maybe_draw_text_stroke<I: GenericImageView<Pixel = Rgba<u8>>>(
       .mask_memory
       .render(paths, Some(transform), Some(stroke.into()));
 
-  if let Some(fill_image) = fill_image {
+  if let Some(clip_image) = clip_image {
     let inverse = inverse.or_else(|| transform.invert());
 
     if let Some(inverse) = inverse {
@@ -288,7 +289,7 @@ fn maybe_draw_text_stroke<I: GenericImageView<Pixel = Rgba<u8>>>(
           }
 
           let sampled_pixel = sample_transformed_pixel(
-            fill_image,
+            clip_image,
             &inverse,
             style.parent.image_rendering,
             (x as f32 + stroke_placement.left as f32).round(),
@@ -360,7 +361,12 @@ fn draw_color_outline_image(
   palette: ColorPalette,
   transform: Affine,
   constrain: Option<&CanvasConstrain>,
+  opacity: u8,
 ) {
+  if opacity == 0 {
+    return;
+  }
+
   for i in 0..outline.len() {
     let Some(layer) = outline.get(i) else {
       break;
@@ -369,6 +375,8 @@ fn draw_color_outline_image(
     let Some(color) = layer.color_index().map(|index| Color(palette.get(index))) else {
       continue;
     };
+
+    let color = color.with_opacity(opacity);
 
     let paths = layer
       .path()

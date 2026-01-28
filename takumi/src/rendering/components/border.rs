@@ -236,11 +236,11 @@ impl BorderProperties {
     canvas: &mut Canvas,
     border_box: Size<f32>,
     transform: Affine,
-    fill_image: Option<&I>,
+    clip_image: Option<&I>,
   ) {
-    if let Some(fill_image) = &fill_image {
+    if let Some(clip_image) = &clip_image {
       assert_eq!(
-        fill_image.dimensions(),
+        clip_image.dimensions(),
         (border_box.width as u32, border_box.height as u32)
       );
     }
@@ -290,7 +290,7 @@ impl BorderProperties {
       |x, y| {
         let alpha = mask[mask_index_from_coord(x, y, placement.width)];
 
-        let mut pixel = fill_image
+        let mut pixel = clip_image
           .as_ref()
           .map(|image| {
             let mut pixel = image.get_pixel(x, y);

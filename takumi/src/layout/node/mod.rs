@@ -481,7 +481,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
     canvas: &mut Canvas,
     layout: Layout,
   ) -> Result<()> {
-    let fill_image = if context.style.background_clip == BackgroundClip::BorderArea {
+    let clip_image = if context.style.background_clip == BackgroundClip::BorderArea {
       let layers = collect_background_image_layers(context, layout.size)?;
 
       rasterize_layers(
@@ -500,7 +500,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
       canvas,
       layout.size,
       context.transform,
-      fill_image.as_ref(),
+      clip_image.as_ref(),
     );
     Ok(())
   }
