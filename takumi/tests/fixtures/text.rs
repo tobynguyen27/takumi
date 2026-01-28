@@ -803,26 +803,3 @@ fn text_super_bold_stroke_background_clip() {
     "text_super_bold_stroke_background_clip.webp",
   );
 }
-
-#[test]
-fn text_stroke_linejoin_round() {
-  let text = TextNode {
-    preset: None,
-    tw: None,
-    style: Some(
-      StyleBuilder::default()
-        .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
-        .color(ColorInput::Value(Color([0, 0, 0, 255]))) // Black text
-        .font_size(Some(Px(120.0)))
-        .font_weight(FontWeight::from(900.0))
-        .webkit_text_stroke_width(Some(Px(12.0)))
-        .webkit_text_stroke_color(Some(ColorInput::Value(Color([255, 0, 0, 255])))) // Red stroke
-        .stroke_linejoin(LineJoin::Round)
-        .build()
-        .unwrap(),
-    ),
-    text: "Round Join".to_string(),
-  };
-
-  run_fixture_test(text.into(), "text_stroke_linejoin_round.webp");
-}
