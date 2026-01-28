@@ -52,7 +52,7 @@ fn test_style_background_image_gradient_basic() {
 
   let container = create_container(background_images);
 
-  run_fixture_test(container.into(), "style_background_image_gradient.png");
+  run_fixture_test(container.into(), "style_background_image_gradient.webp");
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn test_style_background_image_gradient_alt() {
 
   let container = create_container(background_images);
 
-  run_fixture_test(container.into(), "style_background_image_gradient_alt.png");
+  run_fixture_test(container.into(), "style_background_image_gradient_alt.webp");
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn test_style_background_image_gradient_hard_stop() {
 
   run_fixture_test(
     container.into(),
-    "style_background_image_gradient_hard_stop.png",
+    "style_background_image_gradient_hard_stop.webp",
   );
 }
 
@@ -84,7 +84,7 @@ fn test_style_background_image_radial_basic() {
 
   let container = create_container(background_images);
 
-  run_fixture_test(container.into(), "style_background_image_radial_basic.png");
+  run_fixture_test(container.into(), "style_background_image_radial_basic.webp");
 }
 
 #[test]
@@ -93,7 +93,7 @@ fn test_style_background_image_radial_mixed() {
 
   let container = create_container(background_images);
 
-  run_fixture_test(container.into(), "style_background_image_radial_mixed.png");
+  run_fixture_test(container.into(), "style_background_image_radial_mixed.webp");
 }
 
 #[test]
@@ -107,7 +107,7 @@ fn test_style_background_image_linear_radial_mixed() {
 
   run_fixture_test(
     container.into(),
-    "style_background_image_linear_radial_mixed.png",
+    "style_background_image_linear_radial_mixed.webp",
   );
 }
 
@@ -124,7 +124,7 @@ fn test_background_no_repeat_center_with_size_px() {
 
   run_fixture_test(
     container.into(),
-    "style_background_no_repeat_center_200x120.png",
+    "style_background_no_repeat_center_200x120.webp",
   );
 }
 
@@ -141,7 +141,7 @@ fn test_background_repeat_tile_from_top_left() {
 
   run_fixture_test(
     container.into(),
-    "style_background_repeat_tile_from_top_left.png",
+    "style_background_repeat_tile_from_top_left.webp",
   );
 }
 
@@ -158,7 +158,7 @@ fn test_background_repeat_space() {
     Some(BackgroundRepeats::from_str("space").unwrap()),
   );
 
-  run_fixture_test(container.into(), "style_background_repeat_space.png");
+  run_fixture_test(container.into(), "style_background_repeat_space.webp");
 }
 
 #[test]
@@ -173,7 +173,7 @@ fn test_background_repeat_round() {
     Some(BackgroundRepeats::from_str("round").unwrap()),
   );
 
-  run_fixture_test(container.into(), "style_background_repeat_round.png");
+  run_fixture_test(container.into(), "style_background_repeat_round.webp");
 }
 
 #[test]
@@ -190,7 +190,7 @@ fn test_background_position_percentage_with_no_repeat() {
 
   run_fixture_test(
     container.into(),
-    "style_background_position_percent_25_75.png",
+    "style_background_position_percent_25_75.webp",
   );
 }
 
@@ -206,7 +206,7 @@ fn test_background_size_percentage_with_repeat() {
     Some(BackgroundRepeats::from_str("repeat").unwrap()),
   );
 
-  run_fixture_test(container.into(), "style_background_size_percent_20_20.png");
+  run_fixture_test(container.into(), "style_background_size_percent_20_20.webp");
 }
 
 #[test]
@@ -232,7 +232,7 @@ fn test_background_image_grid_pattern() {
     ))
   );
 
-  run_fixture_test(container.into(), "style_background_image_grid_pattern.png");
+  run_fixture_test(container.into(), "style_background_image_grid_pattern.webp");
 }
 
 #[test]
@@ -253,7 +253,7 @@ fn test_background_image_noise_v1_with_gradient() {
 
   run_fixture_test(
     container.into(),
-    "style_background_image_noise_v1_blend.png",
+    "style_background_image_noise_v1_blend.webp",
   );
 }
 
@@ -275,7 +275,7 @@ fn test_background_image_dotted_pattern() {
 
   run_fixture_test(
     container.into(),
-    "style_background_image_dotted_pattern.png",
+    "style_background_image_dotted_pattern.webp",
   );
 }
 
@@ -289,7 +289,7 @@ fn test_background_size_contain() {
     Some(BackgroundRepeats::from_str("no-repeat").unwrap()),
   );
 
-  run_fixture_test(container.into(), "style_background_size_contain.png");
+  run_fixture_test(container.into(), "style_background_size_contain.webp");
 }
 
 #[test]
@@ -302,5 +302,5 @@ fn test_background_size_cover() {
     Some(BackgroundRepeats::from_str("no-repeat").unwrap()),
   );
 
-  run_fixture_test(container.into(), "style_background_size_cover.png");
+  run_fixture_test(container.into(), "style_background_size_cover.webp");
 }

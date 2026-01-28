@@ -70,7 +70,7 @@ fn clip_path_text_stroke_filled() {
     ),
   };
 
-  run_fixture_test(container.into(), "clip_path_text_stroke_filled.png");
+  run_fixture_test(container.into(), "clip_path_text_stroke_filled.webp");
 }
 
 // Triangle clip-path similar to Vercel logo using polygon
@@ -116,7 +116,7 @@ fn clip_path_triangle_vercel() {
     ),
   };
 
-  run_fixture_test(container.into(), "clip_path_triangle_vercel.png");
+  run_fixture_test(container.into(), "clip_path_triangle_vercel.webp");
 }
 
 // Alternative triangle with gradient background to show clipping more clearly
@@ -167,7 +167,7 @@ fn clip_path_triangle_gradient() {
     ),
   };
 
-  run_fixture_test(container.into(), "clip_path_triangle_gradient.png");
+  run_fixture_test(container.into(), "clip_path_triangle_gradient.webp");
 }
 
 // Circle clip-path test
@@ -211,7 +211,7 @@ fn clip_path_circle() {
     ),
   };
 
-  run_fixture_test(container.into(), "clip_path_circle.png");
+  run_fixture_test(container.into(), "clip_path_circle.webp");
 }
 
 // Inset with border radius clip-path test
@@ -257,5 +257,5 @@ fn clip_path_inset_rounded() {
     ),
   };
 
-  run_fixture_test(container.into(), "clip_path_inset_rounded.png");
+  run_fixture_test(container.into(), "clip_path_inset_rounded.webp");
 }

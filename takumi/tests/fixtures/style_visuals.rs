@@ -22,7 +22,7 @@ fn test_style_background_color() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_background_color.png");
+  run_fixture_test(container.into(), "style_background_color.webp");
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_style_border_radius() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_border_radius.png");
+  run_fixture_test(container.into(), "style_border_radius.webp");
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn test_style_border_radius_per_corner() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_border_radius_per_corner.png");
+  run_fixture_test(container.into(), "style_border_radius_per_corner.webp");
 }
 
 #[test]
@@ -87,7 +87,7 @@ fn test_style_border_width() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_border_width.png");
+  run_fixture_test(container.into(), "style_border_width.webp");
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn test_style_border_width_with_radius() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_border_width_with_radius.png");
+  run_fixture_test(container.into(), "style_border_width_with_radius.webp");
 }
 
 #[test]
@@ -171,7 +171,7 @@ fn test_style_box_shadow() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_box_shadow.png");
+  run_fixture_test(container.into(), "style_box_shadow.webp");
 }
 
 #[test]
@@ -218,7 +218,7 @@ fn test_style_box_shadow_inset() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_box_shadow_inset.png");
+  run_fixture_test(container.into(), "style_box_shadow_inset.webp");
 }
 
 #[test]
@@ -255,7 +255,7 @@ fn test_style_position() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_position.png");
+  run_fixture_test(container.into(), "style_position.webp");
 }
 
 #[test]
@@ -277,7 +277,7 @@ fn test_style_border_radius_circle() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_border_radius_circle.png");
+  run_fixture_test(container.into(), "style_border_radius_circle.webp");
 }
 
 // https://github.com/kane50613/takumi/issues/151
@@ -335,7 +335,7 @@ fn test_style_border_radius_width_offset() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_border_radius_width_offset.png");
+  run_fixture_test(container.into(), "style_border_radius_width_offset.webp");
 }
 
 #[test]
@@ -383,7 +383,7 @@ fn test_style_border_radius_circle_avatar() {
                 .build()
                 .unwrap(),
             ),
-            src: "assets/images/yeecord.png".into(),
+            src: "assets/images/yeecord.webp".into(),
             width: None,
             height: None,
           }
@@ -396,14 +396,14 @@ fn test_style_border_radius_circle_avatar() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_border_radius_circle_avatar.png");
+  run_fixture_test(container.into(), "style_border_radius_circle_avatar.webp");
 }
 
 #[test]
 fn test_style_border_width_on_image_node() {
   let avatar = json!({
     "type": "image",
-    "src": "assets/images/yeecord.png",
+    "src": "assets/images/yeecord.webp",
     "style": {
       "borderRadius": "100%",
       "borderWidth": 2,
@@ -430,5 +430,5 @@ fn test_style_border_width_on_image_node() {
     children: Some([from_value(avatar).unwrap()].into()),
   };
 
-  run_fixture_test(container.into(), "style_border_width_on_image_node.png");
+  run_fixture_test(container.into(), "style_border_width_on_image_node.webp");
 }

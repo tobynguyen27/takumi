@@ -20,10 +20,10 @@ fn test_style_object_fit_contain() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.png".into(),
+    src: "assets/images/yeecord.webp".into(),
   };
 
-  run_fixture_test(image.into(), "style_object_fit_contain.png");
+  run_fixture_test(image.into(), "style_object_fit_contain.webp");
 }
 
 #[test]
@@ -41,10 +41,10 @@ fn test_style_object_fit_cover() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.png".into(),
+    src: "assets/images/yeecord.webp".into(),
   };
 
-  run_fixture_test(image.into(), "style_object_fit_cover.png");
+  run_fixture_test(image.into(), "style_object_fit_cover.webp");
 }
 
 #[test]
@@ -60,12 +60,12 @@ fn test_style_object_fit_fill() {
         .build()
         .unwrap(),
     ),
-    src: "assets/images/yeecord.png".into(),
+    src: "assets/images/yeecord.webp".into(),
     width: None,
     height: None,
   };
 
-  run_fixture_test(image.into(), "style_object_fit_fill.png");
+  run_fixture_test(image.into(), "style_object_fit_fill.webp");
 }
 
 #[test]
@@ -81,12 +81,12 @@ fn test_style_object_fit_none() {
         .build()
         .unwrap(),
     ),
-    src: "assets/images/yeecord.png".into(),
+    src: "assets/images/yeecord.webp".into(),
     width: None,
     height: None,
   };
 
-  run_fixture_test(image.into(), "style_object_fit_none.png");
+  run_fixture_test(image.into(), "style_object_fit_none.webp");
 }
 
 #[test]
@@ -102,10 +102,10 @@ fn test_style_object_fit_scale_down() {
         .build()
         .unwrap(),
     ),
-    src: "assets/images/yeecord.png".into(),
+    src: "assets/images/yeecord.webp".into(),
     width: None,
     height: None,
   };
 
-  run_fixture_test(image.into(), "style_object_fit_scale_down.png");
+  run_fixture_test(image.into(), "style_object_fit_scale_down.webp");
 }

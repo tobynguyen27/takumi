@@ -58,7 +58,7 @@ fn create_filter_card(filter: &str, image_size_px: f32, label_font_size_px: f32)
         ImageNode {
           preset: None,
           tw: None,
-          src: "assets/images/yeecord.png".into(),
+          src: "assets/images/yeecord.webp".into(),
           style: Some(
             StyleBuilder::default()
               .width(Px(image_size_px))
@@ -100,7 +100,7 @@ fn test_style_filter_on_image_node() {
   ];
 
   let container = create_filter_test_container(&effects, 16.0, 128.0, 24.0);
-  run_fixture_test(container, "style_filter.png");
+  run_fixture_test(container, "style_filter.webp");
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn test_style_filter_blur() {
   let blur_values = ["blur(0px)", "blur(2px)", "blur(5px)", "blur(10px)"];
 
   let container = create_filter_test_container(&blur_values, 16.0, 150.0, 24.0);
-  run_fixture_test(container, "style_filter_blur.png");
+  run_fixture_test(container, "style_filter_blur.webp");
 }
 
 #[test]
@@ -121,7 +121,7 @@ fn test_style_filter_drop_shadow() {
   ];
 
   let container = create_filter_test_container(&shadow_values, 16.0, 120.0, 16.0);
-  run_fixture_test(container, "style_filter_drop_shadow.png");
+  run_fixture_test(container, "style_filter_drop_shadow.webp");
 }
 
 #[test]
@@ -134,7 +134,7 @@ fn test_style_filter_combined() {
   ];
 
   let container = create_filter_test_container(&combined_filters, 16.0, 140.0, 16.0);
-  run_fixture_test(container, "style_filter_combined.png");
+  run_fixture_test(container, "style_filter_combined.webp");
 }
 
 #[test]
@@ -142,5 +142,5 @@ fn test_style_filter_sepia() {
   let sepia_values = ["sepia(0%)", "sepia(50%)", "sepia(75%)", "sepia(100%)"];
 
   let container = create_filter_test_container(&sepia_values, 16.0, 150.0, 24.0);
-  run_fixture_test(container, "style_filter_sepia.png");
+  run_fixture_test(container, "style_filter_sepia.webp");
 }

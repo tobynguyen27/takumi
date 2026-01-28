@@ -4,9 +4,7 @@ use takumi::layout::{
   style::{Length::*, *},
 };
 
-use crate::test_utils::run_webp_animation_test;
-
-use crate::test_utils::run_png_animation_test;
+use crate::test_utils::{run_png_animation_test, run_webp_animation_test};
 
 fn create_bouncing_text_nodes() -> Vec<(NodeKind, u32)> {
   const FPS: u32 = 30;

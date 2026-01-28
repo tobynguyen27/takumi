@@ -140,7 +140,7 @@ pub fn run_fixture_test(node: NodeKind, fixture_name: &str) {
 
   let mut file = File::create(path).unwrap();
 
-  write_image(&image, &mut file, ImageOutputFormat::Png, Some(75)).unwrap();
+  write_image(&image, &mut file, ImageOutputFormat::WebP, None).unwrap();
 }
 
 #[allow(dead_code)]

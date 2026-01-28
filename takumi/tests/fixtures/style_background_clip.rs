@@ -58,7 +58,7 @@ fn test_style_background_clip_border_box() {
     10.0,
   );
 
-  run_fixture_test(container.into(), "style_background_clip_border_box.png");
+  run_fixture_test(container.into(), "style_background_clip_border_box.webp");
 }
 
 #[test]
@@ -70,7 +70,7 @@ fn test_style_background_clip_padding_box() {
     10.0,
   );
 
-  run_fixture_test(container.into(), "style_background_clip_padding_box.png");
+  run_fixture_test(container.into(), "style_background_clip_padding_box.webp");
 }
 
 #[test]
@@ -82,7 +82,7 @@ fn test_style_background_clip_content_box() {
     10.0,
   );
 
-  run_fixture_test(container.into(), "style_background_clip_content_box.png");
+  run_fixture_test(container.into(), "style_background_clip_content_box.webp");
 }
 
 #[test]
@@ -128,7 +128,7 @@ fn test_style_background_clip_text_gradient() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_background_clip_text_gradient.png");
+  run_fixture_test(container.into(), "style_background_clip_text_gradient.webp");
 }
 
 #[test]
@@ -171,7 +171,7 @@ fn test_style_background_clip_text_radial_gradient() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_background_clip_text_radial.png");
+  run_fixture_test(container.into(), "style_background_clip_text_radial.webp");
 }
 
 #[test]
@@ -213,7 +213,7 @@ fn test_style_background_clip_border_area() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_background_clip_border_area.png");
+  run_fixture_test(container.into(), "style_background_clip_border_area.webp");
 }
 
 #[test]
@@ -259,7 +259,7 @@ fn test_style_background_clip_with_gradient_background() {
 
   run_fixture_test(
     container.into(),
-    "style_background_clip_gradient_padding.png",
+    "style_background_clip_gradient_padding.webp",
   );
 }
 
@@ -302,7 +302,10 @@ fn test_style_background_clip_text_multiline() {
     ].into()),
   };
 
-  run_fixture_test(container.into(), "style_background_clip_text_multiline.png");
+  run_fixture_test(
+    container.into(),
+    "style_background_clip_text_multiline.webp",
+  );
 }
 
 #[test]
@@ -431,5 +434,5 @@ fn test_style_background_clip_comparison() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_background_clip_comparison.png");
+  run_fixture_test(container.into(), "style_background_clip_comparison.webp");
 }

@@ -35,7 +35,7 @@ fn test_rotate_image() {
             .unwrap(),
         ),
         tw: None,
-        src: "assets/images/yeecord.png".into(),
+        src: "assets/images/yeecord.webp".into(),
         width: None,
         height: None,
       }
@@ -44,7 +44,7 @@ fn test_rotate_image() {
     ),
   };
 
-  run_fixture_test(image.into(), "style_rotate_image.png");
+  run_fixture_test(image.into(), "style_rotate_image.webp");
 }
 
 #[test]
@@ -82,7 +82,7 @@ fn test_rotate() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_rotate.png");
+  run_fixture_test(container.into(), "style_rotate.webp");
 }
 
 #[test]
@@ -103,7 +103,7 @@ fn test_style_transform_origin_center() {
     }))),
   };
 
-  run_fixture_test(container.into(), "style_transform_origin_center.png");
+  run_fixture_test(container.into(), "style_transform_origin_center.webp");
 }
 
 #[test]
@@ -138,7 +138,7 @@ fn test_style_transform_origin_top_left() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_transform_origin_top_left.png");
+  run_fixture_test(container.into(), "style_transform_origin_top_left.webp");
 }
 
 fn create_rotated_container(angle: f32, transform_origin: BackgroundPosition) -> ImageNode {
@@ -163,7 +163,7 @@ fn create_rotated_container(angle: f32, transform_origin: BackgroundPosition) ->
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.png".into(),
+    src: "assets/images/yeecord.webp".into(),
   }
 }
 
@@ -225,7 +225,7 @@ fn test_style_transform_translate_and_scale() {
       [ImageNode {
         preset: None,
         tw: None,
-        src: "assets/images/yeecord.png".into(),
+        src: "assets/images/yeecord.webp".into(),
         style: Some(
           StyleBuilder::default()
             .width(Percentage(100.0))
@@ -304,5 +304,5 @@ fn test_style_transform_translate_and_scale() {
     .into(),
   );
 
-  run_fixture_test(container.into(), "style_transform_translate_and_scale.png");
+  run_fixture_test(container.into(), "style_transform_translate_and_scale.webp");
 }

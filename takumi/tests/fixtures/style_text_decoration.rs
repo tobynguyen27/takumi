@@ -32,5 +32,5 @@ fn test_style_text_decoration() {
     text: "Text Decoration with Underline, Line-Through, and Overline".to_string(),
   };
 
-  run_fixture_test(text.into(), "style_text_decoration.png");
+  run_fixture_test(text.into(), "style_text_decoration.webp");
 }

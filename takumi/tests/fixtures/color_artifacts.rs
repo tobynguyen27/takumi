@@ -45,5 +45,5 @@ fn test_color_artifacts() {
     ),
   };
 
-  run_fixture_test(container.into(), "color_artifacts.png");
+  run_fixture_test(container.into(), "color_artifacts.webp");
 }

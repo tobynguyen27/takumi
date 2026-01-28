@@ -64,7 +64,7 @@ fn test_style_opacity() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_opacity.png");
+  run_fixture_test(container.into(), "style_opacity.webp");
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn test_style_opacity_image_with_text() {
                   .build()
                   .unwrap(),
               ),
-              src: "assets/images/yeecord.png".into(),
+              src: "assets/images/yeecord.webp".into(),
               width: None,
               height: None,
             }
@@ -137,5 +137,5 @@ fn test_style_opacity_image_with_text() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_opacity_image_with_text.png");
+  run_fixture_test(container.into(), "style_opacity_image_with_text.webp");
 }

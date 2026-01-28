@@ -74,7 +74,7 @@ fn text_inline() {
     children: Some(children),
   };
 
-  run_fixture_test(container.into(), "text_inline.png");
+  run_fixture_test(container.into(), "text_inline.webp");
 }
 
 #[test]
@@ -102,7 +102,7 @@ fn inline_image() {
           .build()
           .unwrap(),
       ),
-      src: "assets/images/yeecord.png".into(),
+      src: "assets/images/yeecord.webp".into(),
       width: Some(64.0),
       height: Some(64.0),
     }
@@ -154,7 +154,7 @@ fn inline_image() {
     ),
   };
 
-  run_fixture_test(container.into(), "inline_image.png");
+  run_fixture_test(container.into(), "inline_image.webp");
 }
 
 #[test]
@@ -232,7 +232,7 @@ fn inline_block_in_inline() {
     children: Some(children.into_boxed_slice()),
   };
 
-  run_fixture_test(container.into(), "inline_block_in_inline.png");
+  run_fixture_test(container.into(), "inline_block_in_inline.webp");
 }
 
 #[test]
@@ -300,5 +300,5 @@ fn inline_span_background_color() {
     children: Some(children),
   };
 
-  run_fixture_test(container.into(), "inline_span_background_color.png");
+  run_fixture_test(container.into(), "inline_span_background_color.webp");
 }

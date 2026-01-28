@@ -49,6 +49,6 @@ fn test_svg_luma_logo_gradient_background() {
 
   run_fixture_test(
     NodeKind::Container(container),
-    "svg_luma_logo_gradient_background.png",
+    "svg_luma_logo_gradient_background.webp",
   );
 }
