@@ -174,6 +174,7 @@ define_style!(
   webkit_text_stroke_color: Option<ColorInput> where inherit = true,
   #[serde(rename = "WebkitTextFillColor", alias = "textFillColor")]
   webkit_text_fill_color: Option<ColorInput> where inherit = true,
+  stroke_linejoin: LineJoin where inherit = true,
   text_shadow: Option<TextShadows> where inherit = true,
   text_decoration: TextDecoration,
   text_decoration_line: Option<TextDecorationLines> where inherit = true,

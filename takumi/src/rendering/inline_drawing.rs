@@ -1,7 +1,7 @@
 use image::{GenericImageView, Rgba};
 use parley::{GlyphRun, PositionedInlineBox, PositionedLayoutItem};
 use swash::FontRef;
-use taffy::{Layout, Size};
+use taffy::{Layout, Point, Size};
 
 use crate::{
   Result,
@@ -12,7 +12,7 @@ use crate::{
   },
   rendering::{
     BorderProperties, Canvas, RenderContext, collect_background_image_layers, draw_decoration,
-    draw_glyph, rasterize_layers,
+    draw_glyph, draw_glyph_clip_image, rasterize_layers,
   },
   resources::font::FontError,
 };
@@ -79,35 +79,47 @@ fn draw_glyph_run<I: GenericImageView<Pixel = Rgba<u8>>>(
 
   let palette = font.color_palettes().next();
 
-  // Draw each glyph using the batch-resolved cache
-  for glyph in glyph_run.positioned_glyphs() {
-    if let Some(cached_glyph) = resolved_glyphs.get(&glyph.id) {
-      if clip_image.is_some() {
-        draw_glyph(
-          glyph,
-          cached_glyph,
-          canvas,
-          style,
-          layout,
-          clip_image,
-          context.transform,
-          glyph_run.style().brush.color,
-          palette,
-        )?;
-      }
+  if let Some(clip_image) = clip_image {
+    for glyph in glyph_run.positioned_glyphs() {
+      let Some(content) = resolved_glyphs.get(&glyph.id) else {
+        continue;
+      };
 
-      draw_glyph::<I>(
-        glyph,
-        cached_glyph,
+      let inline_offset = Point {
+        x: layout.border.left + layout.padding.left + glyph.x,
+        y: layout.border.top + layout.padding.top + glyph.y,
+      };
+
+      draw_glyph_clip_image(
+        content,
         canvas,
         style,
-        layout,
-        None,
         context.transform,
-        glyph_run.style().brush.color,
-        palette,
-      )?;
+        inline_offset,
+        clip_image,
+      );
     }
+  }
+
+  for glyph in glyph_run.positioned_glyphs() {
+    let Some(content) = resolved_glyphs.get(&glyph.id) else {
+      continue;
+    };
+
+    let inline_offset = Point {
+      x: layout.border.left + layout.padding.left + glyph.x,
+      y: layout.border.top + layout.padding.top + glyph.y,
+    };
+
+    draw_glyph(
+      content,
+      canvas,
+      style,
+      context.transform,
+      inline_offset,
+      glyph_run.style().brush.color,
+      palette,
+    )?;
   }
 
   if decoration_line.contains(&TextDecorationLine::LineThrough) {
@@ -180,13 +192,10 @@ pub(crate) fn draw_inline_layout(
 
     rasterize_layers(
       layers,
-      layout.content_box_size().map(|x| x as u32),
+      layout.size.map(|x| x as u32),
       context,
       BorderProperties::default(),
-      Affine::translation(
-        layout.padding.left + layout.border.left,
-        layout.padding.top + layout.border.top,
-      ),
+      Affine::IDENTITY,
       &mut canvas.mask_memory,
     )
   } else {

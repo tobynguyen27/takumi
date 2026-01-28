@@ -4,10 +4,10 @@ use image::{
   GenericImageView, ImageError, Rgba, RgbaImage,
   error::{DecodingError, ImageFormatHint},
 };
-use parley::{Glyph, GlyphRun};
+use parley::GlyphRun;
 use swash::{ColorPalette, scale::outline::Outline};
 use taffy::{Layout, Point, Size};
-use zeno::{Command, Join, PathData, Stroke};
+use zeno::{Command, PathData, Stroke};
 
 use crate::{
   Result,
@@ -64,25 +64,18 @@ pub(crate) fn draw_decoration(
   );
 }
 
-#[allow(clippy::too_many_arguments)]
-pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
-  glyph: Glyph,
-  glyph_content: &ResolvedGlyph,
+pub(crate) fn draw_glyph_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
+  glyph: &ResolvedGlyph,
   canvas: &mut Canvas,
   style: &SizedFontStyle,
-  layout: Layout,
-  clip_image: Option<&I>,
   mut transform: Affine,
-  color: Color,
-  palette: Option<ColorPalette>,
-) -> Result<()> {
-  transform *= Affine::translation(
-    layout.border.left + layout.padding.left + glyph.x,
-    layout.border.top + layout.padding.top + glyph.y,
-  );
+  inline_offset: Point<f32>,
+  clip_image: &I,
+) {
+  transform *= Affine::translation(inline_offset.x, inline_offset.y);
 
-  match (glyph_content, clip_image) {
-    (ResolvedGlyph::Image(bitmap), Some(clip_image)) => {
+  match glyph {
+    ResolvedGlyph::Image(bitmap) => {
       transform *= Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32);
 
       let mask = bitmap
@@ -108,8 +101,8 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
         |x, y| {
           let alpha = mask[mask_index_from_coord(x, y, bitmap.placement.width)];
 
-          let source_x = x + glyph.x as u32;
-          let source_y = y + glyph.y as u32 - bitmap.placement.top as u32;
+          let source_x = x + inline_offset.x as u32;
+          let source_y = y + inline_offset.y as u32 - bitmap.placement.top as u32;
 
           if source_x >= fill_dimensions.0 || source_y >= fill_dimensions.1 {
             return Color::transparent().into();
@@ -130,30 +123,15 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
         ImageScalingAlgorithm::Auto,
       );
     }
-    (ResolvedGlyph::Image(bitmap), None) => {
-      transform *= Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32);
-
-      let image = RgbaImage::from_raw(
-        bitmap.placement.width,
-        bitmap.placement.height,
-        bitmap.data.clone(),
-      )
-      .ok_or(ImageError::Decoding(DecodingError::new(
-        ImageFormatHint::Unknown,
-        "Failed to create image from raw data",
-      )))?;
-
-      canvas.overlay_image(&image, Default::default(), transform, Default::default());
-    }
-    (ResolvedGlyph::Outline(outline), Some(clip_image)) => {
+    ResolvedGlyph::Outline(outline) => {
       // If the transform is not invertible, we can't draw the glyph
       let Some(inverse) = transform.invert() else {
-        return Ok(());
+        return;
       };
 
       let paths = collect_outline_paths(outline);
 
-      maybe_draw_text_shadow(canvas, style, transform, &paths);
+      draw_text_shadow(canvas, style, transform, &paths);
 
       let (mask, placement) = canvas.mask_memory.render(&paths, Some(transform), None);
 
@@ -181,37 +159,56 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
             style.parent.image_rendering,
             (x as f32 + placement.left as f32).round(),
             (y as f32 + placement.top as f32).round(),
-            Point {
-              x: glyph.x,
-              y: glyph.y,
-            },
+            inline_offset,
           );
 
           let Some(mut pixel) = sampled_pixel else {
             return Color::transparent().into();
           };
 
-          blend_pixel(&mut pixel, color.into());
           apply_mask_alpha_to_pixel(&mut pixel, alpha);
 
           pixel
         },
       );
 
-      maybe_draw_text_stroke(
-        canvas,
-        style,
-        glyph,
-        transform,
-        &paths,
-        Some(clip_image),
-        Some(inverse),
-      );
+      draw_text_stroke_clip_image(canvas, style, transform, &paths, clip_image, inline_offset);
     }
-    (ResolvedGlyph::Outline(outline), None) => {
+  }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn draw_glyph(
+  glyph: &ResolvedGlyph,
+  canvas: &mut Canvas,
+  style: &SizedFontStyle,
+  mut transform: Affine,
+  inline_offset: Point<f32>,
+  color: Color,
+  palette: Option<ColorPalette>,
+) -> Result<()> {
+  transform *= Affine::translation(inline_offset.x, inline_offset.y);
+
+  match glyph {
+    ResolvedGlyph::Image(bitmap) => {
+      transform *= Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32);
+
+      let image = RgbaImage::from_raw(
+        bitmap.placement.width,
+        bitmap.placement.height,
+        bitmap.data.clone(),
+      )
+      .ok_or(ImageError::Decoding(DecodingError::new(
+        ImageFormatHint::Unknown,
+        "Failed to create image from raw data",
+      )))?;
+
+      canvas.overlay_image(&image, Default::default(), transform, Default::default());
+    }
+    ResolvedGlyph::Outline(outline) => {
       let paths = collect_outline_paths(outline);
 
-      maybe_draw_text_shadow(canvas, style, transform, &paths);
+      draw_text_shadow(canvas, style, transform, &paths);
 
       if outline.is_color()
         && let Some(palette) = palette
@@ -237,92 +234,109 @@ pub(crate) fn draw_glyph<I: GenericImageView<Pixel = Rgba<u8>>>(
         );
       }
 
-      maybe_draw_text_stroke::<I>(canvas, style, glyph, transform, &paths, None, None);
+      draw_text_stroke(canvas, style, transform, &paths);
     }
   }
 
   Ok(())
 }
 
-fn maybe_draw_text_stroke<I: GenericImageView<Pixel = Rgba<u8>>>(
+fn draw_text_stroke_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
   canvas: &mut Canvas,
   style: &SizedFontStyle,
-  glyph: Glyph,
   transform: Affine,
   paths: &[Command],
-  clip_image: Option<&I>,
-  inverse: Option<Affine>,
+  clip_image: &I,
+  inline_offset: Point<f32>,
 ) {
+  let Some(inverse) = transform.invert() else {
+    return;
+  };
+
   if style.stroke_width <= 0.0 {
     return;
   }
 
   let mut stroke = Stroke::new(style.stroke_width);
-  stroke.scale = false;
-  stroke.join = Join::Bevel;
+  stroke.scale = true;
+  stroke.join = style.parent.stroke_linejoin.into();
 
   let (stroke_mask, stroke_placement) =
     canvas
       .mask_memory
       .render(paths, Some(transform), Some(stroke.into()));
 
-  if let Some(clip_image) = clip_image {
-    let inverse = inverse.or_else(|| transform.invert());
+  overlay_area(
+    &mut canvas.image,
+    Point {
+      x: stroke_placement.left as f32,
+      y: stroke_placement.top as f32,
+    },
+    Size {
+      width: stroke_placement.width,
+      height: stroke_placement.height,
+    },
+    canvas.constrains.last(),
+    |x, y| {
+      let alpha = stroke_mask[mask_index_from_coord(x, y, stroke_placement.width)];
 
-    if let Some(inverse) = inverse {
-      overlay_area(
-        &mut canvas.image,
-        Point {
-          x: stroke_placement.left as f32,
-          y: stroke_placement.top as f32,
-        },
-        Size {
-          width: stroke_placement.width,
-          height: stroke_placement.height,
-        },
-        canvas.constrains.last(),
-        |x, y| {
-          let alpha = stroke_mask[mask_index_from_coord(x, y, stroke_placement.width)];
+      if alpha == 0 {
+        return Color::transparent().into();
+      }
 
-          if alpha == 0 {
-            return Color::transparent().into();
-          }
+      let inline_x = x as f32 + stroke_placement.left as f32;
+      let inline_y = y as f32 + stroke_placement.top as f32;
 
-          let sampled_pixel = sample_transformed_pixel(
-            clip_image,
-            &inverse,
-            style.parent.image_rendering,
-            (x as f32 + stroke_placement.left as f32).round(),
-            (y as f32 + stroke_placement.top as f32).round(),
-            Point {
-              x: glyph.x,
-              y: glyph.y,
-            },
-          );
-
-          let Some(mut pixel) = sampled_pixel else {
-            return Color::transparent().into();
-          };
-
-          blend_pixel(&mut pixel, style.text_stroke_color.into());
-          apply_mask_alpha_to_pixel(&mut pixel, alpha);
-
-          pixel
-        },
+      let sampled_pixel = sample_transformed_pixel(
+        clip_image,
+        &inverse,
+        style.parent.image_rendering,
+        inline_x,
+        inline_y,
+        inline_offset,
       );
-    }
-  } else {
-    draw_mask(
-      &mut canvas.image,
-      stroke_mask,
-      stroke_placement,
-      style.text_stroke_color,
-      canvas.constrains.last(),
-    );
-  }
+
+      let Some(mut pixel) = sampled_pixel else {
+        return Color::transparent().into();
+      };
+
+      blend_pixel(&mut pixel, style.text_stroke_color.into());
+      apply_mask_alpha_to_pixel(&mut pixel, alpha);
+
+      pixel
+    },
+  );
 }
 
-fn maybe_draw_text_shadow(
+fn draw_text_stroke(
+  canvas: &mut Canvas,
+  style: &SizedFontStyle,
+  transform: Affine,
+  paths: &[Command],
+) {
+  if style.stroke_width <= 0.0 {
+    return;
+  }
+
+  let mut stroke = Stroke::new(style.stroke_width);
+  stroke.scale = true;
+  stroke.join = style.parent.stroke_linejoin.into();
+
+  let (stroke_mask, stroke_placement) =
+    canvas
+      .mask_memory
+      .render(paths, Some(transform), Some(stroke.into()));
+
+  draw_mask(
+    &mut canvas.image,
+    stroke_mask,
+    stroke_placement,
+    style.text_stroke_color,
+    canvas.constrains.last(),
+  );
+}
+
+fn draw_text_shadow(
   canvas: &mut Canvas,
   style: &SizedFontStyle,
   transform: Affine,

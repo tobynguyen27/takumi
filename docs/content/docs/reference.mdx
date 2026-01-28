@@ -146,22 +146,22 @@ An image node displays rasterized or svg images.
     </tr>
     <tr>
       <td>`padding`</td>
-      <td>`paddingTop`, `paddingRight`, `paddingBottom`, `paddingLeft`</td>
+      <td>`paddingTop`, `paddingRight`, `paddingBottom`, `paddingLeft`, `paddingInline`, `paddingBlock`</td>
       <td>Supported</td>
     </tr>
     <tr>
       <td>`margin`</td>
-      <td>`marginTop`, `marginRight`, `marginBottom`, `marginLeft`</td>
+      <td>`marginTop`, `marginRight`, `marginBottom`, `marginLeft`, `marginInline`, `marginBlock`</td>
       <td>Supported</td>
     </tr>
     <tr>
       <td>`inset`</td>
-      <td>`top`, `right`, `bottom`, `left`</td>
+      <td>`top`, `right`, `bottom`, `left`, `insetInline`, `insetBlock`</td>
       <td>Supported</td>
     </tr>
     <tr>
       <td>`border`</td>
-      <td>`borderWidth` (`borderTopWidth`, `borderRightWidth`, `borderBottomWidth`, `borderLeftWidth`), `borderColor`</td>
+      <td>`borderWidth` (`borderTopWidth`, `borderRightWidth`, `borderBottomWidth`, `borderLeftWidth`, `borderInlineWidth`, `borderBlockWidth`), `borderColor`</td>
       <td>Only `solid` style is supported</td>
     </tr>
     <tr>
@@ -220,7 +220,7 @@ An image node displays rasterized or svg images.
       <td>`nowrap`, `wrap`, `wrap-reverse`</td>
     </tr>
     <tr>
-      <td>`gap`</td>
+      <td>`gap` (`columnGap`, `rowGap`)</td>
       <td>Supported</td>
     </tr>
     <tr>
@@ -293,14 +293,14 @@ An image node displays rasterized or svg images.
     </tr>
     <tr>
       <td rowSpan={3}>`transform`</td>
-      <td>`translate`</td>
+      <td>`translate` (`translateX`, `translateY`)</td>
       <td rowSpan={3}>Only 2D is supported</td>
     </tr>
     <tr>
       <td>`rotate`</td>
     </tr>
     <tr>
-      <td>`scale`</td>
+      <td>`scale` (`scaleX`, `scaleY`)</td>
     </tr>
     <tr>
       <td colSpan={2}>`transformOrigin`</td>
@@ -447,8 +447,12 @@ An image node displays rasterized or svg images.
     </tr>
     <tr>
       <td>`WebkitTextStroke`</td>
-      <td>`WebkitTextStrokeWidth`, `WebkitTextStrokeColor`</td>
+      <td>`WebkitTextStrokeWidth`, `WebkitTextStrokeColor`, `WebkitTextFillColor`</td>
       <td>Supported</td>
+    </tr>
+    <tr>
+      <td colSpan={2}>`strokeLinejoin`</td>
+      <td>`miter`, `round`, `bevel`</td>
     </tr>
     <tr>
       <td rowSpan={2}>`textDecoration`</td>

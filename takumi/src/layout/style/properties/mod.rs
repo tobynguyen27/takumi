@@ -89,6 +89,7 @@ use cssparser::{
 };
 use image::imageops::FilterType;
 use parley::{Alignment, FontStack};
+use zeno::Join;
 
 use crate::layout::style::tw::TailwindPropertyParser;
 
@@ -405,6 +406,41 @@ impl TailwindPropertyParser for TextAlign {
 impl_from_taffy_enum!(
   TextAlign, Alignment, Left, Right, Center, Justify, Start, End
 );
+
+/// Defines how the corners of text strokes are rendered.
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+pub enum LineJoin {
+  /// The corners are sharp and pointed.
+  #[default]
+  Miter,
+  /// The corners are rounded.
+  Round,
+  /// The corners are cut off at a 45-degree angle.
+  Bevel,
+}
+
+declare_enum_from_css_impl!(
+  LineJoin,
+  "miter" => LineJoin::Miter,
+  "round" => LineJoin::Round,
+  "bevel" => LineJoin::Bevel
+);
+
+impl From<LineJoin> for Join {
+  fn from(value: LineJoin) -> Self {
+    match value {
+      LineJoin::Miter => Join::Miter,
+      LineJoin::Round => Join::Round,
+      LineJoin::Bevel => Join::Bevel,
+    }
+  }
+}
+
+impl TailwindPropertyParser for LineJoin {
+  fn parse_tw(token: &str) -> Option<Self> {
+    Self::from_str(token).ok()
+  }
+}
 
 /// Defines the positioning method for an element.
 ///

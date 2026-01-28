@@ -755,3 +755,74 @@ fn text_wrap_style_all() {
 
   run_fixture_test(container.into(), "text_wrap_style_all.png");
 }
+
+#[test]
+fn text_super_bold_stroke_background_clip() {
+  let gradient_images = BackgroundImages::from_str(
+    "linear-gradient(90deg, #ff3b30, #ffcc00, #34c759, #007aff, #5856d6)",
+  )
+  .unwrap();
+
+  let text = TextNode {
+    preset: None,
+    tw: None,
+    style: Some(
+      StyleBuilder::default()
+        .background_image(Some(gradient_images))
+        .background_clip(BackgroundClip::Text)
+        .color(ColorInput::Value(Color::white()))
+        .font_size(Some(Px(120.0)))
+        .font_weight(FontWeight::from(900.0))
+        .webkit_text_stroke_width(Some(Px(20.0)))
+        .webkit_text_stroke_color(Some(ColorInput::Value(Color::transparent())))
+        .padding(Sides([Px(60.0); 4]))
+        .build()
+        .unwrap(),
+    ),
+    text: "Super Bold".to_string(),
+  };
+
+  let container = ContainerNode {
+    preset: None,
+    tw: None,
+    style: Some(
+      StyleBuilder::default()
+        .background_color(ColorInput::Value(Color::white()))
+        .width(Percentage(100.0))
+        .height(Percentage(100.0))
+        .align_items(AlignItems::Center)
+        .justify_content(JustifyContent::Center)
+        .build()
+        .unwrap(),
+    ),
+    children: Some([text.into()].into()),
+  };
+
+  run_fixture_test(
+    container.into(),
+    "text_super_bold_stroke_background_clip.png",
+  );
+}
+
+#[test]
+fn text_stroke_linejoin_round() {
+  let text = TextNode {
+    preset: None,
+    tw: None,
+    style: Some(
+      StyleBuilder::default()
+        .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
+        .color(ColorInput::Value(Color([0, 0, 0, 255]))) // Black text
+        .font_size(Some(Px(120.0)))
+        .font_weight(FontWeight::from(900.0))
+        .webkit_text_stroke_width(Some(Px(12.0)))
+        .webkit_text_stroke_color(Some(ColorInput::Value(Color([255, 0, 0, 255])))) // Red stroke
+        .stroke_linejoin(LineJoin::Round)
+        .build()
+        .unwrap(),
+    ),
+    text: "Round Join".to_string(),
+  };
+
+  run_fixture_test(text.into(), "text_stroke_linejoin_round.png");
+}
