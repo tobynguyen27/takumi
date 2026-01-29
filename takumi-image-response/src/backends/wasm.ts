@@ -145,6 +145,7 @@ const contentTypeMapping = {
   png: "image/png",
   jpeg: "image/jpeg",
   webp: "image/webp",
+  raw: "application/octet-stream",
 };
 
 const defaultOptions = {
@@ -153,21 +154,19 @@ const defaultOptions = {
 
 export class ImageResponse extends Response {
   constructor(component: ReactNode, options: ImageResponseOptions) {
-    const mergedOptions = {
-      ...defaultOptions,
-      ...options,
-    };
-
-    const stream = createStream(component, mergedOptions);
-    const headers = new Headers(mergedOptions.headers);
+    const stream = createStream(component, options);
+    const headers = new Headers(options.headers);
 
     if (!headers.get("content-type")) {
-      headers.set("content-type", contentTypeMapping[mergedOptions.format]);
+      headers.set(
+        "content-type",
+        contentTypeMapping[options.format ?? defaultOptions.format],
+      );
     }
 
     super(stream, {
-      status: mergedOptions.status,
-      statusText: mergedOptions.statusText,
+      status: options.status,
+      statusText: options.statusText,
       headers,
     });
   }
