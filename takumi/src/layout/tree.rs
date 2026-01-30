@@ -10,7 +10,7 @@ use crate::{
       create_inline_layout, measure_inline_layout,
     },
     node::Node,
-    style::{Display, InheritedStyle},
+    style::{Affine, Display, InheritedStyle},
   },
   rendering::{
     Canvas, MaxHeight, RenderContext, Sizing,
@@ -73,7 +73,7 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     );
 
     let boxes = spans.iter().filter_map(|span| match span {
-      ProcessedInlineSpan::Box { node, .. } => Some(node),
+      ProcessedInlineSpan::Box(item) => Some(item),
       _ => None,
     });
 
@@ -81,9 +81,14 @@ impl<'g, N: Node<N>> NodeTree<'g, N> {
     let positioned_inline_boxes =
       draw_inline_layout(&self.context, canvas, layout, inline_layout, &font_style)?;
 
+    let inline_transform = Affine::translation(
+      layout.border.left + layout.padding.left,
+      layout.border.top + layout.padding.top,
+    ) * self.context.transform;
+
     // Then handle the inline boxes directly by zipping the node refs with their positioned boxes
-    for (node, positioned) in boxes.zip(positioned_inline_boxes.iter()) {
-      draw_inline_box(positioned, node, canvas, self.context.transform)?;
+    for (item, positioned) in boxes.zip(positioned_inline_boxes.iter()) {
+      draw_inline_box(positioned, item, canvas, inline_transform)?;
     }
     Ok(())
   }

@@ -550,7 +550,7 @@ pub(crate) fn draw_mask<C: Into<Rgba<u8>>>(
 #[inline(always)]
 pub(crate) fn sample_transformed_pixel<I: GenericImageView<Pixel = Rgba<u8>>>(
   image: &I,
-  inverse_transform: &Affine,
+  inverse_transform: Affine,
   algorithm: ImageScalingAlgorithm,
   canvas_x: f32,
   canvas_y: f32,
@@ -617,7 +617,7 @@ pub(crate) fn overlay_image<I: GenericImageView<Pixel = Rgba<u8>>>(
     let Some(mut pixel) = inverse.and_then(|inverse| {
       sample_transformed_pixel(
         image,
-        &inverse,
+        inverse,
         algorithm,
         (x as i32 + placement.left) as f32,
         (y as i32 + placement.top) as f32,

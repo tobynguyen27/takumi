@@ -148,7 +148,7 @@ fn test_style_mask_image_on_image_node() {
                   .build()
                   .unwrap(),
               ),
-              src: "assets/images/yeecord.webp".into(),
+              src: "assets/images/yeecord.png".into(),
               width: None,
               height: None,
             }

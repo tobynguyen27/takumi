@@ -458,7 +458,7 @@ impl InheritedStyle {
   }
 
   #[inline]
-  fn resolved_padding(&self) -> taffy::Rect<Length<false>> {
+  pub(crate) fn resolved_padding(&self) -> taffy::Rect<Length<false>> {
     Self::resolve_rect_with_longhands(
       self.padding,
       self.padding_inline,
@@ -471,7 +471,7 @@ impl InheritedStyle {
   }
 
   #[inline]
-  fn resolved_margin(&self) -> taffy::Rect<Length<false>> {
+  pub(crate) fn resolved_margin(&self) -> taffy::Rect<Length<false>> {
     Self::resolve_rect_with_longhands(
       self.margin,
       self.margin_inline,
@@ -505,7 +505,7 @@ impl InheritedStyle {
   }
 
   #[inline]
-  fn resolved_border_width(&self) -> taffy::Rect<Length> {
+  pub(crate) fn resolved_border_width(&self) -> taffy::Rect<Length> {
     Self::resolve_rect_with_longhands(
       self
         .border_width

@@ -108,7 +108,7 @@ fn test_style_opacity_image_with_text() {
                   .build()
                   .unwrap(),
               ),
-              src: "assets/images/yeecord.webp".into(),
+              src: "assets/images/yeecord.png".into(),
               width: None,
               height: None,
             }

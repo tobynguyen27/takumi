@@ -383,7 +383,7 @@ fn test_style_border_radius_circle_avatar() {
                 .build()
                 .unwrap(),
             ),
-            src: "assets/images/yeecord.webp".into(),
+            src: "assets/images/yeecord.png".into(),
             width: None,
             height: None,
           }
@@ -403,7 +403,7 @@ fn test_style_border_radius_circle_avatar() {
 fn test_style_border_width_on_image_node() {
   let avatar = json!({
     "type": "image",
-    "src": "assets/images/yeecord.webp",
+    "src": "assets/images/yeecord.png",
     "style": {
       "borderRadius": "100%",
       "borderWidth": 2,

@@ -26,7 +26,7 @@ fn test_style_object_position_contain_center() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   };
 
   run_fixture_test(image.into(), "style_object_position_contain_center.webp");
@@ -51,7 +51,7 @@ fn test_style_object_position_contain_top_left() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   };
 
   run_fixture_test(image.into(), "style_object_position_contain_top_left.webp");
@@ -76,7 +76,7 @@ fn test_style_object_position_contain_bottom_right() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   };
 
   run_fixture_test(
@@ -104,7 +104,7 @@ fn test_style_object_position_cover_center() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   };
 
   run_fixture_test(image.into(), "style_object_position_cover_center.webp");
@@ -129,7 +129,7 @@ fn test_style_object_position_cover_top_left() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   };
 
   run_fixture_test(image.into(), "style_object_position_cover_top_left.webp");
@@ -154,7 +154,7 @@ fn test_style_object_position_none_center() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   };
 
   run_fixture_test(image.into(), "style_object_position_none_center.webp");
@@ -179,7 +179,7 @@ fn test_style_object_position_none_top_left() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   };
 
   run_fixture_test(image.into(), "style_object_position_none_top_left.webp");
@@ -204,7 +204,7 @@ fn test_style_object_position_percentage_25_75() {
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   };
 
   run_fixture_test(image.into(), "style_object_position_percentage_25_75.webp");

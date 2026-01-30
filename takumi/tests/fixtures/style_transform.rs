@@ -35,7 +35,7 @@ fn test_rotate_image() {
             .unwrap(),
         ),
         tw: None,
-        src: "assets/images/yeecord.webp".into(),
+        src: "assets/images/yeecord.png".into(),
         width: None,
         height: None,
       }
@@ -163,7 +163,7 @@ fn create_rotated_container(angle: f32, transform_origin: BackgroundPosition) ->
     ),
     width: None,
     height: None,
-    src: "assets/images/yeecord.webp".into(),
+    src: "assets/images/yeecord.png".into(),
   }
 }
 
@@ -225,7 +225,7 @@ fn test_style_transform_translate_and_scale() {
       [ImageNode {
         preset: None,
         tw: None,
-        src: "assets/images/yeecord.webp".into(),
+        src: "assets/images/yeecord.png".into(),
         style: Some(
           StyleBuilder::default()
             .width(Percentage(100.0))

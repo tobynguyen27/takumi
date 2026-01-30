@@ -5,10 +5,10 @@ use taffy::{Point, Rect, Size};
 use zeno::{Command, Fill, PathBuilder};
 
 use crate::{
-  layout::style::{Affine, Color, ColorInput, Sides, SpacePair},
+  layout::style::{Affine, Color, ColorInput, ImageScalingAlgorithm, Sides, SpacePair},
   rendering::{
     Canvas, RenderContext, apply_mask_alpha_to_pixel, blend_pixel, mask_index_from_coord,
-    overlay_area,
+    overlay_area, sample_transformed_pixel,
   },
 };
 
@@ -21,6 +21,8 @@ pub(crate) struct BorderProperties {
   pub color: Color,
   /// Corner radii: top, right, bottom, left (in pixels)
   pub radius: Sides<SpacePair<f32>>,
+  /// The image rendering algorithm to use when sampling the image.
+  pub image_rendering: ImageScalingAlgorithm,
 }
 
 impl BorderProperties {
@@ -34,6 +36,7 @@ impl BorderProperties {
       width: Rect::ZERO,
       color: Color([0, 0, 0, 255]),
       radius: Sides([SpacePair::from_single(0.0); 4]),
+      image_rendering: ImageScalingAlgorithm::Auto,
     }
   }
 
@@ -59,6 +62,7 @@ impl BorderProperties {
         .unwrap_or(ColorInput::CurrentColor)
         .resolve(context.current_color),
       radius: Sides([top_left, top_right, bottom_right, bottom_left]),
+      image_rendering: context.style.image_rendering,
     }
   }
 
@@ -276,6 +280,10 @@ impl BorderProperties {
         .mask_memory
         .render(&paths, Some(transform), Some(Fill::EvenOdd.into()));
 
+    let Some(inverse) = transform.invert() else {
+      return;
+    };
+
     overlay_area(
       &mut canvas.image,
       Point {
@@ -290,16 +298,26 @@ impl BorderProperties {
       |x, y| {
         let alpha = mask[mask_index_from_coord(x, y, placement.width)];
 
-        let mut pixel = clip_image
-          .as_ref()
-          .map(|image| {
-            let mut pixel = image.get_pixel(x, y);
+        let clip_image_pixel = clip_image.and_then(|image| {
+          // Convert canvas coordinates to border_box coordinates using inverse transform
+          let canvas_x = (x as i32 + placement.left) as f32;
+          let canvas_y = (y as i32 + placement.top) as f32;
 
-            blend_pixel(&mut pixel, self.color.into());
+          sample_transformed_pixel(
+            image,
+            inverse,
+            self.image_rendering,
+            canvas_x,
+            canvas_y,
+            Point::ZERO,
+          )
+        });
 
-            pixel
-          })
-          .unwrap_or(self.color.into());
+        let mut pixel = self.color.into();
+
+        if let Some(clip_image_pixel) = clip_image_pixel {
+          blend_pixel(&mut pixel, clip_image_pixel);
+        }
 
         apply_mask_alpha_to_pixel(&mut pixel, alpha);
 

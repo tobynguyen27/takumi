@@ -158,7 +158,7 @@ pub(crate) fn draw_glyph_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
 
           let sampled_pixel = sample_transformed_pixel(
             clip_image,
-            &inverse,
+            inverse,
             style.parent.image_rendering,
             (x as i32 + placement.left) as f32,
             (y as i32 + placement.top) as f32,
@@ -292,7 +292,7 @@ fn draw_text_stroke_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
 
       let sampled_pixel = sample_transformed_pixel(
         clip_image,
-        &inverse,
+        inverse,
         style.parent.image_rendering,
         inline_x,
         inline_y,

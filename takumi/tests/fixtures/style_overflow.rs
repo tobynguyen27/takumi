@@ -49,7 +49,7 @@ fn create_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
             ),
             width: None,
             height: None,
-            src: "assets/images/yeecord.webp".into(),
+            src: "assets/images/yeecord.png".into(),
           }
           .into()]
           .into(),

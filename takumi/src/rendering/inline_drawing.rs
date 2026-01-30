@@ -1,12 +1,12 @@
 use image::{GenericImageView, Rgba};
-use parley::{GlyphRun, PositionedInlineBox, PositionedLayoutItem};
+use parley::{GlyphRun, LineMetrics, PositionedInlineBox, PositionedLayoutItem};
 use swash::FontRef;
-use taffy::{Layout, Point, Size};
+use taffy::{Layout, Point};
 
 use crate::{
   Result,
   layout::{
-    inline::{InlineBrush, InlineLayout, InlineNodeItem},
+    inline::{InlineBoxItem, InlineBrush, InlineLayout},
     node::Node,
     style::{Affine, BackgroundClip, SizedFontStyle, TextDecorationLine},
   },
@@ -135,30 +135,27 @@ fn draw_glyph_run<I: GenericImageView<Pixel = Rgba<u8>>>(
 
 pub(crate) fn draw_inline_box<N: Node<N>>(
   inline_box: &PositionedInlineBox,
-  node: &InlineNodeItem<'_, '_, N>,
+  item: &InlineBoxItem<'_, '_, N>,
   canvas: &mut Canvas,
   transform: Affine,
 ) -> Result<()> {
-  if node.context.style.opacity.0 == 0.0 {
+  if item.context.style.opacity.0 == 0.0 {
     return Ok(());
   }
 
   let context = RenderContext {
     transform: transform * Affine::translation(inline_box.x, inline_box.y),
-    ..node.context.clone()
+    ..item.context.clone()
   };
+  let layout = item.into();
 
-  node.node.draw_content(
-    &context,
-    canvas,
-    Layout {
-      size: Size {
-        width: inline_box.width,
-        height: inline_box.height,
-      },
-      ..Default::default()
-    },
-  )
+  item.node.draw_outset_box_shadow(&context, canvas, layout)?;
+  item.node.draw_background(&context, canvas, layout)?;
+  item.node.draw_inset_box_shadow(&context, canvas, layout)?;
+  item.node.draw_border(&context, canvas, layout)?;
+  item.node.draw_content(&context, canvas, layout)?;
+
+  Ok(())
 }
 
 pub(crate) fn draw_inline_layout(
@@ -198,10 +195,18 @@ pub(crate) fn draw_inline_layout(
             clip_image.as_ref(),
           )?;
         }
-        PositionedLayoutItem::InlineBox(inline_box) => positioned_inline_boxes.push(inline_box),
+        PositionedLayoutItem::InlineBox(mut inline_box) => {
+          fix_inline_box_y(&mut inline_box.y, line.metrics());
+          positioned_inline_boxes.push(inline_box)
+        }
       }
     }
   }
 
   Ok(positioned_inline_boxes)
+}
+
+// https://github.com/linebender/parley/blob/d7ed9b1ec844fa5a9ed71b84552c603dae3cab18/parley/src/layout/line.rs#L261C28-L261C61
+pub(crate) fn fix_inline_box_y(y: &mut f32, metrics: &LineMetrics) {
+  *y += metrics.line_height - metrics.baseline;
 }

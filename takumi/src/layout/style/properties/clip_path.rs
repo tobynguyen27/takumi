@@ -3,7 +3,9 @@ use taffy::{AbsoluteAxis, Point, Rect, Size};
 use zeno::{Fill, PathBuilder, PathData, Placement};
 
 use crate::{
-  layout::style::{Axis, Color, CssToken, FromCss, Length, ParseResult, Sides, SpacePair},
+  layout::style::{
+    Axis, Color, CssToken, FromCss, ImageScalingAlgorithm, Length, ParseResult, Sides, SpacePair,
+  },
   rendering::{BorderProperties, MaskMemory, RenderContext, Sizing},
 };
 
@@ -169,6 +171,7 @@ impl BasicShape {
               )
             })
             .unwrap_or_default(),
+          image_rendering: ImageScalingAlgorithm::Auto,
         };
 
         border.append_mask_commands(

@@ -1,10 +1,6 @@
 use takumi::layout::{
   node::{ContainerNode, ImageNode, TextNode},
-  style::{
-    AlignItems, Color, ColorInput, Display, FontWeight, JustifyContent,
-    Length::{Percentage, Px},
-    Sides, StyleBuilder, TextOverflow, TextTransform, WhiteSpace,
-  },
+  style::{Length::*, *},
 };
 
 use crate::test_utils::run_fixture_test;
@@ -80,7 +76,7 @@ fn text_inline() {
 #[test]
 fn inline_image() {
   // Inline image should behave as inline-level box content
-  let children = vec![
+  let children = [
     TextNode {
       preset: None,
       tw: None,
@@ -99,10 +95,14 @@ fn inline_image() {
       style: Some(
         StyleBuilder::default()
           .display(Display::Inline)
+          .border_width(Sides([Px(12.0); 4]))
+          .border_color(ColorInput::Value(Color::transparent()))
+          .background_image(BackgroundImages::from_str("linear-gradient(to right, red, blue)").ok())
+          .background_clip(BackgroundClip::BorderArea)
           .build()
           .unwrap(),
       ),
-      src: "assets/images/yeecord.webp".into(),
+      src: "assets/images/yeecord.png".into(),
       width: Some(64.0),
       height: Some(64.0),
     }
@@ -141,13 +141,13 @@ fn inline_image() {
         tw: None,
         style: Some(
           StyleBuilder::default()
-            .border_width(Some(Sides([Px(1.0); 4])))
+            .border_width(Some(Sides([Px(2.0); 4])))
             .display(Display::Block)
             .font_size(Some(Px(48.0)))
             .build()
             .unwrap(),
         ),
-        children: Some(children.into_boxed_slice()),
+        children: Some(children.into()),
       }
       .into()]
       .into(),

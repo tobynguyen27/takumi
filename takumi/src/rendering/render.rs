@@ -10,9 +10,7 @@ use crate::{
   GlobalContext,
   layout::{
     Viewport,
-    inline::{
-      InlineLayoutStage, ProcessedInlineSpan, create_inline_constraint, create_inline_layout,
-    },
+    inline::{InlineLayoutStage, create_inline_constraint, create_inline_layout},
     node::Node,
     style::{
       Affine, Display, Filter, ImageScalingAlgorithm, InheritedStyle, SpacePair,
@@ -22,7 +20,7 @@ use crate::{
   },
   rendering::{
     BorderProperties, Canvas, CanvasConstrain, CanvasConstrainResult, RenderContext, Sizing,
-    draw_debug_border, overlay_image,
+    draw_debug_border, inline_drawing::fix_inline_box_y, overlay_image,
   },
   resources::image::ImageSource,
 };
@@ -157,7 +155,7 @@ fn collect_measure_result<'g, Nodes: Node<Nodes>>(
       Size::NONE,
     );
 
-    let (inline_layout, text, spans) = create_inline_layout(
+    let (inline_layout, text, _) = create_inline_layout(
       node.inline_items_iter(),
       Size {
         width: AvailableSpace::Definite(layout.content_box_width()),
@@ -188,35 +186,15 @@ fn collect_measure_result<'g, Nodes: Node<Nodes>>(
               height: metrics.ascent + metrics.descent,
             });
           }
-          PositionedLayoutItem::InlineBox(positioned_box) => {
-            let Some(inline_node) = spans.iter().find_map(|span| match span {
-              ProcessedInlineSpan::Box { node, inline_box }
-                if inline_box.id == positioned_box.id =>
-              {
-                Some(node)
-              }
-              _ => None,
-            }) else {
-              continue;
-            };
+          PositionedLayoutItem::InlineBox(mut positioned_box) => {
+            fix_inline_box_y(&mut positioned_box.y, line.metrics());
 
-            let size = inline_node.node.measure(
-              inline_node.context,
-              Size {
-                width: AvailableSpace::Definite(layout.content_box_width()),
-                height: AvailableSpace::Definite(layout.content_box_height()),
-              },
-              Size::NONE,
-              &taffy::Style::default(),
-            );
-
-            let x = positioned_box.x;
-            let y = line.metrics().baseline - positioned_box.height;
-            let inline_transform = Affine::translation(x, y) * local_transform;
+            let inline_transform =
+              Affine::translation(positioned_box.x, positioned_box.y) * local_transform;
 
             children.push(MeasuredNode {
-              width: size.width,
-              height: size.height,
+              width: positioned_box.width,
+              height: positioned_box.height,
               transform: inline_transform.to_cols_array(),
               children: Vec::new(),
               runs: Vec::new(),

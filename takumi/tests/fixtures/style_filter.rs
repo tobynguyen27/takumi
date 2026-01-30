@@ -58,7 +58,7 @@ fn create_filter_card(filter: &str, image_size_px: f32, label_font_size_px: f32)
         ImageNode {
           preset: None,
           tw: None,
-          src: "assets/images/yeecord.webp".into(),
+          src: "assets/images/yeecord.png".into(),
           style: Some(
             StyleBuilder::default()
               .width(Px(image_size_px))

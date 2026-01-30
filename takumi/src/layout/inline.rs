@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use parley::InlineBox;
-use taffy::{AvailableSpace, Size};
+use taffy::{AvailableSpace, Layout, Rect, Size};
 
 use crate::{
   GlobalContext,
@@ -22,9 +22,28 @@ pub(crate) enum InlineLayoutStage {
   Draw,
 }
 
-pub(crate) struct InlineNodeItem<'c, 'g, N: Node<N>> {
+pub(crate) struct InlineBoxItem<'c, 'g, N: Node<N>> {
   pub(crate) node: &'c N,
   pub(crate) context: &'c RenderContext<'g>,
+  pub(crate) inline_box: InlineBox,
+  pub(crate) margin: Rect<f32>,
+  pub(crate) padding: Rect<f32>,
+  pub(crate) border: Rect<f32>,
+}
+
+impl<N: Node<N>> From<&InlineBoxItem<'_, '_, N>> for Layout {
+  fn from(value: &InlineBoxItem<'_, '_, N>) -> Self {
+    Layout {
+      size: Size {
+        width: value.inline_box.width,
+        height: value.inline_box.height,
+      },
+      margin: value.margin,
+      padding: value.padding,
+      border: value.border,
+      ..Default::default()
+    }
+  }
 }
 
 pub(crate) enum ProcessedInlineSpan<'c, 'g, N: Node<N>> {
@@ -32,14 +51,14 @@ pub(crate) enum ProcessedInlineSpan<'c, 'g, N: Node<N>> {
     text: String,
     style: SizedFontStyle<'c>,
   },
-  Box {
-    node: InlineNodeItem<'c, 'g, N>,
-    inline_box: InlineBox,
-  },
+  Box(InlineBoxItem<'c, 'g, N>),
 }
 
 pub(crate) enum InlineItem<'c, 'g, N: Node<N>> {
-  Node(InlineNodeItem<'c, 'g, N>),
+  Node {
+    node: &'c N,
+    context: &'c RenderContext<'g>,
+  },
   Text {
     text: Cow<'c, str>,
     context: &'c RenderContext<'g>,
@@ -122,9 +141,22 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
             style: span_style,
           });
         }
-        InlineItem::Node(item) => {
-          let size = item.node.measure(
-            item.context,
+        InlineItem::Node { node, context } => {
+          let margin = context
+            .style
+            .resolved_margin()
+            .map(|length| length.to_px(&context.sizing, 0.0));
+          let padding = context
+            .style
+            .resolved_padding()
+            .map(|length| length.to_px(&context.sizing, 0.0));
+          let border = context
+            .style
+            .resolved_border_width()
+            .map(|length| length.to_px(&context.sizing, 0.0));
+
+          let content_size = node.measure(
+            context,
             available_space,
             Size::NONE,
             &taffy::Style::default(),
@@ -133,14 +165,24 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
           let inline_box = InlineBox {
             index: index_pos,
             id: idx,
-            width: size.width,
-            height: size.height,
+            width: content_size.width
+              + margin.grid_axis_sum(taffy::AbsoluteAxis::Horizontal)
+              + padding.grid_axis_sum(taffy::AbsoluteAxis::Horizontal)
+              + border.grid_axis_sum(taffy::AbsoluteAxis::Horizontal),
+            height: content_size.height
+              + margin.grid_axis_sum(taffy::AbsoluteAxis::Vertical)
+              + padding.grid_axis_sum(taffy::AbsoluteAxis::Vertical)
+              + border.grid_axis_sum(taffy::AbsoluteAxis::Vertical),
           };
 
-          spans.push(ProcessedInlineSpan::Box {
-            node: item,
+          spans.push(ProcessedInlineSpan::Box(InlineBoxItem {
+            node,
+            context,
             inline_box: inline_box.clone(),
-          });
+            margin,
+            padding,
+            border,
+          }));
 
           builder.push_inline_box(inline_box);
           idx += 1;
@@ -282,8 +324,8 @@ fn make_ellipsis_layout<'c, 'g: 'c, N: Node<N> + 'c>(
               builder.push_text(text);
               builder.pop_style_span();
             }
-            ProcessedInlineSpan::Box { inline_box, .. } => {
-              builder.push_inline_box(inline_box.clone());
+            ProcessedInlineSpan::Box(item) => {
+              builder.push_inline_box(item.inline_box.clone());
             }
           }
         }
@@ -356,10 +398,10 @@ impl<'n, 'g, N: Node<N>> Iterator for InlineItemIterator<'n, 'g, N> {
         match inline_content {
           InlineContentKind::Box => {
             if let Some(n) = &node.node {
-              self.current_node_content = Some(InlineItem::Node(InlineNodeItem {
+              self.current_node_content = Some(InlineItem::Node {
                 node: n,
                 context: &node.context,
-              }));
+              });
             }
           }
           InlineContentKind::Text(text) => {
