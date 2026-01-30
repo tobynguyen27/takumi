@@ -22,7 +22,7 @@ fn test_style_background_color() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_background_color.webp");
+  run_fixture_test(container.into(), "style_background_color");
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_style_border_radius() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_border_radius.webp");
+  run_fixture_test(container.into(), "style_border_radius");
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn test_style_border_radius_per_corner() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_border_radius_per_corner.webp");
+  run_fixture_test(container.into(), "style_border_radius_per_corner");
 }
 
 #[test]
@@ -87,7 +87,7 @@ fn test_style_border_width() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_border_width.webp");
+  run_fixture_test(container.into(), "style_border_width");
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn test_style_border_width_with_radius() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_border_width_with_radius.webp");
+  run_fixture_test(container.into(), "style_border_width_with_radius");
 }
 
 #[test]
@@ -171,7 +171,7 @@ fn test_style_box_shadow() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_box_shadow.webp");
+  run_fixture_test(container.into(), "style_box_shadow");
 }
 
 #[test]
@@ -218,7 +218,7 @@ fn test_style_box_shadow_inset() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_box_shadow_inset.webp");
+  run_fixture_test(container.into(), "style_box_shadow_inset");
 }
 
 #[test]
@@ -255,7 +255,7 @@ fn test_style_position() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_position.webp");
+  run_fixture_test(container.into(), "style_position");
 }
 
 #[test]
@@ -277,7 +277,7 @@ fn test_style_border_radius_circle() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_border_radius_circle.webp");
+  run_fixture_test(container.into(), "style_border_radius_circle");
 }
 
 // https://github.com/kane50613/takumi/issues/151
@@ -335,7 +335,7 @@ fn test_style_border_radius_width_offset() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_border_radius_width_offset.webp");
+  run_fixture_test(container.into(), "style_border_radius_width_offset");
 }
 
 #[test]
@@ -396,7 +396,7 @@ fn test_style_border_radius_circle_avatar() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_border_radius_circle_avatar.webp");
+  run_fixture_test(container.into(), "style_border_radius_circle_avatar");
 }
 
 #[test]
@@ -430,5 +430,5 @@ fn test_style_border_width_on_image_node() {
     children: Some([from_value(avatar).unwrap()].into()),
   };
 
-  run_fixture_test(container.into(), "style_border_width_on_image_node.webp");
+  run_fixture_test(container.into(), "style_border_width_on_image_node");
 }

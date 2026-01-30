@@ -44,7 +44,7 @@ fn test_rotate_image() {
     ),
   };
 
-  run_fixture_test(image.into(), "style_rotate_image.webp");
+  run_fixture_test(image.into(), "style_rotate_image");
 }
 
 #[test]
@@ -82,7 +82,7 @@ fn test_rotate() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_rotate.webp");
+  run_fixture_test(container.into(), "style_rotate");
 }
 
 #[test]
@@ -103,7 +103,7 @@ fn test_style_transform_origin_center() {
     }))),
   };
 
-  run_fixture_test(container.into(), "style_transform_origin_center.webp");
+  run_fixture_test(container.into(), "style_transform_origin_center");
 }
 
 #[test]
@@ -138,7 +138,7 @@ fn test_style_transform_origin_top_left() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_transform_origin_top_left.webp");
+  run_fixture_test(container.into(), "style_transform_origin_top_left");
 }
 
 fn create_rotated_container(angle: f32, transform_origin: BackgroundPosition) -> ImageNode {
@@ -304,5 +304,5 @@ fn test_style_transform_translate_and_scale() {
     .into(),
   );
 
-  run_fixture_test(container.into(), "style_transform_translate_and_scale.webp");
+  run_fixture_test(container.into(), "style_transform_translate_and_scale");
 }

@@ -135,7 +135,7 @@ pub fn run_fixture_test(node: NodeKind, fixture_name: &str) {
   )
   .unwrap();
 
-  let fixture_path = format!("tests/fixtures-generated/{}", fixture_name);
+  let fixture_path = format!("tests/fixtures-generated/{}.webp", fixture_name);
   let path = Path::new(&fixture_path);
 
   let mut file = File::create(path).unwrap();

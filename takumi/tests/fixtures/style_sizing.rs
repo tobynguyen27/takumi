@@ -25,7 +25,7 @@ fn test_style_width() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_width.webp");
+  run_fixture_test(container.into(), "style_width");
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn test_style_height() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_height.webp");
+  run_fixture_test(container.into(), "style_height");
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn test_style_min_width() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_min_width.webp");
+  run_fixture_test(container.into(), "style_min_width");
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn test_style_min_height() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_min_height.webp");
+  run_fixture_test(container.into(), "style_min_height");
 }
 
 #[test]
@@ -104,7 +104,7 @@ fn test_style_max_width() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_max_width.webp");
+  run_fixture_test(container.into(), "style_max_width");
 }
 
 #[test]
@@ -124,5 +124,5 @@ fn test_style_max_height() {
     children: None,
   };
 
-  run_fixture_test(container.into(), "style_max_height.webp");
+  run_fixture_test(container.into(), "style_max_height");
 }

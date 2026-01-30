@@ -73,7 +73,7 @@ fn test_style_align_items() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_align_items.webp");
+  run_fixture_test(container.into(), "style_align_items");
 }
 
 #[test]
@@ -140,5 +140,5 @@ fn test_style_justify_content() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_justify_content.webp");
+  run_fixture_test(container.into(), "style_justify_content");
 }

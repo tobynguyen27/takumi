@@ -64,7 +64,7 @@ fn test_style_opacity() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_opacity.webp");
+  run_fixture_test(container.into(), "style_opacity");
 }
 
 #[test]
@@ -137,5 +137,5 @@ fn test_style_opacity_image_with_text() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_opacity_image_with_text.webp");
+  run_fixture_test(container.into(), "style_opacity_image_with_text");
 }

@@ -115,14 +115,14 @@ fn create_text_overflow_fixture(overflows: SpacePair<Overflow>) -> NodeKind {
 fn test_style_overflow_visible() {
   let container = create_overflow_fixture(SpacePair::from_single(Overflow::Visible));
 
-  run_fixture_test(container, "style_overflow_visible_image.webp");
+  run_fixture_test(container, "style_overflow_visible_image");
 }
 
 #[test]
 fn test_overflow_hidden() {
   let container = create_overflow_fixture(SpacePair::from_single(Overflow::Hidden));
 
-  run_fixture_test(container, "style_overflow_hidden_image.webp");
+  run_fixture_test(container, "style_overflow_hidden_image");
 }
 
 #[test]
@@ -130,21 +130,21 @@ fn test_overflow_mixed_axes() {
   let container =
     create_overflow_fixture(SpacePair::from_pair(Overflow::Hidden, Overflow::Visible));
 
-  run_fixture_test(container, "style_overflow_hidden_visible_image.webp");
+  run_fixture_test(container, "style_overflow_hidden_visible_image");
 }
 
 #[test]
 fn test_text_overflow_visible() {
   let container = create_text_overflow_fixture(SpacePair::from_single(Overflow::Visible));
 
-  run_fixture_test(container, "style_overflow_visible_text.webp");
+  run_fixture_test(container, "style_overflow_visible_text");
 }
 
 #[test]
 fn test_text_overflow_hidden() {
   let container = create_text_overflow_fixture(SpacePair::from_single(Overflow::Hidden));
 
-  run_fixture_test(container, "style_overflow_hidden_text.webp");
+  run_fixture_test(container, "style_overflow_hidden_text");
 }
 
 #[test]
@@ -152,5 +152,5 @@ fn test_text_overflow_mixed_axes() {
   let container =
     create_text_overflow_fixture(SpacePair::from_pair(Overflow::Hidden, Overflow::Visible));
 
-  run_fixture_test(container, "style_overflow_hidden_visible_text.webp");
+  run_fixture_test(container, "style_overflow_hidden_visible_text");
 }

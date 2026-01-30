@@ -42,7 +42,7 @@ fn test_style_margin() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_margin.webp");
+  run_fixture_test(container.into(), "style_margin");
 }
 
 #[test]
@@ -78,5 +78,5 @@ fn test_style_padding() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_padding.webp");
+  run_fixture_test(container.into(), "style_padding");
 }

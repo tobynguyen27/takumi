@@ -43,5 +43,5 @@ fn test_style_position() {
     ),
   };
 
-  run_fixture_test(container.into(), "style_position.webp");
+  run_fixture_test(container.into(), "style_position");
 }

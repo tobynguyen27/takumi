@@ -70,7 +70,7 @@ fn text_inline() {
     children: Some(children),
   };
 
-  run_fixture_test(container.into(), "text_inline.webp");
+  run_fixture_test(container.into(), "text_inline");
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn inline_image() {
     ),
   };
 
-  run_fixture_test(container.into(), "inline_image.webp");
+  run_fixture_test(container.into(), "inline_image");
 }
 
 #[test]
@@ -232,7 +232,7 @@ fn inline_block_in_inline() {
     children: Some(children.into_boxed_slice()),
   };
 
-  run_fixture_test(container.into(), "inline_block_in_inline.webp");
+  run_fixture_test(container.into(), "inline_block_in_inline");
 }
 
 #[test]
@@ -300,5 +300,5 @@ fn inline_span_background_color() {
     children: Some(children),
   };
 
-  run_fixture_test(container.into(), "inline_span_background_color.webp");
+  run_fixture_test(container.into(), "inline_span_background_color");
 }

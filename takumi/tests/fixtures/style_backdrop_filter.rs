@@ -90,7 +90,7 @@ fn test_style_backdrop_filter() {
   }
   .into();
 
-  run_fixture_test(container, "style_backdrop_filter.webp");
+  run_fixture_test(container, "style_backdrop_filter");
 }
 
 #[test]
@@ -169,5 +169,5 @@ fn test_style_backdrop_filter_frosted_glass() {
   }
   .into();
 
-  run_fixture_test(container, "style_backdrop_filter_frosted_glass.webp");
+  run_fixture_test(container, "style_backdrop_filter_frosted_glass");
 }

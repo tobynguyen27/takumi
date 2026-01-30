@@ -23,7 +23,7 @@ fn test_style_object_fit_contain() {
     src: "assets/images/yeecord.png".into(),
   };
 
-  run_fixture_test(image.into(), "style_object_fit_contain.webp");
+  run_fixture_test(image.into(), "style_object_fit_contain");
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn test_style_object_fit_cover() {
     src: "assets/images/yeecord.png".into(),
   };
 
-  run_fixture_test(image.into(), "style_object_fit_cover.webp");
+  run_fixture_test(image.into(), "style_object_fit_cover");
 }
 
 #[test]
@@ -65,7 +65,7 @@ fn test_style_object_fit_fill() {
     height: None,
   };
 
-  run_fixture_test(image.into(), "style_object_fit_fill.webp");
+  run_fixture_test(image.into(), "style_object_fit_fill");
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn test_style_object_fit_none() {
     height: None,
   };
 
-  run_fixture_test(image.into(), "style_object_fit_none.webp");
+  run_fixture_test(image.into(), "style_object_fit_none");
 }
 
 #[test]
@@ -107,5 +107,5 @@ fn test_style_object_fit_scale_down() {
     height: None,
   };
 
-  run_fixture_test(image.into(), "style_object_fit_scale_down.webp");
+  run_fixture_test(image.into(), "style_object_fit_scale_down");
 }

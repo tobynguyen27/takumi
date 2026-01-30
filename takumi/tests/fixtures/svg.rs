@@ -45,10 +45,8 @@ fn create_luma_logo_container() -> ContainerNode<NodeKind> {
 
 #[test]
 fn test_svg_luma_logo_gradient_background() {
-  let container = create_luma_logo_container();
-
   run_fixture_test(
-    NodeKind::Container(container),
-    "svg_luma_logo_gradient_background.webp",
+    create_luma_logo_container().into(),
+    "svg_luma_logo_gradient_background",
   );
 }
