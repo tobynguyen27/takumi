@@ -1,4 +1,4 @@
-use cssparser::Parser;
+use cssparser::{Parser, match_ignore_ascii_case};
 
 use crate::{
   layout::{
@@ -17,21 +17,27 @@ pub struct LineHeight(pub Length);
 
 impl Default for LineHeight {
   fn default() -> Self {
-    Self(Length::Em(DEFAULT_LINE_HEIGHT_SCALER)) // Default line height
+    Self(Length::Em(DEFAULT_LINE_HEIGHT_SCALER))
   }
 }
 
 impl TailwindPropertyParser for LineHeight {
   fn parse_tw(token: &str) -> Option<Self> {
-    if token.eq_ignore_ascii_case("none") {
-      return Some(Self(Length::Em(1.0)));
+    match_ignore_ascii_case! {&token,
+      "none" => Some(Self(Length::Em(1.0))),
+      "tight" => Some(Self(Length::Em(1.25))),
+      "snug" => Some(Self(Length::Em(1.375))),
+      "normal" => Some(Self(Length::Em(1.5))),
+      "relaxed" => Some(Self(Length::Em(1.625))),
+      "loose" => Some(Self(Length::Em(2.0))),
+      _ => {
+        let Ok(value) = token.parse::<f32>() else {
+          return None;
+        };
+
+        Some(Self(Length::Em(value * TW_VAR_SPACING)))
+      }
     }
-
-    let Ok(value) = token.parse::<f32>() else {
-      return None;
-    };
-
-    Some(Self(Length::Em(value * TW_VAR_SPACING)))
   }
 }
 
@@ -50,7 +56,6 @@ impl<'i> FromCss<'i> for LineHeight {
 }
 
 impl LineHeight {
-  /// Converts the line height to a parley line height.
   pub(crate) fn into_parley(self, sizing: &Sizing) -> parley::LineHeight {
     match self.0 {
       Length::Px(value) => parley::LineHeight::Absolute(value),
