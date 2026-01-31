@@ -44,7 +44,11 @@ async function getRenderer(options?: ImageResponseOptions) {
     return options.renderer;
   }
 
-  renderer ??= new Renderer(options);
+  if (!renderer) {
+    renderer = new Renderer(options);
+
+    return renderer;
+  }
 
   if (options?.fonts) {
     for (const font of options.fonts) {

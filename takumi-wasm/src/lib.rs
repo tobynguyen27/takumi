@@ -91,6 +91,17 @@ export type ImageSource = {
 
 export type Font = FontDetails | ByteBuf;
 
+export type ConstructRendererOptions = {
+  /**
+   * The images that needs to be preloaded into the renderer.
+   */
+  persistentImages?: ImageSource[],
+  /**
+   * The fonts being used.
+   */
+  fonts?: Font[],
+};
+
 export type MeasuredTextRun = {
   text: string,
   x: number,
@@ -135,6 +146,10 @@ extern "C" {
   /// JavaScript type for font input (FontDetails or ByteBuf).
   #[wasm_bindgen(typescript_type = "Font")]
   pub type FontType;
+
+  /// JavaScript object representing renderer construction options.
+  #[wasm_bindgen(typescript_type = "ConstructRendererOptions")]
+  pub type ConstructRendererOptionsType;
 
   /// JavaScript object representing an image source.
   #[wasm_bindgen(typescript_type = "ImageSource")]
@@ -207,6 +222,16 @@ enum Font {
   Buffer(ByteBuf),
 }
 
+/// Options for constructing a Renderer instance.
+#[derive(Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+struct ConstructRendererOptions {
+  /// The images that needs to be preloaded into the renderer.
+  persistent_images: Option<Vec<ImageSource>>,
+  /// The fonts being used.
+  fonts: Option<Vec<Font>>,
+}
+
 /// An image source with its URL and raw data.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -253,7 +278,7 @@ enum AnimationOutputFormat {
 }
 
 /// Font style variants.
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
 enum FontStyle {
   /// Normal font style.
@@ -308,8 +333,27 @@ pub struct Renderer {
 impl Renderer {
   /// Creates a new Renderer instance.
   #[wasm_bindgen(constructor)]
-  pub fn new() -> Renderer {
-    Renderer::default()
+  pub fn new(options: Option<ConstructRendererOptionsType>) -> JsResult<Renderer> {
+    let options: ConstructRendererOptions = options
+      .map(|options| from_value(options.into()).map_err(map_error))
+      .transpose()?
+      .unwrap_or_default();
+
+    let mut renderer = Self::default();
+
+    if let Some(fonts) = options.fonts {
+      for font in fonts {
+        renderer.load_font_internal(&font)?;
+      }
+    }
+
+    if let Some(images) = options.persistent_images {
+      for image in images {
+        renderer.put_persistent_image_internal(&image)?;
+      }
+    }
+
+    Ok(renderer)
   }
 
   /// @deprecated use `loadFont` instead.
@@ -318,17 +362,14 @@ impl Renderer {
     self.load_font(font)
   }
 
-  /// Loads a font into the renderer.
-  #[wasm_bindgen(js_name = loadFont)]
-  pub fn load_font(&mut self, font: FontType) -> JsResult<()> {
-    let input: Font = from_value(font.into()).map_err(map_error)?;
-
-    match input {
+  /// Loads a font into the renderer (internal version without JS conversion).
+  fn load_font_internal(&mut self, font: &Font) -> JsResult<()> {
+    match font {
       Font::Buffer(buffer) => {
         self
           .context
           .font_context
-          .load_and_store(&buffer, None, None)
+          .load_and_store(buffer, None, None)
           .map_err(map_error)?;
       }
       Font::Object(details) => {
@@ -352,11 +393,15 @@ impl Renderer {
     Ok(())
   }
 
-  /// Puts a persistent image into the renderer's internal store.
-  #[wasm_bindgen(js_name = putPersistentImage)]
-  pub fn put_persistent_image(&mut self, data: ImageSourceType) -> JsResult<()> {
-    let data: ImageSource = from_value(data.into()).map_err(map_error)?;
+  /// Loads a font into the renderer.
+  #[wasm_bindgen(js_name = loadFont)]
+  pub fn load_font(&mut self, font: FontType) -> JsResult<()> {
+    let input: Font = from_value(font.into()).map_err(map_error)?;
+    self.load_font_internal(&input)
+  }
 
+  /// Puts a persistent image into the renderer's internal store (internal version without JS conversion).
+  fn put_persistent_image_internal(&mut self, data: &ImageSource) -> JsResult<()> {
     let key = ImageCacheKey {
       src: data.src.as_ref().into(),
       data_hash: xxh3_64(&data.data),
@@ -375,6 +420,13 @@ impl Renderer {
       .insert(data.src.to_string(), image);
 
     Ok(())
+  }
+
+  /// Puts a persistent image into the renderer's internal store.
+  #[wasm_bindgen(js_name = putPersistentImage)]
+  pub fn put_persistent_image(&mut self, data: ImageSourceType) -> JsResult<()> {
+    let data: ImageSource = from_value(data.into()).map_err(map_error)?;
+    self.put_persistent_image_internal(&data)
   }
 
   /// Clears the renderer's internal image store.

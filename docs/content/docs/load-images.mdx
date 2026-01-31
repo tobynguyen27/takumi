@@ -56,8 +56,6 @@ const image = await renderer.render(node, {
 
 Preload frequently used images like logo, background, etc. to avoid redundant image decoding and improve performance.
 
-It's recommended to declare images in global scope so Takumi can identify and cache them with [`WeakSet`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet) reference to the image object.
-
 The image key can be used in any `src` field or `background-image`, `mask-image` CSS property.
 
 ```tsx twoslash

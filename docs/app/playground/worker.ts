@@ -32,18 +32,12 @@ let renderer: Renderer | undefined;
     fetch("/fonts/TwemojiMozilla-colr.woff2").then((r) => r.arrayBuffer()),
   ]);
 
-  renderer = new Renderer();
-  renderer.loadFont({
-    data: normalFont,
-    name: "Geist",
-  });
-  renderer.loadFont({
-    data: monoFont,
-    name: "Geist Mono",
-  });
-  renderer.loadFont({
-    data: emojiFont,
-    name: "Twemoji Mozilla",
+  renderer = new Renderer({
+    fonts: [
+      { data: normalFont, name: "Geist" },
+      { data: monoFont, name: "Geist Mono" },
+      { data: emojiFont, name: "Twemoji Mozilla" },
+    ],
   });
 
   postMessage({ type: "ready" });

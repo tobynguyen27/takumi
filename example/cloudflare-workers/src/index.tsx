@@ -10,9 +10,9 @@ const logoUrl = "https://yeecord.com/img/logo.png";
 
 initSync(module);
 
-const renderer = new Renderer();
-
-renderer.loadFont(archivo);
+const renderer = new Renderer({
+  fonts: [archivo],
+});
 
 export default {
   async fetch(request) {
@@ -42,7 +42,7 @@ export default {
         fetchedResources,
         width: 1200,
         height: 630,
-        format: "webp",
+        format: "png",
         renderer,
       },
     );
