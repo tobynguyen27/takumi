@@ -12,9 +12,6 @@ import type { ReactNode } from "react";
 
 let renderer: Renderer;
 
-const fontLoadMarker = new WeakSet<Font>();
-const persistentImageLoadMarker = new WeakSet<ImageSource>();
-
 declare module "react" {
   interface DOMAttributes<T> {
     tw?: string;
@@ -79,29 +76,17 @@ function getRenderer(options?: ImageResponseOptions) {
 
   if (options?.fonts) {
     for (const font of options.fonts) {
-      loadFont(font, renderer);
+      renderer.loadFont(font);
     }
   }
 
   if (options?.persistentImages) {
     for (const image of options.persistentImages) {
-      putPersistentImage(image, renderer);
+      renderer.putPersistentImage(image);
     }
   }
 
   return renderer;
-}
-
-function loadFont(font: Font, renderer: Renderer) {
-  if (fontLoadMarker.has(font)) return;
-
-  renderer.loadFont(font);
-}
-
-function putPersistentImage(image: ImageSource, renderer: Renderer) {
-  if (persistentImageLoadMarker.has(image)) return;
-
-  renderer.putPersistentImage(image);
 }
 
 function createStream(component: ReactNode, options: ImageResponseOptions) {

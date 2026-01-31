@@ -9,7 +9,7 @@
   clippy::must_use_candidate
 )]
 
-use std::{fmt::Display, sync::Arc};
+use std::{collections::HashSet, fmt::Display, sync::Arc};
 
 use base64::{Engine, prelude::BASE64_STANDARD};
 use serde::Deserialize;
@@ -29,6 +29,7 @@ use takumi::{
   resources::{image::load_image_source_from_bytes, task::FetchTaskCollection},
 };
 use wasm_bindgen::prelude::*;
+use xxhash_rust::xxh3::{Xxh3DefaultBuilder, xxh3_64};
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
@@ -289,11 +290,18 @@ fn map_error<E: Display>(err: E) -> js_sys::Error {
 
 type JsResult<T> = Result<T, js_sys::Error>;
 
+#[derive(PartialEq, Eq, Hash)]
+struct ImageCacheKey {
+  src: Box<str>,
+  data_hash: u64,
+}
+
 /// The main renderer for Takumi image rendering engine.
 #[wasm_bindgen]
 #[derive(Default)]
 pub struct Renderer {
   context: GlobalContext,
+  persistent_image_cache: HashSet<ImageCacheKey, Xxh3DefaultBuilder>,
 }
 
 #[wasm_bindgen]
@@ -346,14 +354,26 @@ impl Renderer {
 
   /// Puts a persistent image into the renderer's internal store.
   #[wasm_bindgen(js_name = putPersistentImage)]
-  pub fn put_persistent_image(&self, data: ImageSourceType) -> JsResult<()> {
+  pub fn put_persistent_image(&mut self, data: ImageSourceType) -> JsResult<()> {
     let data: ImageSource = from_value(data.into()).map_err(map_error)?;
+
+    let key = ImageCacheKey {
+      src: data.src.as_ref().into(),
+      data_hash: xxh3_64(&data.data),
+    };
+
+    if self.persistent_image_cache.contains(&key) {
+      return Ok(());
+    }
+
+    self.persistent_image_cache.insert(key);
 
     let image = load_image_source_from_bytes(&data.data).map_err(map_error)?;
     self
       .context
       .persistent_image_store
       .insert(data.src.to_string(), image);
+
     Ok(())
   }
 

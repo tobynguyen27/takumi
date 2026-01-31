@@ -1,12 +1,14 @@
 use std::{
   borrow::Cow,
   collections::{HashMap, HashSet},
+  hash::Hash,
+  iter::once,
   ops::{Deref, DerefMut},
   sync::Arc,
 };
 
 use parley::{
-  GenericFamily, LayoutContext, Run, TextStyle, TreeBuilder,
+  FontStyle, GenericFamily, LayoutContext, Run, TextStyle, TreeBuilder,
   fontique::{Blob, Collection, CollectionOptions, FallbackKey, FontInfoOverride, Script},
 };
 use swash::{
@@ -14,8 +16,12 @@ use swash::{
   scale::{ScaleContext, StrikeWith, image::Image, outline::Outline},
 };
 use thiserror::Error;
+use xxhash_rust::xxh3::xxh3_64;
 
-use crate::layout::inline::{InlineBrush, InlineLayout};
+use crate::{
+  Xxh3HashSet,
+  layout::inline::{InlineBrush, InlineLayout},
+};
 
 /// Represents a resolved glyph that can be either a bitmap image or an outline
 #[derive(Clone)]
@@ -98,19 +104,53 @@ fn guess_font_format(source: &[u8]) -> Result<FontFormat, FontError> {
   }
 }
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub(crate) struct FontCacheKey {
+  data_hash: u64,
+  family_name: Option<Box<str>>,
+  style: Option<FontStyleHash>,
+  weight: Option<u32>,
+  width: Option<u32>,
+  axes: Option<Box<[(u32, u32)]>>,
+  generic_family: Option<GenericFamily>,
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
+pub(crate) enum FontStyleHash {
+  Normal,
+  Italic,
+  Oblique(Option<u32>),
+}
+
+impl From<FontStyle> for FontStyleHash {
+  fn from(style: FontStyle) -> Self {
+    match style {
+      FontStyle::Normal => Self::Normal,
+      FontStyle::Italic => Self::Italic,
+      FontStyle::Oblique(angle) => Self::Oblique(angle.map(f32::to_bits)),
+    }
+  }
+}
+
 /// A context for managing fonts in the rendering system.
 #[derive(Clone)]
-pub struct FontContext(parley::FontContext);
+pub struct FontContext {
+  inner: parley::FontContext,
+  cache: Xxh3HashSet<FontCacheKey>,
+}
 
 impl Default for FontContext {
   fn default() -> Self {
-    Self(parley::FontContext {
-      collection: Collection::new(CollectionOptions {
-        system_fonts: false,
-        shared: false,
-      }),
-      source_cache: Default::default(),
-    })
+    Self {
+      inner: parley::FontContext {
+        collection: Collection::new(CollectionOptions {
+          system_fonts: false,
+          shared: false,
+        }),
+        source_cache: Default::default(),
+      },
+      cache: Xxh3HashSet::default(),
+    }
   }
 }
 
@@ -118,13 +158,13 @@ impl Deref for FontContext {
   type Target = parley::FontContext;
 
   fn deref(&self) -> &Self::Target {
-    &self.0
+    &self.inner
   }
 }
 
 impl DerefMut for FontContext {
   fn deref_mut(&mut self) -> &mut Self::Target {
-    &mut self.0
+    &mut self.inner
   }
 }
 
@@ -191,33 +231,67 @@ impl FontContext {
     builder.build()
   }
 
-  /// Loads font into internal font db
+  /// Loads font into internal font db with caching
   pub fn load_and_store(
     &mut self,
     source: &[u8],
     info_override: Option<FontInfoOverride<'_>>,
     generic_family: Option<GenericFamily>,
   ) -> Result<(), FontError> {
+    let cache_key = FontCacheKey {
+      data_hash: xxh3_64(source),
+      family_name: info_override
+        .and_then(|info| info.family_name)
+        .map(Into::into),
+      style: info_override.and_then(|info| info.style).map(Into::into),
+      weight: info_override
+        .and_then(|info| info.weight)
+        .map(|weight| weight.value().to_bits()),
+      width: info_override
+        .and_then(|info| info.width)
+        .map(|width| width.ratio().to_bits()),
+      axes: info_override.and_then(|info| info.axes).map(|axes| {
+        axes
+          .iter()
+          .map(|(tag, value)| (u32::from_be_bytes(tag.to_be_bytes()), value.to_bits()))
+          .collect()
+      }),
+      generic_family,
+    };
+
+    // Check if this exact font configuration has been loaded before
+    if self.cache.contains(&cache_key) {
+      return Ok(());
+    }
+
     let font_data = Blob::new(Arc::new(match load_font(source, None)? {
       Cow::Owned(vec) => vec,
       Cow::Borrowed(slice) => slice.to_vec(),
     }));
 
-    let fonts = self.0.collection.register_fonts(font_data, info_override);
+    let fonts = self
+      .inner
+      .collection
+      .register_fonts(font_data, info_override);
 
     for (family, _) in fonts {
       if let Some(generic_family) = generic_family {
         self
+          .inner
           .collection
-          .append_generic_families(generic_family, std::iter::once(family));
+          .append_generic_families(generic_family, once(family));
       }
 
       for (script, _) in Script::all_samples() {
         self
+          .inner
           .collection
-          .append_fallbacks(FallbackKey::new(*script, None), std::iter::once(family));
+          .append_fallbacks(FallbackKey::new(*script, None), once(family));
       }
     }
+
+    // Mark this font configuration as loaded
+    self.cache.insert(cache_key);
 
     Ok(())
   }

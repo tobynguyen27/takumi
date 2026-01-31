@@ -1,7 +1,5 @@
 use std::{borrow::Cow, io::Write};
 
-use rustc_hash::FxHashMap;
-
 use image::{ExtendedColorType, ImageEncoder, ImageFormat, RgbaImage, codecs::jpeg::JpegEncoder};
 use png::{BitDepth, ColorType, Compression, Filter};
 use serde::Deserialize;
@@ -11,7 +9,7 @@ use image_webp::WebPEncoder;
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-use crate::{Error::IoError, rendering::quantize_alpha};
+use crate::{Error::IoError, Xxh3HashMap, rendering::quantize_alpha};
 
 /// Output format for rendered images.
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
@@ -115,14 +113,14 @@ fn try_collect_palette(image: &RgbaImage) -> Option<PaletteData> {
   // Pass 1: Collect unique colors with their first occurrence position
   // This preserves spatial locality for better PNG filter compression
   #[cfg(feature = "rayon")]
-  let color_positions: FxHashMap<[u8; 4], usize> = {
+  let color_positions: Xxh3HashMap<[u8; 4], usize> = {
     use rayon::prelude::*;
 
     let map = image
       .par_enumerate_pixels()
       .with_min_len(4096)
       .fold(
-        || FxHashMap::with_capacity_and_hasher(256, Default::default()),
+        || Xxh3HashMap::with_capacity_and_hasher(256, Default::default()),
         |mut acc, (x, y, pixel)| {
           let mut rgba: [u8; 4] = pixel.0;
           rgba[3] = quantize_alpha(rgba[3]);
@@ -136,7 +134,7 @@ fn try_collect_palette(image: &RgbaImage) -> Option<PaletteData> {
         },
       )
       .reduce(
-        || FxHashMap::with_capacity_and_hasher(256, Default::default()),
+        || Xxh3HashMap::with_capacity_and_hasher(256, Default::default()),
         |mut a, b| {
           // Merge keeping the minimum (first) position for each color
           for (color, pos) in b {
@@ -157,8 +155,8 @@ fn try_collect_palette(image: &RgbaImage) -> Option<PaletteData> {
   };
 
   #[cfg(not(feature = "rayon"))]
-  let color_positions: FxHashMap<[u8; 4], usize> = {
-    let mut map = FxHashMap::with_capacity_and_hasher(256, Default::default());
+  let color_positions: Xxh3HashMap<[u8; 4], usize> = {
+    let mut map = Xxh3HashMap::with_capacity_and_hasher(256, Default::default());
 
     for (idx, pixel) in image.pixels().enumerate() {
       let mut rgba: [u8; 4] = pixel.0;
@@ -182,8 +180,8 @@ fn try_collect_palette(image: &RgbaImage) -> Option<PaletteData> {
   // Build palette and color map
   let mut palette = Vec::with_capacity(sorted_colors.len() * 3);
   let mut trns = Vec::with_capacity(sorted_colors.len());
-  let mut color_map: FxHashMap<[u8; 4], u8> =
-    FxHashMap::with_capacity_and_hasher(sorted_colors.len(), Default::default());
+  let mut color_map: Xxh3HashMap<[u8; 4], u8> =
+    Xxh3HashMap::with_capacity_and_hasher(sorted_colors.len(), Default::default());
 
   for (rgba, _) in sorted_colors.iter() {
     let i = color_map.len() as u8;

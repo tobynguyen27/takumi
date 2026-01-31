@@ -103,11 +103,14 @@ pub mod error;
 /// External resource management (fonts, images)
 pub mod resources;
 
+use std::collections::{HashMap, HashSet};
+
 pub use error::{Result, TakumiError as Error};
 
 pub use image;
 pub use parley;
 pub use taffy;
+use xxhash_rust::xxh3::Xxh3DefaultBuilder;
 
 use crate::resources::{font::FontContext, image::PersistentImageStore};
 
@@ -122,3 +125,8 @@ pub struct GlobalContext {
   /// The image store for persisting contents
   pub persistent_image_store: PersistentImageStore,
 }
+
+/// Type alias for HashSet using XXH3 hasher
+pub(crate) type Xxh3HashSet<T> = HashSet<T, Xxh3DefaultBuilder>;
+
+pub(crate) type Xxh3HashMap<K, V> = HashMap<K, V, Xxh3DefaultBuilder>;

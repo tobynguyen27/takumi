@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use takumi::{
@@ -7,6 +9,7 @@ use takumi::{
   rendering::ImageOutputFormat,
   resources::image::load_image_source_from_bytes,
 };
+use xxhash_rust::xxh3::Xxh3DefaultBuilder;
 
 use crate::{
   FontInput, buffer_from_object, buffer_slice_from_object, deserialize_with_tracing,
@@ -70,10 +73,17 @@ impl From<takumi::rendering::MeasuredNode> for MeasuredNode {
   }
 }
 
+#[derive(PartialEq, Eq, Hash)]
+pub(crate) struct ImageCacheKey {
+  pub src: Box<str>,
+  pub data_hash: u64,
+}
+
 /// The main renderer for Takumi image rendering engine (Node.js version).
 #[napi]
 pub struct Renderer {
   global: GlobalContext,
+  persistent_image_cache: HashSet<ImageCacheKey, Xxh3DefaultBuilder>,
 }
 
 /// Options for rendering an image.
@@ -261,7 +271,10 @@ impl Renderer {
       }
     }
 
-    let renderer = Self { global };
+    let renderer = Self {
+      global,
+      persistent_image_cache: HashSet::default(),
+    };
 
     if let Some(images) = options.persistent_images {
       for image in images {
@@ -292,7 +305,7 @@ impl Renderer {
     ts_return_type = "Promise<void>"
   )]
   pub fn put_persistent_image_async(
-    &'_ self,
+    &'_ mut self,
     env: Env,
     src: String,
     data: Object,
@@ -307,7 +320,7 @@ impl Renderer {
     ts_return_type = "Promise<void>"
   )]
   pub fn put_persistent_image(
-    &'_ self,
+    &'_ mut self,
     env: Env,
     src: String,
     data: Object,
@@ -320,6 +333,7 @@ impl Renderer {
         src: Some(src),
         store: &self.global.persistent_image_store,
         buffer,
+        persistent_image_cache: &mut self.persistent_image_cache,
       },
       signal,
     ))

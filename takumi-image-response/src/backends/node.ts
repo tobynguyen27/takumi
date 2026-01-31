@@ -1,8 +1,7 @@
 import {
+  type AnyNode,
   type ConstructRendererOptions,
   extractResourceUrls,
-  type Font,
-  type ImageSource,
   Renderer,
   type RenderOptions,
 } from "@takumi-rs/core";
@@ -11,9 +10,6 @@ import { type FromJsxOptions, fromJsx } from "@takumi-rs/helpers/jsx";
 import type { ReactNode } from "react";
 
 let renderer: Renderer | undefined;
-
-const fontLoadMarker = new WeakSet<Font>();
-const persistentImageLoadMarker = new WeakSet<ImageSource>();
 
 declare module "react" {
   interface DOMAttributes<T> {
@@ -48,81 +44,51 @@ async function getRenderer(options?: ImageResponseOptions) {
     return options.renderer;
   }
 
-  if (!renderer) {
-    renderer = new Renderer(options);
+  renderer ??= new Renderer(options);
 
-    if (options?.fonts) {
-      for (const font of options.fonts) {
-        fontLoadMarker.add(font);
-      }
+  if (options?.fonts) {
+    for (const font of options.fonts) {
+      await renderer.loadFont(font);
     }
-
-    if (options?.persistentImages) {
-      for (const image of options.persistentImages) {
-        persistentImageLoadMarker.add(image);
-      }
-    }
-
-    return renderer;
   }
 
-  await loadOptions(renderer, options);
+  if (options?.persistentImages) {
+    for (const image of options.persistentImages) {
+      await renderer.putPersistentImage(image.src, image.data);
+    }
+  }
 
   return renderer;
 }
 
-async function loadOptions(
-  renderer: Renderer,
-  options?: ImageResponseOptionsWithoutRenderer,
+function extractFetchedResources(
+  node: AnyNode,
+  options?: ImageResponseOptions,
 ) {
-  await loadFonts(renderer, options?.fonts ?? []);
-
-  if (options?.persistentImages) {
-    for (const image of options.persistentImages) {
-      await putPersistentImage(renderer, image);
-    }
-  }
-}
-
-function loadFonts(renderer: Renderer, fonts: Font[]) {
-  const fontsToLoad = fonts.filter((font) => !fontLoadMarker.has(font));
-
-  for (const font of fontsToLoad) {
-    fontLoadMarker.add(font);
+  if (options?.fetchedResources) {
+    return options.fetchedResources;
   }
 
-  return renderer.loadFonts(fontsToLoad);
+  const urls = extractResourceUrls(node);
+
+  return fetchResources(urls);
 }
 
-function putPersistentImage(renderer: Renderer, image: ImageSource) {
-  if (persistentImageLoadMarker.has(image)) {
-    return;
-  }
-
-  persistentImageLoadMarker.add(image);
-
-  return renderer.putPersistentImage(image.src, image.data);
-}
-
-function createStream(component: ReactNode, options: ImageResponseOptions) {
+function createStream(component: ReactNode, options?: ImageResponseOptions) {
   return new ReadableStream({
     async start(controller) {
       try {
         const renderer = await getRenderer(options);
 
         const node = await fromJsx(component, options?.jsx);
-
-        if (!options.fetchedResources) {
-          const urls = extractResourceUrls(node);
-
-          if (urls.length > 0) {
-            options.fetchedResources = await fetchResources(urls);
-          }
-        }
+        const fetchedResources = await extractFetchedResources(node, options);
 
         const image = await renderer.render(
           node,
-          options ?? defaultOptions,
+          {
+            ...options,
+            fetchedResources,
+          },
           options?.signal,
         );
 
@@ -147,24 +113,19 @@ const contentTypeMapping = {
 
 export class ImageResponse extends Response {
   constructor(component: ReactNode, options?: ImageResponseOptions) {
-    const mergedOptions: ImageResponseOptions = {
-      ...defaultOptions,
-      ...options,
-    };
-
-    const stream = createStream(component, mergedOptions);
-    const headers = new Headers(mergedOptions.headers);
+    const stream = createStream(component, options);
+    const headers = new Headers(options?.headers);
 
     if (!headers.get("content-type")) {
       headers.set(
         "content-type",
-        contentTypeMapping[mergedOptions.format ?? defaultOptions.format],
+        contentTypeMapping[options?.format ?? defaultOptions.format],
       );
     }
 
     super(stream, {
-      status: mergedOptions.status,
-      statusText: mergedOptions.statusText,
+      status: options?.status,
+      statusText: options?.statusText,
       headers,
     });
   }

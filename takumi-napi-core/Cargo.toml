@@ -12,6 +12,10 @@ crate-type = ["cdylib"]
 rayon = "1.10"
 serde = "1.0"
 
+[dependencies.xxhash-rust]
+version = "0.8"
+features = ["xxh3", "std"]
+
 [dependencies.takumi]
 path = "../takumi"
 features = ["woff2", "woff", "svg", "rayon", "detailed_css_error"]
