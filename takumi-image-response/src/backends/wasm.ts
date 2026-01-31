@@ -49,8 +49,7 @@ type ModuleOptions = {
 };
 
 type ImageResponseOptionsWithRenderer = ResponseInit &
-  RenderOptions &
-  ModuleOptions & {
+  RenderOptions & {
     renderer: Renderer;
     jsx?: FromJsxOptions;
   };
@@ -93,15 +92,20 @@ function createStream(component: ReactNode, options: ImageResponseOptions) {
   return new ReadableStream({
     async start(controller) {
       try {
-        let moduleResolved = await options.module;
+        if ("module" in options) {
+          let moduleResolved = await options.module;
 
-        if (typeof moduleResolved === "object" && "default" in moduleResolved) {
-          moduleResolved = moduleResolved.default;
+          if (
+            typeof moduleResolved === "object" &&
+            "default" in moduleResolved
+          ) {
+            moduleResolved = moduleResolved.default;
+          }
+
+          await init({
+            module_or_path: moduleResolved,
+          });
         }
-
-        await init({
-          module_or_path: moduleResolved,
-        });
 
         const renderer = getRenderer(options);
 

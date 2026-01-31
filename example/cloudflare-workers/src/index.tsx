@@ -1,11 +1,18 @@
 import { fetchResources } from "@takumi-rs/helpers";
 import { ImageResponse } from "@takumi-rs/image-response/wasm";
+import { initSync, Renderer } from "@takumi-rs/wasm";
 import module from "@takumi-rs/wasm/takumi_wasm_bg.wasm";
 import archivo from "../../../assets/fonts/archivo/Archivo-VariableFont_wdth,wght.ttf";
 import DocsTemplate from "../../../takumi-template/src/templates/docs-template";
 
 const fetchCache = new Map();
 const logoUrl = "https://yeecord.com/img/logo.png";
+
+initSync(module);
+
+const renderer = new Renderer();
+
+renderer.loadFont(archivo);
 
 export default {
   async fetch(request) {
@@ -36,8 +43,7 @@ export default {
         width: 1200,
         height: 630,
         format: "webp",
-        fonts: [archivo],
-        module,
+        renderer,
       },
     );
   },
