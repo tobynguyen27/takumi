@@ -2335,7 +2335,6 @@ dependencies = [
  "swash",
  "taffy",
  "thiserror",
- "tiny-skia",
  "wide",
  "wuff",
  "xxhash-rust",
