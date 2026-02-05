@@ -73,7 +73,7 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for TextNode {
     let font_style = context.style.to_sized_font_style(context);
     let size = layout.content_box_size();
 
-    if font_style.font_size == 0.0 {
+    if font_style.sizing.font_size == 0.0 {
       return Ok(());
     }
 

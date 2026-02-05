@@ -107,6 +107,7 @@ pub(crate) fn measure_inline_layout(layout: &mut InlineLayout, max_width: f32) -
   }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
   items: impl Iterator<Item = InlineItem<'c, 'g, N>>,
   available_space: Size<AvailableSpace>,
@@ -223,7 +224,12 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
   let line_count = layout.lines().count();
 
   if text_wrap_style == TextWrapStyle::Balance {
-    make_balanced_text(&mut layout, max_width, line_count);
+    make_balanced_text(
+      &mut layout,
+      max_width,
+      line_count,
+      style.sizing.viewport.device_pixel_ratio,
+    );
   }
 
   if text_wrap_style == TextWrapStyle::Pretty {

@@ -11,7 +11,7 @@ use crate::{
     inline::InlineBrush,
     style::{CssValue, properties::*},
   },
-  rendering::{RenderContext, SizedShadow},
+  rendering::{RenderContext, SizedShadow, Sizing},
 };
 
 /// Helper macro to define the `Style` struct and `InheritedStyle` struct.
@@ -197,7 +197,6 @@ define_style!(
 #[derive(Clone)]
 pub(crate) struct SizedFontStyle<'s> {
   pub parent: &'s InheritedStyle,
-  pub font_size: f32,
   pub line_height: parley::LineHeight,
   pub stroke_width: f32,
   pub letter_spacing: Option<f32>,
@@ -206,12 +205,13 @@ pub(crate) struct SizedFontStyle<'s> {
   pub color: Color,
   pub text_stroke_color: Color,
   pub text_decoration_color: Color,
+  pub sizing: Sizing,
 }
 
 impl<'s> From<&'s SizedFontStyle<'s>> for TextStyle<'s, InlineBrush> {
   fn from(style: &'s SizedFontStyle<'s>) -> Self {
     TextStyle {
-      font_size: style.font_size,
+      font_size: style.sizing.font_size,
       line_height: style.line_height,
       font_weight: style.parent.font_weight.into(),
       font_style: style.parent.font_style.into(),
@@ -543,8 +543,8 @@ impl InheritedStyle {
       .to_px(&context.sizing, context.sizing.font_size);
 
     SizedFontStyle {
+      sizing: context.sizing,
       parent: self,
-      font_size: context.sizing.font_size,
       line_height,
       stroke_width: resolved_stroke_width,
       letter_spacing: self

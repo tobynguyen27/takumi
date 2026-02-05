@@ -528,6 +528,7 @@ pub(crate) fn make_balanced_text(
   inline_layout: &mut InlineLayout,
   max_width: f32,
   target_lines: usize,
+  device_pixel_ratio: f32,
 ) -> bool {
   if target_lines <= 1 {
     return false;
@@ -541,7 +542,7 @@ pub(crate) fn make_balanced_text(
   const MAX_ITERATIONS: u32 = 20;
   let mut iterations = 0;
 
-  while left + 1.0 < right && iterations < MAX_ITERATIONS {
+  while left + device_pixel_ratio < right && iterations < MAX_ITERATIONS {
     iterations += 1;
     let mid = (left + right) / 2.0;
 
@@ -561,8 +562,6 @@ pub(crate) fn make_balanced_text(
 
   // No meaningful adjustment if within 1px of max_width
   if (balanced_width - max_width).abs() < 1.0 {
-    // Reset to original max_width
-    break_lines(inline_layout, max_width, None);
     false
   } else {
     // Apply the balanced width
