@@ -228,13 +228,14 @@ pub(crate) fn create_inline_layout<'c, 'g: 'c, N: Node<N> + 'c>(
       &mut layout,
       &text,
       max_width,
+      max_height,
       line_count,
       style.sizing.viewport.device_pixel_ratio,
     );
   }
 
   if text_wrap_style == TextWrapStyle::Pretty {
-    make_pretty_text(&mut layout, max_width);
+    make_pretty_text(&mut layout, max_width, max_height);
   }
 
   layout.align(

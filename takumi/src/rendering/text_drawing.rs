@@ -569,6 +569,7 @@ pub(crate) fn make_balanced_text(
   inline_layout: &mut InlineLayout,
   text: &str,
   max_width: f32,
+  max_height: Option<MaxHeight>,
   target_lines: usize,
   device_pixel_ratio: f32,
 ) -> bool {
@@ -607,18 +608,22 @@ pub(crate) fn make_balanced_text(
   // No meaningful adjustment if within 1px * DPR of max_width
   if (balanced_width - max_width).abs() < device_pixel_ratio {
     // Reset to original max_width
-    break_lines(inline_layout, max_width, None);
+    break_lines(inline_layout, max_width, max_height);
     false
   } else {
     // Apply the balanced width
-    break_lines(inline_layout, balanced_width, None);
+    break_lines(inline_layout, balanced_width, max_height);
     true
   }
 }
 
 /// Attempts to avoid orphans (single short words on the last line) by adjusting line breaks.
 /// Returns `true` if a meaningful adjustment was made.
-pub(crate) fn make_pretty_text(inline_layout: &mut InlineLayout, max_width: f32) -> bool {
+pub(crate) fn make_pretty_text(
+  inline_layout: &mut InlineLayout,
+  max_width: f32,
+  max_height: Option<MaxHeight>,
+) -> bool {
   // Get the last line width at the current max width (layout should already be broken)
   let Some(last_line_width) = inline_layout
     .lines()
@@ -653,7 +658,7 @@ pub(crate) fn make_pretty_text(inline_layout: &mut InlineLayout, max_width: f32)
     true
   } else {
     // Reset to original max_width
-    break_lines(inline_layout, max_width, None);
+    break_lines(inline_layout, max_width, max_height);
     false
   }
 }
