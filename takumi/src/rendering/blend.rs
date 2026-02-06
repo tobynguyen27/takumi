@@ -42,7 +42,9 @@ pub(crate) fn blend_pixel(bottom: &mut Rgba<u8>, top: Rgba<u8>, mode: BlendMode)
     | BlendMode::Darken
     | BlendMode::Lighten
     | BlendMode::Difference
-    | BlendMode::Exclusion => {
+    | BlendMode::Exclusion
+    | BlendMode::PlusLighter
+    | BlendMode::PlusDarker => {
       blend_with_integer(bottom, top, mode);
     }
     _ => {
@@ -115,6 +117,8 @@ fn compute_blend_integer(mode: BlendMode, bottom: Rgba<u8>, top: Rgba<u8>) -> [u
       BlendMode::Exclusion => {
         (b as u32 + t as u32 - (2 * fast_div_255_u32(b as u32 * t as u32))).min(255) as u8
       }
+      BlendMode::PlusLighter => (t as u16 + b as u16).min(255) as u8,
+      BlendMode::PlusDarker => (t as u16 + b as u16).saturating_sub(255) as u8,
       _ => unreachable!(),
     };
   }

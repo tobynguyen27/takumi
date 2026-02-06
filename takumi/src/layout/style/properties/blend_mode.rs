@@ -59,6 +59,10 @@ pub enum BlendMode {
   Color,
   /// The final color has the luminosity of the top color, while using the hue and saturation of the bottom color.
   Luminosity,
+  /// The final color is the result of adding the source and backdrop colors, clamped to maximum.
+  PlusLighter,
+  /// The final color is the result of adding the source and backdrop colors, clamped to minimum.
+  PlusDarker,
 }
 
 declare_enum_from_css_impl!(
@@ -78,7 +82,9 @@ declare_enum_from_css_impl!(
   "hue" => BlendMode::Hue,
   "saturation" => BlendMode::Saturation,
   "color" => BlendMode::Color,
-  "luminosity" => BlendMode::Luminosity
+  "luminosity" => BlendMode::Luminosity,
+  "plus-lighter" => BlendMode::PlusLighter,
+  "plus-darker" => BlendMode::PlusDarker
 );
 
 impl TailwindPropertyParser for BlendMode {

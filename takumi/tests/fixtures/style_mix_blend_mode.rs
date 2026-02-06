@@ -79,6 +79,8 @@ fn test_style_mix_blend_mode() {
     BlendMode::Saturation,
     BlendMode::Color,
     BlendMode::Luminosity,
+    BlendMode::PlusLighter,
+    BlendMode::PlusDarker,
   ];
 
   let container = ContainerNode {
