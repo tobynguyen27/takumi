@@ -6,9 +6,9 @@ body:
     attributes:
       value: |
         Before asking, please check:
-        - 📖 [Documentation](https://takumi.kane.tw/docs)
-        - 🎮 [Playground](https://takumi.kane.tw/playground)
-        - 🔍 [Existing issues](https://github.com/kane50613/takumi/issues?q=is%3Aissue)
+        - [Documentation](https://takumi.kane.tw/docs)
+        - [Playground](https://takumi.kane.tw/playground)
+        - [Existing issues](https://github.com/kane50613/takumi/issues?q=is%3Aissue)
 
   - type: textarea
     id: question
@@ -23,7 +23,6 @@ body:
     attributes:
       label: Context
       description: Any code or context that helps explain your question
-      render: rust
 
   - type: textarea
     id: tried

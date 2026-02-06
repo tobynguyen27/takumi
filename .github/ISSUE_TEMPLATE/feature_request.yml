@@ -35,16 +35,6 @@ body:
     attributes:
       label: Proposed API / Usage
       description: If applicable, show how you'd like to use this feature
-      render: rust
-      placeholder: |
-        // Example usage
-        let node = ContainerNode {
-          style: Some(StyleBuilder::default()
-            .new_feature(value)
-            .build()
-            .unwrap()),
-          ...
-        };
 
   - type: textarea
     id: alternatives
@@ -60,7 +50,7 @@ body:
       multiple: true
       options:
         - takumi (Rust core)
-        - "@takumi-rs/core (N-API)"
+        - "@takumi-rs/core"
         - "@takumi-rs/wasm"
         - "@takumi-rs/image-response"
         - "@takumi-rs/helpers"

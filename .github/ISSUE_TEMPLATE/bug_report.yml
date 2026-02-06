@@ -58,12 +58,6 @@ body:
     attributes:
       label: Reproduction Code
       description: Minimal code to reproduce the issue (if applicable)
-      render: rust
-      placeholder: |
-        use takumi::*;
-        
-        let node = ContainerNode { ... };
-        let result = render(options);
 
   - type: dropdown
     id: package
@@ -110,6 +104,13 @@ body:
         - Node.js: v22.0.0
         - Runtime: Bun 1.2.0
         - Browser: N/A
+
+  - type: input
+    id: playground-link
+    attributes:
+      label: Playground Link
+      description: Link to the [Playground](https://takumi.kane.tw/playground) where the bug can be reproduced
+      placeholder: "https://takumi.kane.tw/playground"
 
   - type: textarea
     id: additional
