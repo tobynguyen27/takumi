@@ -10,8 +10,8 @@
     "webassembly"
   ],
   "scripts": {
-    "build": "wasm-pack build --no-pack --release --out-dir pkg --target web && bun build pkg/takumi_wasm.js --format cjs --outfile pkg/takumi_wasm.cjs",
-    "build:debug": "wasm-pack build --no-pack --dev --out-dir pkg --target web && bun build pkg/takumi_wasm.js --format cjs --outfile pkg/takumi_wasm.cjs"
+    "build": "wasm-pack build --no-pack --release --out-dir pkg --target web && bun build pkg/takumi_wasm.js --define import.meta.url=undefined --format cjs --outfile pkg/takumi_wasm.cjs",
+    "build:debug": "wasm-pack build --no-pack --dev --out-dir pkg --target web && bun build pkg/takumi_wasm.js --define import.meta.url=undefined --format cjs --outfile pkg/takumi_wasm.cjs"
   },
   "author": {
     "email": "me@kane.tw",
