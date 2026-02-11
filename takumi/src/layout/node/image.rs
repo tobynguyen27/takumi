@@ -98,8 +98,8 @@ impl<Nodes: Node<Nodes>> Node<Nodes> for ImageNode {
     };
 
     let overridden_size = Size {
-      width: self.width.unwrap_or(image_size.width),
-      height: self.height.unwrap_or(image_size.height),
+      width: self.width.unwrap_or(image_size.width) * context.sizing.viewport.device_pixel_ratio,
+      height: self.height.unwrap_or(image_size.height) * context.sizing.viewport.device_pixel_ratio,
     };
 
     let aspect_ratio = style

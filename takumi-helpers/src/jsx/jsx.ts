@@ -253,8 +253,17 @@ function createImageElement(
   const { preset, style } = extractStyle(element, options);
   const tw = extractTw(element);
 
+  const width =
+    element.props.width !== undefined ? Number(element.props.width) : undefined;
+  const height =
+    element.props.height !== undefined
+      ? Number(element.props.height)
+      : undefined;
+
   return image({
     src: element.props.src,
+    width,
+    height,
     preset,
     style,
     tw,
@@ -269,8 +278,17 @@ function createSvgElement(
   const tw = extractTw(element);
   const svg = serializeSvg(element);
 
+  const width =
+    element.props.width !== undefined ? Number(element.props.width) : undefined;
+  const height =
+    element.props.height !== undefined
+      ? Number(element.props.height)
+      : undefined;
+
   return image({
     preset,
+    width,
+    height,
     style,
     src: svg,
     tw,

@@ -170,6 +170,24 @@ describe("fromJsx", () => {
     } satisfies ImageNode);
   });
 
+  test("converts img elements with width and height to ImageNode", async () => {
+    const result = await fromJsx(
+      <img
+        src="https://example.com/image.jpg"
+        width={100}
+        height={100}
+        alt="Test"
+      />,
+    );
+    expect(result).toEqual({
+      type: "image",
+      src: "https://example.com/image.jpg",
+      width: 100,
+      height: 100,
+      preset: defaultStylePresets.img,
+    } satisfies ImageNode);
+  });
+
   test("handles img without src satisfies container", () => {
     expect(fromJsx(<img alt="No src" />)).rejects.toThrowError(
       "Image element must have a 'src' prop.",
