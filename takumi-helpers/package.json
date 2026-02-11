@@ -13,7 +13,6 @@
     "@types/bun": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "bun-plugin-dts": "^0.3.0",
     "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
