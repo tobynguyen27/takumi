@@ -8,7 +8,10 @@ use std::{borrow::Cow, sync::Arc};
 use dashmap::DashMap;
 use image::RgbaImage;
 
-use crate::{layout::style::ImageScalingAlgorithm, rendering::fast_resize};
+use crate::{
+  layout::style::ImageScalingAlgorithm,
+  rendering::{fast_resize, unpremultiply_alpha},
+};
 use thiserror::Error;
 
 /// Represents the state of an image resource.
@@ -70,10 +73,14 @@ impl ImageSource {
 
         resvg::render(svg, Transform::from_scale(sx, sy), &mut pixmap.as_mut());
 
-        Ok(Cow::Owned(
-          RgbaImage::from_raw(width, height, pixmap.take())
-            .ok_or(ImageResourceError::MismatchedBufferSize)?,
-        ))
+        let mut image = RgbaImage::from_raw(width, height, pixmap.take())
+          .ok_or(ImageResourceError::MismatchedBufferSize)?;
+
+        for pixel in image.pixels_mut() {
+          unpremultiply_alpha(pixel);
+        }
+
+        Ok(Cow::Owned(image))
       }
     }
   }
