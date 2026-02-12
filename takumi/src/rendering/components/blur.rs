@@ -61,6 +61,16 @@ trait PixelVector:
   fn store_channels(self, buffer: &mut [u8], offset: usize);
 }
 
+#[derive(Clone, Copy)]
+struct BlurPassParams {
+  width: u32,
+  height: u32,
+  radius: u32,
+  stride: usize,
+  mul_val: u32,
+  shg: i32,
+}
+
 impl PixelVector for u32x4 {
   const LANES: usize = 4;
 
@@ -268,22 +278,19 @@ fn apply_blur_impl<V: PixelVector>(image: &mut RgbaImage, sigma: f32) {
   let stride = width as usize * PIXEL_STRIDE;
   let div = 2 * box_radius + 1;
   let (mul_val, shg) = compute_mul_shg(div);
+  let pass_params = BlurPassParams {
+    width,
+    height,
+    radius: box_radius,
+    stride,
+    mul_val,
+    shg,
+  };
 
   // 3-pass Box Blur to approximate Gaussian
   for _ in 0..3 {
-    box_blur_h(
-      img_data,
-      &mut temp_data,
-      width,
-      height,
-      box_radius,
-      stride,
-      mul_val,
-      shg,
-    );
-    box_blur_v::<V>(
-      &temp_data, img_data, width, height, box_radius, stride, mul_val, shg,
-    );
+    box_blur_h(img_data, &mut temp_data, pass_params);
+    box_blur_v::<V>(&temp_data, img_data, pass_params);
   }
 
   for pixel in image.pixels_mut() {
@@ -292,23 +299,14 @@ fn apply_blur_impl<V: PixelVector>(image: &mut RgbaImage, sigma: f32) {
 }
 
 /// Horizontal Box Blur Pass - Use u32x4 to process RGBA of one pixel with correct sliding window
-fn box_blur_h(
-  src: &[u8],
-  dst: &mut [u8],
-  width: u32,
-  height: u32,
-  radius: u32,
-  stride: usize,
-  mul_val: u32,
-  shg: i32,
-) {
-  let r = radius as i32;
-  let w = width as i32;
-  let mul = <u32x4 as PixelVector>::splat(mul_val);
+fn box_blur_h(src: &[u8], dst: &mut [u8], params: BlurPassParams) {
+  let r = params.radius as i32;
+  let w = params.width as i32;
+  let mul = <u32x4 as PixelVector>::splat(params.mul_val);
   let first_repeat = <u32x4 as PixelVector>::splat(r as u32 + 1);
 
-  for y in 0..height {
-    let line_offset = y as usize * stride;
+  for y in 0..params.height {
+    let line_offset = y as usize * params.stride;
     let mut sum = u32x4::ZERO;
 
     // Initialize sum with first pixel repeated (r+1) times
@@ -324,7 +322,7 @@ fn box_blur_h(
     // Slide window across the whole row
     for x in 0..w {
       let out_offset = line_offset + (x as usize * PIXEL_STRIDE);
-      <u32x4 as PixelVector>::store_channels((sum * mul) >> shg, dst, out_offset);
+      <u32x4 as PixelVector>::store_channels((sum * mul) >> params.shg, dst, out_offset);
 
       let p_leaving_x = (x - r).max(0);
       let p_entering_x = (x + r + 1).min(w - 1);
@@ -344,25 +342,16 @@ fn box_blur_h(
 }
 
 /// Vertical Box Blur Pass - Correctly leverages wide SIMD by processing multiple columns in parallel
-fn box_blur_v<V: PixelVector>(
-  src: &[u8],
-  dst: &mut [u8],
-  width: u32,
-  height: u32,
-  radius: u32,
-  stride: usize,
-  mul_val: u32,
-  shg: i32,
-) {
-  let r = radius as i32;
-  let h = height as i32;
-  let mul = V::splat(mul_val);
+fn box_blur_v<V: PixelVector>(src: &[u8], dst: &mut [u8], params: BlurPassParams) {
+  let r = params.radius as i32;
+  let h = params.height as i32;
+  let mul = V::splat(params.mul_val);
   let first_repeat = V::splat(r as u32 + 1);
 
   let batch_size = V::PIXELS_PER_BATCH as u32;
 
   let mut x = 0;
-  while x + batch_size <= width {
+  while x + batch_size <= params.width {
     let col_offset = x as usize * PIXEL_STRIDE;
     let mut sum = V::zero();
 
@@ -373,19 +362,19 @@ fn box_blur_v<V: PixelVector>(
     // Add trailing edge
     for dy in 1..=r {
       let py = dy.min(h - 1);
-      sum = sum + V::load_channels(src, col_offset + (py as usize * stride));
+      sum = sum + V::load_channels(src, col_offset + (py as usize * params.stride));
     }
 
     // Slide window down the columns
     for y in 0..h {
-      let out_offset = col_offset + (y as usize * stride);
-      V::store_channels((sum * mul) >> shg, dst, out_offset);
+      let out_offset = col_offset + (y as usize * params.stride);
+      V::store_channels((sum * mul) >> params.shg, dst, out_offset);
 
       let p_leaving_y = (y - r).max(0);
       let p_entering_y = (y + r + 1).min(h - 1);
 
-      let p_leaving = V::load_channels(src, col_offset + (p_leaving_y as usize * stride));
-      let p_entering = V::load_channels(src, col_offset + (p_entering_y as usize * stride));
+      let p_leaving = V::load_channels(src, col_offset + (p_leaving_y as usize * params.stride));
+      let p_entering = V::load_channels(src, col_offset + (p_entering_y as usize * params.stride));
 
       sum = sum + p_entering - p_leaving;
     }
@@ -394,9 +383,9 @@ fn box_blur_v<V: PixelVector>(
   }
 
   // Handle remaining columns with u32x4
-  let mul_scalar = <u32x4 as PixelVector>::splat(mul_val);
+  let mul_scalar = <u32x4 as PixelVector>::splat(params.mul_val);
   let first_repeat_scalar = <u32x4 as PixelVector>::splat(r as u32 + 1);
-  for x in x..width {
+  for x in x..params.width {
     let col_offset = x as usize * PIXEL_STRIDE;
     let mut sum = u32x4::ZERO;
 
@@ -405,20 +394,24 @@ fn box_blur_v<V: PixelVector>(
 
     for dy in 1..=r {
       let py = dy.min(h - 1);
-      sum += <u32x4 as PixelVector>::load_channels(src, col_offset + (py as usize * stride));
+      sum += <u32x4 as PixelVector>::load_channels(src, col_offset + (py as usize * params.stride));
     }
 
     for y in 0..h {
-      let out_offset = col_offset + (y as usize * stride);
-      <u32x4 as PixelVector>::store_channels((sum * mul_scalar) >> shg, dst, out_offset);
+      let out_offset = col_offset + (y as usize * params.stride);
+      <u32x4 as PixelVector>::store_channels((sum * mul_scalar) >> params.shg, dst, out_offset);
 
       let p_leaving_y = (y - r).max(0);
       let p_entering_y = (y + r + 1).min(h - 1);
 
-      let p_leaving =
-        <u32x4 as PixelVector>::load_channels(src, col_offset + (p_leaving_y as usize * stride));
-      let p_entering =
-        <u32x4 as PixelVector>::load_channels(src, col_offset + (p_entering_y as usize * stride));
+      let p_leaving = <u32x4 as PixelVector>::load_channels(
+        src,
+        col_offset + (p_leaving_y as usize * params.stride),
+      );
+      let p_entering = <u32x4 as PixelVector>::load_channels(
+        src,
+        col_offset + (p_entering_y as usize * params.stride),
+      );
 
       sum = sum + p_entering - p_leaving;
     }
