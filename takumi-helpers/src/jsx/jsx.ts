@@ -36,13 +36,27 @@ export interface FromJsxOptions {
    * If `false` is provided explicitly, no default style presets will be used.
    */
   defaultStyles?: typeof defaultStylePresets | false;
+  /**
+   * The JSX prop name used to pass Tailwind classes.
+   *
+   * @default "tw"
+   */
+  tailwindClassesProperty?: string;
+}
+
+interface ResolvedFromJsxOptions {
+  presets?: typeof defaultStylePresets;
+  tailwindClassesProperty: string;
 }
 
 export async function fromJsx(
   element: ReactNode | ReactElementLike,
   options?: FromJsxOptions,
 ): Promise<Node> {
-  const result = await fromJsxInternal(element, options);
+  const result = await fromJsxInternal(element, {
+    presets: getPresets(options),
+    tailwindClassesProperty: options?.tailwindClassesProperty ?? "tw",
+  });
 
   if (result.length === 0) {
     return container({});
@@ -63,7 +77,7 @@ export async function fromJsx(
 
 async function fromJsxInternal(
   element: ReactNode | ReactElementLike,
-  options?: FromJsxOptions,
+  options: ResolvedFromJsxOptions,
 ): Promise<Node[]> {
   if (element === undefined || element === null || element === false) return [];
 
@@ -83,7 +97,7 @@ async function fromJsxInternal(
   return [
     text({
       text: String(element),
-      preset: getPresets(options)?.span,
+      preset: options.presets?.span,
     }),
   ];
 }
@@ -91,17 +105,16 @@ async function fromJsxInternal(
 function getPresets(
   options?: FromJsxOptions,
 ): typeof defaultStylePresets | undefined {
-  if (options?.defaultStyles === false) return undefined;
+  if (options?.defaultStyles === false) return;
 
   return options?.defaultStyles ?? defaultStylePresets;
 }
 
 function tryHandleComponentWrapper(
   element: ReactElementLike,
-  options?: FromJsxOptions,
+  options: ResolvedFromJsxOptions,
 ): Promise<Node[]> | undefined {
-  if (typeof element.type !== "object" || element.type === null)
-    return undefined;
+  if (typeof element.type !== "object" || element.type === null) return;
 
   // Handle forwardRef components
   if (isReactForwardRef(element.type) && "render" in element.type) {
@@ -129,10 +142,8 @@ function tryHandleComponentWrapper(
   }
 }
 
-function tryCollectTextChildren(
-  element: ReactElementLike,
-): Promise<string | undefined> {
-  if (!isValidElement(element)) return Promise.resolve(undefined);
+function tryCollectTextChildren(element: ReactElementLike): string | undefined {
+  if (!isValidElement(element)) return;
 
   const children =
     typeof element.props === "object" &&
@@ -141,11 +152,11 @@ function tryCollectTextChildren(
       ? element.props.children
       : undefined;
 
-  if (typeof children === "string") return Promise.resolve(children);
-  if (typeof children === "number") return Promise.resolve(String(children));
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
 
   if (Array.isArray(children)) {
-    return Promise.resolve(collectTextFromChildren(children));
+    return collectTextFromIterable(children);
   }
 
   if (
@@ -153,39 +164,42 @@ function tryCollectTextChildren(
     children !== null &&
     Symbol.iterator in children
   ) {
-    return Promise.resolve(
-      collectTextFromChildren(
-        Array.from(children as Iterable<ReactElementLike>) as ReactNode[],
-      ),
-    );
+    return collectTextFromIterable(children as Iterable<ReactNode>);
   }
 
   if (isValidElement(children) && isReactFragment(children)) {
     return tryCollectTextChildren(children);
   }
-
-  return Promise.resolve(undefined);
 }
 
-// Collects pure text children to prevent unnecessary container nodes
-function collectTextFromChildren(children: ReactNode[]): string | undefined {
-  // If any child is a React element, this is not pure text
-  if (children.some((child) => isValidElement(child))) return;
+function collectTextFromIterable(
+  children: Iterable<ReactNode>,
+): string | undefined {
+  let output = "";
 
-  // All children are strings/numbers, concatenate them
-  return children
-    .map((child) => {
-      if (typeof child === "string") return child;
-      if (typeof child === "number") return String(child);
-      // This shouldn't happen since we checked for elements above
-      return "";
-    })
-    .join("");
+  for (const child of children) {
+    // If any child is a React element, this is not pure text
+    if (isValidElement(child)) return;
+
+    if (typeof child === "string") {
+      output += child;
+      continue;
+    }
+
+    if (typeof child === "number") {
+      output += String(child);
+      continue;
+    }
+
+    return;
+  }
+
+  return output;
 }
 
 async function processReactElement(
   element: ReactElementLike,
-  options?: FromJsxOptions,
+  options: ResolvedFromJsxOptions,
 ): Promise<Node[]> {
   if (isFunctionComponent(element.type)) {
     return fromJsxInternal(element.type(element.props), options);
@@ -205,7 +219,7 @@ async function processReactElement(
   }
 
   if (isHtmlElement(element, "br")) {
-    return [text({ text: "\n", preset: getPresets(options)?.span })];
+    return [text({ text: "\n", preset: options.presets?.span })];
   }
 
   if (isHtmlElement(element, "img")) {
@@ -217,9 +231,9 @@ async function processReactElement(
   }
 
   const { preset, style } = extractStyle(element, options);
-  const tw = extractTw(element);
+  const tw = extractTw(element, options);
 
-  const textChildren = await tryCollectTextChildren(element);
+  const textChildren = tryCollectTextChildren(element);
   if (textChildren !== undefined)
     return [
       text({
@@ -244,14 +258,14 @@ async function processReactElement(
 
 function createImageElement(
   element: ReactElement<ComponentProps<"img">, "img">,
-  options?: FromJsxOptions,
+  options: ResolvedFromJsxOptions,
 ) {
   if (!element.props.src) {
     throw new Error("Image element must have a 'src' prop.");
   }
 
   const { preset, style } = extractStyle(element, options);
-  const tw = extractTw(element);
+  const tw = extractTw(element, options);
 
   const width =
     element.props.width !== undefined ? Number(element.props.width) : undefined;
@@ -272,10 +286,10 @@ function createImageElement(
 
 function createSvgElement(
   element: ReactElement<ComponentProps<"svg">, "svg">,
-  options?: FromJsxOptions,
+  options: ResolvedFromJsxOptions,
 ) {
   const { preset, style } = extractStyle(element, options);
-  const tw = extractTw(element);
+  const tw = extractTw(element, options);
   const svg = serializeSvg(element);
 
   const width =
@@ -297,14 +311,14 @@ function createSvgElement(
 
 function extractStyle(
   element: ReactElementLike,
-  options?: FromJsxOptions,
+  options: ResolvedFromJsxOptions,
 ): { preset?: CSSProperties; style?: CSSProperties } {
   let preset: CSSProperties | undefined;
   let style: CSSProperties | undefined;
 
-  const presets = getPresets(options);
+  const presets = options.presets;
   if (presets && typeof element.type === "string" && element.type in presets) {
-    preset = { ...presets[element.type as keyof typeof presets] };
+    preset = presets[element.type as keyof typeof presets];
   }
 
   const inlineStyle =
@@ -316,27 +330,40 @@ function extractStyle(
       ? element.props.style
       : undefined;
 
-  if (inlineStyle && Object.keys(inlineStyle).length > 0) {
-    style = inlineStyle;
+  if (inlineStyle) {
+    for (const key in inlineStyle) {
+      if (!Object.hasOwn(inlineStyle, key)) continue;
+
+      style = inlineStyle;
+      break;
+    }
   }
 
   return { preset, style };
 }
 
-function extractTw(element: ReactElementLike): string | undefined {
+function extractTw(
+  element: ReactElementLike,
+  options: ResolvedFromJsxOptions,
+): string | undefined {
+  const propName = options.tailwindClassesProperty;
+
   if (
     typeof element.props !== "object" ||
     element.props === null ||
-    !("tw" in element.props)
+    !(propName in element.props)
   )
-    return undefined;
+    return;
 
-  return element.props.tw as string;
+  const tw = element.props[propName as keyof typeof element.props];
+  if (typeof tw !== "string") return;
+
+  return tw;
 }
 
 function collectChildren(
   element: ReactElementLike,
-  options?: FromJsxOptions,
+  options: ResolvedFromJsxOptions,
 ): Promise<Node[]> {
   if (
     typeof element.props !== "object" ||
@@ -348,11 +375,39 @@ function collectChildren(
   return fromJsxInternal(element.props.children as ReactNode, options);
 }
 
-function collectIterable(
+const MAX_CONCURRENT_ITERABLE_RESOLUTION = 8;
+
+async function collectIterable(
   iterable: Iterable<ReactNode>,
-  options?: FromJsxOptions,
+  options: ResolvedFromJsxOptions,
 ): Promise<Node[]> {
-  return Promise.all(
-    Array.from(iterable).map((element) => fromJsxInternal(element, options)),
-  ).then((results) => results.flat());
+  const groupedResults: Node[][] = [];
+  const inFlight = new Set<Promise<void>>();
+  let index = 0;
+
+  for (const element of iterable) {
+    const currentIndex = index;
+    index += 1;
+
+    const task = fromJsxInternal(element, options)
+      .then((nodes) => {
+        groupedResults[currentIndex] = nodes;
+      })
+      .finally(() => inFlight.delete(task));
+
+    inFlight.add(task);
+
+    if (inFlight.size >= MAX_CONCURRENT_ITERABLE_RESOLUTION) {
+      await Promise.race(inFlight);
+    }
+  }
+
+  await Promise.all(inFlight);
+
+  const flattened: Node[] = [];
+  for (const group of groupedResults) {
+    if (group) flattened.push(...group);
+  }
+
+  return flattened;
 }
