@@ -7,4 +7,3 @@ pre-commit:
 
     - run: cargo fmt --all
       stage_fixed: true
-  
