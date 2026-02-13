@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{borrow::Cow, collections::HashSet};
 
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
@@ -229,7 +229,7 @@ impl Renderer {
         global
           .font_context
           .load_and_store(
-            font,
+            Cow::Borrowed(font),
             Some(FontInfoOverride {
               family_name: Some(name),
               ..Default::default()
@@ -321,7 +321,7 @@ impl Renderer {
       self
         .global
         .font_context
-        .load_and_store(&buffer, None, None)
+        .load_and_store(Cow::Borrowed(&buffer), None, None)
         .map_err(map_error)?;
 
       return Ok(());
@@ -343,7 +343,7 @@ impl Renderer {
     self
       .global
       .font_context
-      .load_and_store(&buffer, Some(font_override), None)
+      .load_and_store(Cow::Borrowed(&buffer), Some(font_override), None)
       .map_err(map_error)?;
 
     Ok(())

@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 const wasmPath = join(__dirname, "../pkg/takumi_wasm_bg.wasm");
 const wasmBytes = readFileSync(wasmPath);
 
-initSync(wasmBytes);
+initSync({ module: wasmBytes });
 
 export * from "../pkg/takumi_wasm";
 export { default } from "../pkg/takumi_wasm";

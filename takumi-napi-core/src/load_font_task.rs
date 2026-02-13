@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use napi::bindgen_prelude::*;
 use takumi::{
   GlobalContext,
@@ -27,7 +29,7 @@ impl Task for LoadFontTask<'_> {
         .context
         .font_context
         .load_and_store(
-          buffer,
+          Cow::Borrowed(buffer),
           Some(FontInfoOverride {
             family_name: font.name.as_deref(),
             width: None,

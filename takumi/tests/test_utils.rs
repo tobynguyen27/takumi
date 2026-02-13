@@ -102,7 +102,7 @@ fn create_test_context() -> GlobalContext {
     context
       .font_context
       .load_and_store(
-        &font_data,
+        font_data.into(),
         Some(FontInfoOverride {
           family_name: Some(name),
           ..Default::default()

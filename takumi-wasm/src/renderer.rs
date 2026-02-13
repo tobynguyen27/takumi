@@ -10,6 +10,7 @@ use crate::{
   },
 };
 use base64::{Engine, prelude::BASE64_STANDARD};
+use js_sys::Uint8Array;
 use serde_wasm_bindgen::{from_value, to_value};
 use std::collections::HashSet;
 use takumi::{
@@ -24,6 +25,37 @@ use takumi::{
 };
 use wasm_bindgen::prelude::*;
 use xxhash_rust::xxh3::{Xxh3DefaultBuilder, xxh3_64};
+
+/// A zero-copy WASM buffer view holder.
+#[wasm_bindgen]
+pub struct WasmBuffer {
+  data: Box<[u8]>,
+}
+
+impl WasmBuffer {
+  fn from_vec(data: Vec<u8>) -> Self {
+    Self {
+      data: data.into_boxed_slice(),
+    }
+  }
+}
+
+#[wasm_bindgen]
+impl WasmBuffer {
+  /// Returns the buffer byte length.
+  #[wasm_bindgen(getter = byteLength)]
+  pub fn byte_length(&self) -> usize {
+    self.data.len()
+  }
+
+  /// Returns a Uint8Array view over WASM memory without cloning.
+  #[wasm_bindgen(js_name = asUint8Array)]
+  pub fn as_uint8_array(&self) -> Uint8Array {
+    // SAFETY: `self.data` is owned by this object, so the view remains valid
+    // for the lifetime of this `WasmBuffer` instance.
+    unsafe { Uint8Array::view(self.data.as_ref()) }
+  }
+}
 
 /// The main renderer for Takumi image rendering engine.
 #[wasm_bindgen]
@@ -47,7 +79,7 @@ impl Renderer {
 
     if let Some(fonts) = options.fonts {
       for font in fonts {
-        renderer.load_font_internal(&font)?;
+        renderer.load_font_internal(font)?;
       }
     }
 
@@ -66,14 +98,13 @@ impl Renderer {
     self.load_font(font)
   }
 
-  /// Loads a font into the renderer (internal version without JS conversion).
-  fn load_font_internal(&mut self, font: &Font) -> Result<(), js_sys::Error> {
+  fn load_font_internal(&mut self, font: Font) -> Result<(), js_sys::Error> {
     match font {
       Font::Buffer(buffer) => {
         self
           .context
           .font_context
-          .load_and_store(buffer, None, None)
+          .load_and_store(buffer.into_vec().into(), None, None)
           .map_err(map_error)?;
       }
       Font::Object(details) => {
@@ -81,7 +112,7 @@ impl Renderer {
           .context
           .font_context
           .load_and_store(
-            &details.data,
+            details.data.into_vec().into(),
             Some(FontInfoOverride {
               family_name: details.name.as_deref(),
               style: details.style.map(Into::into),
@@ -101,7 +132,7 @@ impl Renderer {
   #[wasm_bindgen(js_name = loadFont)]
   pub fn load_font(&mut self, font: FontType) -> Result<(), js_sys::Error> {
     let input: Font = from_value(font.into()).map_err(map_error)?;
-    self.load_font_internal(&input)
+    self.load_font_internal(input)
   }
 
   /// Puts a persistent image into the renderer's internal store (internal version without JS conversion).
@@ -145,14 +176,16 @@ impl Renderer {
     &self,
     node: AnyNode,
     options: Option<RenderOptionsType>,
-  ) -> Result<Vec<u8>, JsValue> {
+  ) -> Result<WasmBuffer, JsValue> {
     let node: NodeKind = from_value(node.into()).map_err(map_error)?;
     let options: RenderOptions = options
       .map(|options| from_value(options.into()).map_err(map_error))
       .transpose()?
       .unwrap_or_default();
 
-    self.render_internal(node, options)
+    self
+      .render_internal(node, options)
+      .map(WasmBuffer::from_vec)
   }
 
   fn render_internal(&self, node: NodeKind, options: RenderOptions) -> Result<Vec<u8>, JsValue> {
@@ -287,7 +320,7 @@ impl Renderer {
     &self,
     frames: Vec<AnimationFrameSourceType>,
     options: RenderAnimationOptionsType,
-  ) -> Result<Vec<u8>, JsValue> {
+  ) -> Result<WasmBuffer, JsValue> {
     let frames: Vec<AnimationFrameSource> = from_value(frames.into()).map_err(map_error)?;
     let options: RenderAnimationOptions = from_value(options.into()).map_err(map_error)?;
 
@@ -319,6 +352,6 @@ impl Renderer {
       }
     }
 
-    Ok(buffer)
+    Ok(WasmBuffer::from_vec(buffer))
   }
 }

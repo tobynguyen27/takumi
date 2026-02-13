@@ -62,28 +62,28 @@ pub enum FontFormat {
   Otf,
 }
 
-/// Loads and processes font data from raw bytes, optionally using format hint for detection
-pub fn load_font<'source>(
-  source: &'source [u8],
+/// Loads and processes font data, optionally using format hint for detection
+pub fn load_font(
+  source: Cow<'_, [u8]>,
   format_hint: Option<FontFormat>,
-) -> Result<Cow<'source, [u8]>, FontError> {
+) -> Result<Vec<u8>, FontError> {
   let format = if let Some(format) = format_hint {
     format
   } else {
-    guess_font_format(source)?
+    guess_font_format(&source)?
   };
 
   match format {
-    FontFormat::Ttf | FontFormat::Otf => Ok(Cow::Borrowed(source)),
+    FontFormat::Ttf | FontFormat::Otf => Ok(source.into_owned()),
     #[cfg(feature = "woff2")]
     FontFormat::Woff2 => {
-      let ttf = wuff::decompress_woff2(source).map_err(FontError::Woff)?;
-      Ok(Cow::Owned(ttf))
+      let ttf = wuff::decompress_woff2(&source).map_err(FontError::Woff)?;
+      Ok(ttf)
     }
     #[cfg(feature = "woff")]
     FontFormat::Woff => {
-      let ttf = wuff::decompress_woff1(source).map_err(FontError::Woff)?;
-      Ok(Cow::Owned(ttf))
+      let ttf = wuff::decompress_woff1(&source).map_err(FontError::Woff)?;
+      Ok(ttf)
     }
   }
 }
@@ -234,12 +234,12 @@ impl FontContext {
   /// Loads font into internal font db with caching
   pub fn load_and_store(
     &mut self,
-    source: &[u8],
+    source: Cow<'_, [u8]>,
     info_override: Option<FontInfoOverride<'_>>,
     generic_family: Option<GenericFamily>,
   ) -> Result<(), FontError> {
     let cache_key = FontCacheKey {
-      data_hash: xxh3_64(source),
+      data_hash: xxh3_64(&source),
       family_name: info_override
         .and_then(|info| info.family_name)
         .map(Into::into),
@@ -259,15 +259,11 @@ impl FontContext {
       generic_family,
     };
 
-    // Check if this exact font configuration has been loaded before
     if self.cache.contains(&cache_key) {
       return Ok(());
     }
 
-    let font_data = Blob::new(Arc::new(match load_font(source, None)? {
-      Cow::Owned(vec) => vec,
-      Cow::Borrowed(slice) => slice.to_vec(),
-    }));
+    let font_data = Blob::new(Arc::new(load_font(source, None)?));
 
     let fonts = self
       .inner
@@ -290,7 +286,6 @@ impl FontContext {
       }
     }
 
-    // Mark this font configuration as loaded
     self.cache.insert(cache_key);
 
     Ok(())
