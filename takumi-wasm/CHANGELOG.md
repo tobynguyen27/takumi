@@ -15,7 +15,8 @@
   After (with `using` keyword):
 
   ```tsx
-  using buffer = renderer.render().asUint8Array();
+  using buffer = renderer.render();
+  const bytes = buffer.asUint8Array();
   // buffer is automatically disposed when it goes out of scope
   ```
 
