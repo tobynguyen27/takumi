@@ -1,10 +1,7 @@
 use std::{borrow::Cow, convert::Into};
 use unicode_linebreak::linebreaks;
 
-use image::{
-  GenericImageView, ImageError, Rgba, RgbaImage,
-  error::{DecodingError, ImageFormatHint},
-};
+use image::{GenericImageView, Pixel, Rgba, RgbaImage};
 use parley::GlyphRun;
 use swash::{ColorPalette, scale::outline::Outline};
 use taffy::{Layout, Point, Size};
@@ -25,6 +22,22 @@ use crate::{
   },
   resources::font::ResolvedGlyph,
 };
+
+struct SwashImageView<'a>(&'a swash::scale::image::Image);
+
+impl<'a> GenericImageView for SwashImageView<'a> {
+  type Pixel = Rgba<u8>;
+
+  fn dimensions(&self) -> (u32, u32) {
+    (self.0.placement.width, self.0.placement.height)
+  }
+
+  fn get_pixel(&self, x: u32, y: u32) -> Self::Pixel {
+    let index = ((y * self.0.placement.width + x) * 4) as usize;
+
+    *Rgba::from_slice(&self.0.data[index..index + 4])
+  }
+}
 
 fn invert_y_coordinate(command: Command) -> Command {
   match command {
@@ -202,15 +215,7 @@ pub(crate) fn draw_glyph(
     ResolvedGlyph::Image(bitmap) => {
       transform *= Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32);
 
-      let image = RgbaImage::from_raw(
-        bitmap.placement.width,
-        bitmap.placement.height,
-        bitmap.data.clone(),
-      )
-      .ok_or(ImageError::Decoding(DecodingError::new(
-        ImageFormatHint::Unknown,
-        "Failed to create image from raw data",
-      )))?;
+      let image = SwashImageView(bitmap);
 
       canvas.overlay_image(
         &image,
