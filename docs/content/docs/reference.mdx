@@ -239,7 +239,7 @@ An image node displays rasterized or svg images.
     <tr>
       <td rowSpan={7}>`background`</td>
       <td>`backgroundImage`</td>
-      <td>`linear-gradient()`, `radial-gradient()`, `noise-v1()`, `url()`</td>
+      <td>`linear-gradient()`, `radial-gradient()`, `url()`, ~~`noise-v1()`~~</td>
     </tr>
     <tr>
       <td>`backgroundPosition`</td>
@@ -272,7 +272,7 @@ An image node displays rasterized or svg images.
     <tr>
       <td rowSpan={2}>Clip</td>
       <td>`clipPath`</td>
-      <td>`inset()`, `circle()`, `ellipse()`, `polygon()`, `path()`</td>
+      <td>`<basic-shape>`</td>
     </tr>
     <tr>
       <td>`clipRule`</td>
@@ -443,11 +443,11 @@ An image node displays rasterized or svg images.
     </tr>
     <tr>
       <td colSpan={2}>`filter`</td>
-      <td>`blur()`, `brightness()`, `contrast()`, `drop-shadow()`, `grayscale()`, `hue-rotate()`, `invert()`, `opacity()`, `saturate()`, `sepia()`</td>
+      <td>`<filter-function>`</td>
     </tr>
     <tr>
       <td colSpan={2}>`backdropFilter`</td>
-      <td>`blur()`, `brightness()`, `contrast()`, `grayscale()`, `hue-rotate()`, `invert()`, `opacity()`, `saturate()`, `sepia()`</td>
+      <td>`<filter-function>`</td>
     </tr>
     <tr>
       <td>`WebkitTextStroke`</td>
