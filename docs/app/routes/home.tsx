@@ -30,7 +30,7 @@ export default function Home() {
       />
       <div className="max-w-7xl w-full mx-auto px-4">
         <div className="flex flex-col py-24 items-center justify-center">
-          <img src="/logo.svg" className="w-16 h-auto" alt="Takumi Logo" />
+          <img src="/logo.svg" alt="Takumi Logo" width={64} height={64} />
           <h1 className="py-6 text-3xl sm:text-5xl font-semibold max-w-4xl text-balance">
             <span className="text-primary">Takumi</span> makes dynamic image
             rendering simple.
@@ -83,6 +83,8 @@ export default function Home() {
                   src="https://raw.githubusercontent.com/kane50613/takumi/refs/heads/master/example/twitter-images/output/x-post-image.png"
                   alt="X.com Post opengraph"
                   className="rounded-2xl"
+                  width={1200}
+                  height={630}
                 />
               </div>
             </div>
