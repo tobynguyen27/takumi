@@ -268,6 +268,82 @@ impl<'s> From<&'s SizedFontStyle<'s>> for TextStyle<'s, InlineBrush> {
 }
 
 impl InheritedStyle {
+  /// Normalize inheritable text-related values to computed values for this node.
+  pub(crate) fn make_computed(&mut self, sizing: &Sizing) {
+    // `font-size` computed value is already resolved in `sizing.font_size`.
+    // Keep it as css-px in style to avoid re-resolving descendant inheritance.
+    let dpr = sizing.viewport.device_pixel_ratio;
+    self.font_size = Some(if dpr > 0.0 {
+      Length::Px(sizing.font_size / dpr)
+    } else {
+      Length::Px(sizing.font_size)
+    });
+
+    self.width.make_computed(sizing);
+    self.height.make_computed(sizing);
+    self.max_width.make_computed(sizing);
+    self.max_height.make_computed(sizing);
+    self.min_width.make_computed(sizing);
+    self.min_height.make_computed(sizing);
+    self.padding.make_computed(sizing);
+    self.padding_inline.make_computed(sizing);
+    self.padding_block.make_computed(sizing);
+    self.padding_top.make_computed(sizing);
+    self.padding_right.make_computed(sizing);
+    self.padding_bottom.make_computed(sizing);
+    self.padding_left.make_computed(sizing);
+    self.margin.make_computed(sizing);
+    self.margin_inline.make_computed(sizing);
+    self.margin_block.make_computed(sizing);
+    self.margin_top.make_computed(sizing);
+    self.margin_right.make_computed(sizing);
+    self.margin_bottom.make_computed(sizing);
+    self.margin_left.make_computed(sizing);
+    self.inset.make_computed(sizing);
+    self.inset_inline.make_computed(sizing);
+    self.inset_block.make_computed(sizing);
+    self.top.make_computed(sizing);
+    self.right.make_computed(sizing);
+    self.bottom.make_computed(sizing);
+    self.left.make_computed(sizing);
+    self.flex_basis.make_computed(sizing);
+    self.translate.make_computed(sizing);
+    self.translate_x.make_computed(sizing);
+    self.translate_y.make_computed(sizing);
+    self.column_gap.make_computed(sizing);
+    self.row_gap.make_computed(sizing);
+    self.flex.make_computed(sizing);
+    self.border_radius.make_computed(sizing);
+    self.border_top_left_radius.make_computed(sizing);
+    self.border_top_right_radius.make_computed(sizing);
+    self.border_bottom_right_radius.make_computed(sizing);
+    self.border_bottom_left_radius.make_computed(sizing);
+    self.border_width.make_computed(sizing);
+    self.border_inline_width.make_computed(sizing);
+    self.border_block_width.make_computed(sizing);
+    self.border_top_width.make_computed(sizing);
+    self.border_right_width.make_computed(sizing);
+    self.border_bottom_width.make_computed(sizing);
+    self.border_left_width.make_computed(sizing);
+    self.border.make_computed(sizing);
+    self.object_position.make_computed(sizing);
+    self.mask_size.make_computed(sizing);
+    self.background_size.make_computed(sizing);
+    self.box_shadow.make_computed(sizing);
+    self.grid_auto_columns.make_computed(sizing);
+    self.grid_auto_rows.make_computed(sizing);
+    self.filter.make_computed(sizing);
+    self.backdrop_filter.make_computed(sizing);
+    self.transform.make_computed(sizing);
+    self.webkit_text_stroke.make_computed(sizing);
+    self.clip_path.make_computed(sizing);
+    self.line_height.make_computed(sizing);
+    self.webkit_text_stroke_width.make_computed(sizing);
+    self.text_shadow.make_computed(sizing);
+    self.letter_spacing.make_computed(sizing);
+    self.word_spacing.make_computed(sizing);
+  }
+
   pub(crate) fn is_invisible(&self) -> bool {
     self.opacity.0 == 0.0 || self.display == Display::None || self.visibility == Visibility::Hidden
   }
@@ -915,5 +991,53 @@ mod tests {
         ellipsis: Some("…".to_string()),
       }))
     );
+  }
+
+  #[test]
+  fn test_inherited_em_text_lengths_are_computed_once() {
+    let mut parent = Style {
+      font_size: Some(Length::Em(2.0)).into(),
+      letter_spacing: Some(Length::Em(1.0)).into(),
+      line_height: LineHeight::Length(Length::Em(1.5)).into(),
+      ..Default::default()
+    }
+    .inherit(&InheritedStyle::default());
+    parent.make_computed(&Sizing {
+      viewport: Viewport::new(Some(1200), Some(630)),
+      font_size: 32.0,
+    });
+
+    let inherited_child = Style::default().inherit(&parent);
+    let inherited_child_sizing = Sizing {
+      viewport: Viewport::new(Some(1200), Some(630)),
+      font_size: 32.0,
+    };
+    let inherited_font_size = inherited_child
+      .font_size
+      .map(|size| size.to_px(&inherited_child_sizing, inherited_child_sizing.font_size))
+      .unwrap_or_default();
+    assert_eq!(inherited_font_size, 32.0);
+
+    let child_with_own_font_size = Style {
+      font_size: Some(Length::Px(10.0)).into(),
+      ..Default::default()
+    }
+    .inherit(&parent);
+    let child_sizing = Sizing {
+      viewport: Viewport::new(Some(1200), Some(630)),
+      font_size: 10.0,
+    };
+
+    let inherited_letter_spacing = child_with_own_font_size
+      .letter_spacing
+      .map(|v| v.to_px(&child_sizing, child_sizing.font_size))
+      .unwrap_or_default();
+    assert_eq!(inherited_letter_spacing, 32.0);
+
+    let inherited_line_height = match child_with_own_font_size.line_height {
+      LineHeight::Length(length) => length.to_px(&child_sizing, child_sizing.font_size),
+      _ => 0.0,
+    };
+    assert_eq!(inherited_line_height, 48.0);
   }
 }

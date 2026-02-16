@@ -2,7 +2,7 @@ use cssparser::{Parser, match_ignore_ascii_case};
 
 use crate::{
   layout::style::{
-    CssToken, FromCss, Length, ParseResult,
+    CssToken, FromCss, Length, MakeComputed, ParseResult,
     tw::{TW_VAR_SPACING, TailwindPropertyParser},
   },
   rendering::Sizing,
@@ -73,6 +73,14 @@ impl LineHeight {
       Self::Normal => parley::LineHeight::MetricsRelative(1.0),
       Self::Length(length) => parley::LineHeight::Absolute(length.to_px(sizing, sizing.font_size)),
       Self::Unitless(value) => parley::LineHeight::FontSizeRelative(value),
+    }
+  }
+}
+
+impl MakeComputed for LineHeight {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    if let Self::Length(length) = self {
+      length.make_computed(sizing);
     }
   }
 }

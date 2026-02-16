@@ -3,9 +3,10 @@ use std::sync::Arc;
 use cssparser::{Parser, Token, match_ignore_ascii_case};
 
 use crate::layout::style::{
-  ConicGradient, CssToken, FromCss, LinearGradient, NoiseV1, ParseResult, RadialGradient,
-  tw::TailwindPropertyParser,
+  ConicGradient, CssToken, FromCss, LinearGradient, MakeComputed, NoiseV1, ParseResult,
+  RadialGradient, tw::TailwindPropertyParser,
 };
+use crate::rendering::Sizing;
 
 /// Background image variants supported by Takumi.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -23,6 +24,17 @@ pub enum BackgroundImage {
   Noise(NoiseV1),
   /// Load external image resource.
   Url(Arc<str>),
+}
+
+impl MakeComputed for BackgroundImage {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    match self {
+      BackgroundImage::Linear(gradient) => gradient.make_computed(sizing),
+      BackgroundImage::Radial(gradient) => gradient.make_computed(sizing),
+      BackgroundImage::Conic(gradient) => gradient.make_computed(sizing),
+      _ => {}
+    }
+  }
 }
 
 impl TailwindPropertyParser for BackgroundImage {

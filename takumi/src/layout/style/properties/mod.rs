@@ -98,6 +98,7 @@ use parley::{Alignment, FontStack};
 use zeno::Join;
 
 use crate::layout::style::tw::TailwindPropertyParser;
+use crate::rendering::Sizing;
 
 /// Parser result type alias for CSS property parsers.
 pub type ParseResult<'i, T> = Result<T, ParseError<'i, Cow<'i, str>>>;
@@ -160,6 +161,36 @@ pub trait FromCss<'i> {
     #[cfg(not(feature = "detailed_css_error"))]
     {
       create_unexpected_token_error(location, token)
+    }
+  }
+}
+
+/// Converts a parsed/inherited value into a computed value for the current node context.
+pub(crate) trait MakeComputed {
+  /// Default no-op for types that do not need computed-value normalization.
+  fn make_computed(&mut self, _sizing: &Sizing) {}
+}
+
+impl<T: MakeComputed> MakeComputed for Option<T> {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    if let Some(value) = self.as_mut() {
+      value.make_computed(sizing);
+    }
+  }
+}
+
+impl<T: MakeComputed> MakeComputed for Box<[T]> {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    for value in self.iter_mut() {
+      value.make_computed(sizing);
+    }
+  }
+}
+
+impl<T: MakeComputed> MakeComputed for Vec<T> {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    for value in self.iter_mut() {
+      value.make_computed(sizing);
     }
   }
 }
@@ -324,6 +355,12 @@ impl TailwindPropertyParser for BackgroundClip {
 /// Each corner has independent horizontal and vertical radii, allowing for both circular and elliptical shapes.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct BorderRadius(pub Sides<SpacePair<Length<false>>>);
+
+impl MakeComputed for BorderRadius {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    self.0.make_computed(sizing);
+  }
+}
 
 impl<'i> FromCss<'i> for BorderRadius {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {

@@ -4,10 +4,10 @@ use image::{GenericImageView, Rgba};
 use super::gradient_utils::{adaptive_lut_size, build_color_lut, resolve_stops_along_axis};
 use crate::{
   layout::style::{
-    BackgroundPosition, CssToken, FromCss, GradientStop, GradientStops, Length, ParseResult,
-    declare_enum_from_css_impl,
+    BackgroundPosition, CssToken, FromCss, GradientStop, GradientStops, Length, MakeComputed,
+    ParseResult, declare_enum_from_css_impl,
   },
-  rendering::RenderContext,
+  rendering::{RenderContext, Sizing},
 };
 
 /// Represents a radial gradient.
@@ -21,6 +21,13 @@ pub struct RadialGradient {
   pub center: BackgroundPosition,
   /// Gradient stops
   pub stops: Box<[GradientStop]>,
+}
+
+impl MakeComputed for RadialGradient {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    self.center.make_computed(sizing);
+    self.stops.make_computed(sizing);
+  }
 }
 
 /// Supported shapes for radial gradients

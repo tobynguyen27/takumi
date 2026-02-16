@@ -6,9 +6,10 @@ use image::{GenericImageView, Rgba};
 use super::gradient_utils::{adaptive_lut_size, build_color_lut, resolve_stops_along_axis};
 use crate::{
   layout::style::{
-    Angle, BackgroundPosition, CssToken, FromCss, GradientStop, GradientStops, Length, ParseResult,
+    Angle, BackgroundPosition, CssToken, FromCss, GradientStop, GradientStops, Length,
+    MakeComputed, ParseResult,
   },
-  rendering::RenderContext,
+  rendering::{RenderContext, Sizing},
 };
 
 /// Represents a CSS conic-gradient.
@@ -20,6 +21,13 @@ pub struct ConicGradient {
   pub center: BackgroundPosition,
   /// Gradient color stops.
   pub stops: Box<[GradientStop]>,
+}
+
+impl MakeComputed for ConicGradient {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    self.center.make_computed(sizing);
+    self.stops.make_computed(sizing);
+  }
 }
 
 /// Precomputed data for repeated sampling of a `ConicGradient`.

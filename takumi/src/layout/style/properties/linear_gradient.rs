@@ -5,10 +5,10 @@ use std::ops::{Deref, Neg};
 use super::gradient_utils::{adaptive_lut_size, build_color_lut, resolve_stops_along_axis};
 use crate::{
   layout::style::{
-    Color, CssToken, FromCss, Length, ParseResult, declare_enum_from_css_impl,
+    Color, CssToken, FromCss, Length, MakeComputed, ParseResult, declare_enum_from_css_impl,
     properties::ColorInput, tw::TailwindPropertyParser,
   },
-  rendering::RenderContext,
+  rendering::{RenderContext, Sizing},
 };
 
 /// Represents a linear gradient.
@@ -18,6 +18,12 @@ pub struct LinearGradient {
   pub angle: Angle,
   /// The steps of the gradient.
   pub stops: Box<[GradientStop]>,
+}
+
+impl MakeComputed for LinearGradient {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    self.stops.make_computed(sizing);
+  }
 }
 
 impl GenericImageView for LinearGradientTile {
@@ -112,6 +118,12 @@ impl LinearGradientTile {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct StopPosition(pub Length);
 
+impl MakeComputed for StopPosition {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    self.0.make_computed(sizing);
+  }
+}
+
 /// Represents a gradient stop.
 #[derive(Debug, Clone, PartialEq)]
 pub enum GradientStop {
@@ -124,6 +136,15 @@ pub enum GradientStop {
   },
   /// A numeric gradient stop.
   Hint(StopPosition),
+}
+
+impl MakeComputed for GradientStop {
+  fn make_computed(&mut self, sizing: &Sizing) {
+    match self {
+      GradientStop::ColorHint { hint, .. } => hint.make_computed(sizing),
+      GradientStop::Hint(hint) => hint.make_computed(sizing),
+    }
+  }
 }
 
 /// A list of gradient color stops, handling CSS double-stop syntax.
