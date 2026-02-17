@@ -180,6 +180,9 @@ define_style!(
   font_weight: FontWeight where inherit = true,
   font_variation_settings: Option<FontVariationSettings> where inherit = true,
   font_feature_settings: Option<FontFeatureSettings> where inherit = true,
+  font_synthesis: FontSynthesis where inherit = true,
+  font_synthesis_weight: Option<FontSynthesic> where inherit = true,
+  font_synthesis_style: Option<FontSynthesic> where inherit = true,
   line_clamp: Option<LineClamp> where inherit = true,
   text_align: TextAlign where inherit = true,
   #[serde(rename = "WebkitTextStroke", alias = "textStroke")]
@@ -264,10 +267,20 @@ impl<'s> From<&'s SizedFontStyle<'s>> for TextStyle<'s, InlineBrush> {
         color: style.color,
         decoration_color: style.text_decoration_color,
         stroke_color: style.text_stroke_color,
+        font_synthesis: FontSynthesis {
+          weight: style
+            .parent
+            .font_synthesis_weight
+            .unwrap_or(style.parent.font_synthesis.weight),
+          style: style
+            .parent
+            .font_synthesis_style
+            .unwrap_or(style.parent.font_synthesis.style),
+        },
       },
       text_wrap_mode: style.parent.text_wrap_mode_and_line_clamp().0.into(),
-
       font_width: style.parent.font_stretch.into(),
+
       locale: None,
       has_underline: false,
       underline_offset: None,

@@ -21,6 +21,7 @@ mod flex_grow;
 mod font_feature_settings;
 mod font_stretch;
 mod font_style;
+mod font_synthesis;
 mod font_variation_settings;
 mod font_weight;
 mod gradient_utils;
@@ -45,8 +46,6 @@ mod transform;
 mod white_space;
 mod word_break;
 
-use std::borrow::Cow;
-
 pub use aspect_ratio::*;
 pub use background::*;
 pub use background_image::*;
@@ -59,13 +58,13 @@ pub use box_shadow::*;
 pub use clip_path::*;
 pub use color::*;
 pub use conic_gradient::*;
-use fast_image_resize::ResizeAlg;
 pub use filter::*;
 pub use flex::*;
 pub use flex_grow::*;
 pub use font_feature_settings::*;
 pub use font_stretch::*;
 pub use font_style::*;
+pub use font_synthesis::*;
 pub use font_variation_settings::*;
 pub use font_weight::*;
 pub use grid::*;
@@ -93,8 +92,10 @@ use cssparser::{
   ParseError, ParseErrorKind, Parser, ParserInput, SourceLocation, ToCss, Token,
   match_ignore_ascii_case,
 };
+use fast_image_resize::ResizeAlg;
 use image::imageops::FilterType;
 use parley::{Alignment, FontStack};
+use std::borrow::Cow;
 use zeno::Join;
 
 use crate::layout::style::tw::TailwindPropertyParser;

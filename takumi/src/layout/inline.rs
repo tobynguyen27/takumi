@@ -7,7 +7,7 @@ use crate::{
   GlobalContext,
   layout::{
     node::Node,
-    style::{Color, SizedFontStyle, TextOverflow, TextWrapStyle},
+    style::{Color, FontSynthesis, SizedFontStyle, TextOverflow, TextWrapStyle},
     tree::NodeTree,
   },
   rendering::{
@@ -77,6 +77,7 @@ pub struct InlineBrush {
   pub color: Color,
   pub decoration_color: Color,
   pub stroke_color: Color,
+  pub font_synthesis: FontSynthesis,
 }
 
 impl Default for InlineBrush {
@@ -85,6 +86,7 @@ impl Default for InlineBrush {
       color: Color::black(),
       decoration_color: Color::black(),
       stroke_color: Color::black(),
+      font_synthesis: FontSynthesis::default(),
     }
   }
 }
@@ -95,6 +97,7 @@ pub(crate) fn measure_inline_layout(layout: &mut InlineLayout, max_width: f32) -
       .lines()
       .fold((0.0, 0.0), |(max_run_width, total_height), line| {
         let metrics = line.metrics();
+
         (
           metrics.advance.max(max_run_width),
           total_height + metrics.line_height,

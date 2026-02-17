@@ -46,6 +46,11 @@ const TEST_FONTS: &[(&str, &str, GenericFamily)] = &[
     "Archivo",
     GenericFamily::SansSerif,
   ),
+  (
+    "fonts/sil/scheherazade-new-v17-arabic-regular.woff2",
+    "Scheherazade New Test",
+    GenericFamily::Serif,
+  ),
 ];
 
 fn create_test_context() -> GlobalContext {

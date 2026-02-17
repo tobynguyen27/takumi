@@ -8,7 +8,7 @@ use std::{
 };
 
 use parley::{
-  FontStyle, GenericFamily, LayoutContext, Run, TextStyle, TreeBuilder,
+  FontStyle, GenericFamily, GlyphRun, LayoutContext, TextStyle, TreeBuilder,
   fontique::{Blob, Collection, CollectionOptions, FallbackKey, FontInfoOverride, Script},
 };
 use swash::{
@@ -17,6 +17,7 @@ use swash::{
 };
 use thiserror::Error;
 use xxhash_rust::xxh3::xxh3_64;
+use zeno::{Angle as ZenoAngle, Transform as ZenoTransform};
 
 use crate::{
   Xxh3HashSet,
@@ -30,6 +31,13 @@ pub(crate) enum ResolvedGlyph {
   Image(Image),
   /// A vector outline glyph
   Outline(Outline),
+}
+
+/// Matches the typical faux-bold expansion used by text rasterizers.
+const SYNTHESIS_EMBOLDEN_FACTOR: f32 = 1.0 / 24.0;
+
+pub(crate) fn synthesis_embolden_strength(font_size: f32) -> f32 {
+  font_size * SYNTHESIS_EMBOLDEN_FACTOR
 }
 
 /// Errors that can occur during font loading and conversion.
@@ -171,7 +179,7 @@ impl DerefMut for FontContext {
 impl FontContext {
   pub(crate) fn resolve_glyphs(
     &self,
-    run: &Run<'_, InlineBrush>,
+    run: &GlyphRun<'_, InlineBrush>,
     font_ref: FontRef,
     glyph_ids: impl Iterator<Item = u32> + Clone,
   ) -> HashMap<u32, ResolvedGlyph> {
@@ -187,13 +195,26 @@ impl FontContext {
     let mut scale = ScaleContext::with_max_entries(0);
     let mut scaler = scale
       .builder(font_ref)
-      .size(run.font_size())
-      .normalized_coords(run.normalized_coords())
+      .size(run.run().font_size())
+      .normalized_coords(run.run().normalized_coords())
       .build();
+
+    let embolden =
+      if run.run().synthesis().embolden() && run.style().brush.font_synthesis.weight.is_allowed() {
+        Some(synthesis_embolden_strength(run.run().font_size()))
+      } else {
+        None
+      };
+    let skew = run
+      .run()
+      .synthesis()
+      .skew()
+      .filter(|_| run.style().brush.font_synthesis.style.is_allowed())
+      .map(|degrees| ZenoTransform::skew(ZenoAngle::from_degrees(degrees), ZenoAngle::ZERO));
 
     // Process each unique glyph ID
     for &glyph_id in &unique_glyph_ids {
-      let resolved = scaler
+      let mut resolved = scaler
         .scale_color_bitmap(glyph_id as u16, StrikeWith::BestFit)
         .map(ResolvedGlyph::Image)
         .or_else(|| {
@@ -206,6 +227,17 @@ impl FontContext {
             .scale_outline(glyph_id as u16)
             .map(ResolvedGlyph::Outline)
         });
+
+      if let Some(embolden_strength) = embolden
+        && let Some(ResolvedGlyph::Outline(ref mut outline)) = resolved
+      {
+        outline.embolden(embolden_strength, embolden_strength);
+      }
+      if let Some(ref skew_transform) = skew
+        && let Some(ResolvedGlyph::Outline(ref mut outline)) = resolved
+      {
+        outline.transform(skew_transform);
+      }
 
       if let Some(glyph) = resolved {
         result.insert(glyph_id, glyph);

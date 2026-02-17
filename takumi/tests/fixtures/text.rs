@@ -864,3 +864,87 @@ fn text_font_stretch() {
 
   run_fixture_test(container.into(), "text_font_stretch");
 }
+
+#[test]
+fn text_font_synthesis_weight_auto_none() {
+  let nodes = [("auto", FontSynthesic::Auto), ("none", FontSynthesic::None)]
+    .iter()
+    .map(|(label, synthesis_weight)| {
+      TextNode {
+        preset: None,
+        tw: None,
+        style: Some(
+          StyleBuilder::default()
+            .font_size(Some(Px(72.0)))
+            .font_family(FontFamily::from_str("Scheherazade New Test").ok())
+            .font_weight(FontWeight::from(900.0))
+            .font_synthesis_weight(*synthesis_weight)
+            .build()
+            .unwrap(),
+        ),
+        text: format!("font-synthesis-weight: {} - السلام عليكم", label),
+      }
+      .into()
+    })
+    .collect::<Vec<_>>();
+
+  let container = ContainerNode {
+    preset: None,
+    tw: None,
+    style: Some(
+      StyleBuilder::default()
+        .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
+        .width(Percentage(100.0))
+        .flex_direction(FlexDirection::Column)
+        .padding(Sides([Px(20.0); 4]))
+        .gap(SpacePair::from_single(Px(12.0)))
+        .build()
+        .unwrap(),
+    ),
+    children: Some(nodes.into_boxed_slice()),
+  };
+
+  run_fixture_test(container.into(), "text_font_synthesis_weight_auto_none");
+}
+
+#[test]
+fn text_font_synthesis_style_auto_none() {
+  let nodes = [("auto", FontSynthesic::Auto), ("none", FontSynthesic::None)]
+    .iter()
+    .map(|(label, synthesis_style)| {
+      TextNode {
+        preset: None,
+        tw: None,
+        style: Some(
+          StyleBuilder::default()
+            .font_size(Some(Px(72.0)))
+            .font_family(FontFamily::from_str("Scheherazade New Test").ok())
+            .font_style(FontStyle::italic())
+            .font_synthesis_style(*synthesis_style)
+            .build()
+            .unwrap(),
+        ),
+        text: format!("font-synthesis-style: {} - السلام عليكم", label),
+      }
+      .into()
+    })
+    .collect::<Vec<_>>();
+
+  let container = ContainerNode {
+    preset: None,
+    tw: None,
+    style: Some(
+      StyleBuilder::default()
+        .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
+        .width(Percentage(100.0))
+        .flex_direction(FlexDirection::Column)
+        .padding(Sides([Px(20.0); 4]))
+        .gap(SpacePair::from_single(Px(12.0)))
+        .build()
+        .unwrap(),
+    ),
+    children: Some(nodes.into_boxed_slice()),
+  };
+
+  run_fixture_test(container.into(), "text_font_synthesis_style_auto_none");
+}

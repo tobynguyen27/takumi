@@ -56,7 +56,7 @@ fn draw_glyph_run<I: GenericImageView<Pixel = Rgba<u8>>>(
   let resolved_glyphs = context
     .global
     .font_context
-    .resolve_glyphs(run, font, glyph_ids);
+    .resolve_glyphs(glyph_run, font, glyph_ids);
 
   let palette = font.color_palettes().next();
 
