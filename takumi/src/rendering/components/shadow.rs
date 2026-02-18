@@ -1,6 +1,6 @@
 use image::RgbaImage;
 use taffy::{Layout, Point, Size};
-use zeno::{Fill, PathData, Placement};
+use zeno::{Command, Fill, PathData, Placement};
 
 use crate::{
   layout::style::{Affine, BlendMode, BoxShadow, Color, ImageScalingAlgorithm, Sides, TextShadow},
@@ -37,7 +37,7 @@ impl SizedShadow {
       offset_x: shadow.offset_x.to_px(sizing, size.width),
       offset_y: shadow.offset_y.to_px(sizing, size.height),
       blur_radius: shadow.blur_radius.to_px(sizing, size.width),
-      spread_radius: shadow.spread_radius.to_px(sizing, size.width).max(0.0),
+      spread_radius: shadow.spread_radius.to_px(sizing, size.width),
       color: shadow.color.resolve(current_color),
     }
   }
@@ -68,14 +68,14 @@ impl SizedShadow {
     paths: D,
     transform: Affine,
     style: zeno::Style,
+    cutout_paths: Option<&[Command]>,
   ) {
     let (mask, mut placement) = mask_memory.render(&paths, Some(transform), Some(style));
 
     placement.left += self.offset_x as i32;
     placement.top += self.offset_y as i32;
 
-    // Fast path: if the blur radius is 0, we can just draw the spread mask
-    if self.blur_radius <= 0.0 {
+    if self.blur_radius <= 0.0 && cutout_paths.is_none() {
       return draw_mask(
         canvas,
         mask,
@@ -86,8 +86,12 @@ impl SizedShadow {
       );
     }
 
-    // Create a new image with the spread mask on, blurred by the blur radius
-    let blur_padding = self.blur_radius * BlurType::Shadow.extent_multiplier();
+    let blur_padding = if self.blur_radius > 0.0 {
+      self.blur_radius * BlurType::Shadow.extent_multiplier()
+    } else {
+      0.0
+    };
+
     let mut image = RgbaImage::new(
       placement.width + (blur_padding * 2.0) as u32,
       placement.height + (blur_padding * 2.0) as u32,
@@ -109,14 +113,42 @@ impl SizedShadow {
 
     apply_blur(&mut image, self.blur_radius, BlurType::Shadow);
 
+    let img_origin_x = placement.left as f32 - blur_padding;
+    let img_origin_y = placement.top as f32 - blur_padding;
+
+    if let Some(cutout_paths) = cutout_paths {
+      let (erase_mask, erase_placement) =
+        mask_memory.render(cutout_paths, Some(transform), Some(Fill::NonZero.into()));
+
+      let img_w = image.width() as i32;
+      let img_h = image.height() as i32;
+
+      if !erase_mask.is_empty() {
+        for my in 0..erase_placement.height as i32 {
+          for mx in 0..erase_placement.width as i32 {
+            let canvas_x = erase_placement.left + mx;
+            let canvas_y = erase_placement.top + my;
+            let ix = canvas_x - img_origin_x as i32;
+            let iy = canvas_y - img_origin_y as i32;
+
+            if ix >= 0 && iy >= 0 && ix < img_w && iy < img_h {
+              let mask_alpha =
+                erase_mask[(my as u32 * erase_placement.width + mx as u32) as usize] as u32;
+              if mask_alpha > 0 {
+                let pixel = image.get_pixel_mut(ix as u32, iy as u32);
+                pixel.0[3] = ((pixel.0[3] as u32 * (255 - mask_alpha)) / 255) as u8;
+              }
+            }
+          }
+        }
+      }
+    }
+
     overlay_image(
       canvas,
       &image,
       BorderProperties::zero(),
-      Affine::translation(
-        placement.left as f32 - blur_padding,
-        placement.top as f32 - blur_padding,
-      ),
+      Affine::translation(img_origin_x, img_origin_y),
       ImageScalingAlgorithm::Auto,
       BlendMode::Normal,
       constrains,
@@ -155,16 +187,14 @@ fn draw_inset_shadow(
     shadow.color.into(),
   );
 
-  let mut paths = Vec::new();
-
   let offset = Point {
     x: shadow.offset_x,
     y: shadow.offset_y,
   };
 
-  border.append_mask_commands(&mut paths, border_box, offset);
+  let mut paths = Vec::new();
 
-  border.expand_by(Sides([shadow.spread_radius; 4]).into());
+  border.expand_by(Sides([-shadow.spread_radius; 4]).into());
   border.append_mask_commands(
     &mut paths,
     border_box
@@ -179,16 +209,27 @@ fn draw_inset_shadow(
       },
   );
 
-  let (mask, placement) = mask_memory.render(&paths, None, Some(Fill::EvenOdd.into()));
+  let (mask, placement) = mask_memory.render(&paths, None, Some(Fill::NonZero.into()));
 
-  draw_mask(
-    &mut shadow_image,
-    mask,
-    placement,
-    shadow.color,
-    BlendMode::Normal,
-    &[],
-  );
+  if !mask.is_empty() {
+    let img_w = shadow_image.width() as i32;
+    let img_h = shadow_image.height() as i32;
+
+    for my in 0..placement.height as i32 {
+      for mx in 0..placement.width as i32 {
+        let ix = placement.left + mx;
+        let iy = placement.top + my;
+
+        if ix >= 0 && iy >= 0 && ix < img_w && iy < img_h {
+          let mask_alpha = mask[(my as u32 * placement.width + mx as u32) as usize] as u32;
+          if mask_alpha > 0 {
+            let pixel = shadow_image.get_pixel_mut(ix as u32, iy as u32);
+            pixel.0[3] = ((pixel.0[3] as u32 * (255 - mask_alpha)) / 255) as u8;
+          }
+        }
+      }
+    }
+  }
 
   apply_blur(&mut shadow_image, shadow.blur_radius, BlurType::Shadow);
 

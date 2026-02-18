@@ -399,6 +399,7 @@ fn draw_text_shadow(
       paths,
       transform,
       Default::default(),
+      None,
     );
   }
 }
