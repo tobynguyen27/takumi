@@ -1,5 +1,5 @@
 use bitflags::bitflags;
-use cssparser::{Parser, Token};
+use cssparser::{Parser, Token, match_ignore_ascii_case};
 
 use crate::{
   layout::style::{CssToken, FromCss, MakeComputed, ParseResult, properties::ColorInput},
@@ -19,35 +19,20 @@ bitflags! {
   }
 }
 
-fn parse_text_decoration_line<'i>(
-  input: &mut Parser<'i, '_>,
-) -> ParseResult<'i, TextDecorationLines> {
-  let location = input.current_source_location();
-  let token = input.next()?;
-
-  if let Token::Ident(ident) = token {
-    if ident.eq_ignore_ascii_case("underline") {
-      return Ok(TextDecorationLines::UNDERLINE);
-    }
-
-    if ident.eq_ignore_ascii_case("line-through") {
-      return Ok(TextDecorationLines::LINE_THROUGH);
-    }
-
-    if ident.eq_ignore_ascii_case("overline") {
-      return Ok(TextDecorationLines::OVERLINE);
-    }
-  }
-
-  Err(TextDecorationLines::unexpected_token_error(location, token))
-}
-
 impl<'i> FromCss<'i> for TextDecorationLines {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
     let mut lines = TextDecorationLines::empty();
 
     while !input.is_exhausted() {
-      lines |= parse_text_decoration_line(input)?;
+      let location = input.current_source_location();
+      let ident = input.expect_ident()?;
+
+      match_ignore_ascii_case! {ident,
+        "underline" => lines |= TextDecorationLines::UNDERLINE,
+        "line-through" => lines |= TextDecorationLines::LINE_THROUGH,
+        "overline" => lines |= TextDecorationLines::OVERLINE,
+        _ => return Err(Self::unexpected_token_error(location, &Token::Ident(ident.clone()))),
+      }
     }
 
     Ok(lines)
@@ -97,7 +82,7 @@ impl<'i> FromCss<'i> for TextDecoration {
     let mut color = None;
 
     loop {
-      if let Ok(value) = input.try_parse(parse_text_decoration_line) {
+      if let Ok(value) = input.try_parse(TextDecorationLines::from_css) {
         line |= value;
         continue;
       }

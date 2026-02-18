@@ -235,7 +235,7 @@ pub enum TailwindProperty {
   /// `text-align` property.
   TextAlign(TextAlign),
   /// `text-decoration` property.
-  TextDecoration(TextDecoration),
+  TextDecorationLine(TextDecorationLines),
   /// `text-decoration-color` property.
   TextDecorationColor(ColorInput),
   /// `text-transform` property.
@@ -670,8 +670,8 @@ impl TailwindProperty {
       TailwindProperty::TextAlign(text_align) => {
         style.text_align = text_align.into();
       }
-      TailwindProperty::TextDecoration(ref text_decoration) => {
-        style.text_decoration = text_decoration.clone().into();
+      TailwindProperty::TextDecorationLine(text_decoration) => {
+        style.text_decoration_line = text_decoration.into();
       }
       TailwindProperty::TextDecorationColor(color_input) => {
         style.text_decoration_color = Some(color_input).into();
@@ -1147,19 +1147,15 @@ mod tests {
   fn test_parse_text_decoration_lines() {
     assert_eq!(
       TailwindProperty::parse("underline"),
-      Some(TailwindProperty::TextDecoration(TextDecoration {
-        line: TextDecorationLines::UNDERLINE,
-        style: None,
-        color: None,
-      }))
+      Some(TailwindProperty::TextDecorationLine(
+        TextDecorationLines::UNDERLINE
+      ))
     );
     assert_eq!(
       TailwindProperty::parse("no-underline"),
-      Some(TailwindProperty::TextDecoration(TextDecoration {
-        line: TextDecorationLines::empty(),
-        style: None,
-        color: None,
-      }))
+      Some(TailwindProperty::TextDecorationLine(
+        TextDecorationLines::empty()
+      ))
     );
   }
 
