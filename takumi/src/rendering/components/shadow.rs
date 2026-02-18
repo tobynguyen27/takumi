@@ -60,6 +60,7 @@ impl SizedShadow {
   }
 
   /// Draws the outset mask of the shadow.
+  #[allow(clippy::too_many_arguments)]
   pub fn draw_outset<D: PathData>(
     &self,
     canvas: &mut RgbaImage,
