@@ -1285,6 +1285,22 @@ mod tests {
   }
 
   #[test]
+  fn test_parse_overflow_clip() {
+    assert_eq!(
+      TailwindProperty::parse("overflow-clip"),
+      Some(TailwindProperty::Overflow(Overflow::Clip))
+    );
+    assert_eq!(
+      TailwindProperty::parse("overflow-x-clip"),
+      Some(TailwindProperty::OverflowX(Overflow::Clip))
+    );
+    assert_eq!(
+      TailwindProperty::parse("overflow-y-clip"),
+      Some(TailwindProperty::OverflowY(Overflow::Clip))
+    );
+  }
+
+  #[test]
   fn test_comprehensive_mappings() {
     // Test various prefix mappings to ensure they're working
     let should_parse = vec![

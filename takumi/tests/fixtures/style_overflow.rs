@@ -130,6 +130,13 @@ fn test_overflow_hidden() {
 }
 
 #[test]
+fn test_overflow_clip() {
+  let container = create_overflow_fixture(SpacePair::from_single(Overflow::Clip));
+
+  run_fixture_test(container, "style_overflow_clip_image");
+}
+
+#[test]
 fn test_overflow_mixed_axes() {
   let container =
     create_overflow_fixture(SpacePair::from_pair(Overflow::Hidden, Overflow::Visible));
@@ -149,6 +156,13 @@ fn test_text_overflow_hidden() {
   let container = create_text_overflow_fixture(SpacePair::from_single(Overflow::Hidden));
 
   run_fixture_test(container, "style_overflow_hidden_text");
+}
+
+#[test]
+fn test_text_overflow_clip() {
+  let container = create_text_overflow_fixture(SpacePair::from_single(Overflow::Clip));
+
+  run_fixture_test(container, "style_overflow_clip_text");
 }
 
 #[test]
