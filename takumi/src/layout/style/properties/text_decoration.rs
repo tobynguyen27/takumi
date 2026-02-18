@@ -23,15 +23,31 @@ impl<'i> FromCss<'i> for TextDecorationLines {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
     let mut lines = TextDecorationLines::empty();
 
-    while !input.is_exhausted() {
-      let location = input.current_source_location();
-      let ident = input.expect_ident()?;
+    // Parse at least one line decoration
+    let first_location = input.current_source_location();
+    let first_ident = input.expect_ident()?;
+    match_ignore_ascii_case! {first_ident,
+      "underline" => lines |= TextDecorationLines::UNDERLINE,
+      "line-through" => lines |= TextDecorationLines::LINE_THROUGH,
+      "overline" => lines |= TextDecorationLines::OVERLINE,
+      _ => return Err(Self::unexpected_token_error(first_location, &Token::Ident(first_ident.clone()))),
+    }
 
-      match_ignore_ascii_case! {ident,
-        "underline" => lines |= TextDecorationLines::UNDERLINE,
-        "line-through" => lines |= TextDecorationLines::LINE_THROUGH,
-        "overline" => lines |= TextDecorationLines::OVERLINE,
-        _ => return Err(Self::unexpected_token_error(location, &Token::Ident(ident.clone()))),
+    // Parse additional decorations if present
+    while !input.is_exhausted() {
+      let state = input.state();
+      if let Ok(ident) = input.expect_ident() {
+        match_ignore_ascii_case! {ident,
+          "underline" => lines |= TextDecorationLines::UNDERLINE,
+          "line-through" => lines |= TextDecorationLines::LINE_THROUGH,
+          "overline" => lines |= TextDecorationLines::OVERLINE,
+          _ => {
+            input.reset(&state);
+            break;
+          }
+        }
+      } else {
+        break;
       }
     }
 
