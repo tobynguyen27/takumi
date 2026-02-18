@@ -64,9 +64,18 @@ pub(crate) fn draw_decoration(
   layout: Layout,
   transform: Affine,
 ) {
+  let start_x = layout.border.left + layout.padding.left + glyph_run.offset();
+  let end_x = start_x + glyph_run.advance();
+  if end_x <= start_x {
+    return;
+  }
+
+  let snapped_start_x = start_x.floor();
+  let width = (end_x.ceil() - snapped_start_x) as u32;
+
   let tile = ColorTile {
     color: color.into(),
-    width: glyph_run.advance() as u32,
+    width,
     height: size as u32,
   };
 
@@ -75,7 +84,7 @@ pub(crate) fn draw_decoration(
     BorderProperties::default(),
     transform
       * Affine::translation(
-        layout.border.left + layout.padding.left + glyph_run.offset(),
+        snapped_start_x,
         layout.border.top + layout.padding.top + offset,
       ),
     ImageScalingAlgorithm::Auto,

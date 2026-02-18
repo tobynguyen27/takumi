@@ -27,11 +27,6 @@ const UNDERLINE_SKIP_INK_ALPHA_THRESHOLD: u8 = 16;
 const SKIP_PADDING_RATIO: f32 = 0.6;
 const SKIP_PADDING_MIN: f32 = 1.0;
 const SKIP_PADDING_MAX: f32 = 3.0;
-const SMOOTH_GAP_RATIO: f32 = 0.28;
-const SMOOTH_GAP_MIN: f32 = 0.5;
-const SMOOTH_GAP_MAX: f32 = 1.5;
-const MIN_VISIBLE_SEGMENT_RATIO: f32 = 0.8;
-const MIN_VISIBLE_SEGMENT_MIN: f32 = 0.75;
 
 #[derive(Clone, Copy)]
 struct GlyphLocalBounds {
@@ -95,16 +90,23 @@ fn build_glyph_bounds_cache(
 fn draw_decoration_segment(
   canvas: &mut Canvas,
   color: Color,
-  x: f32,
+  start_x: f32,
+  end_x: f32,
   y: f32,
-  width: f32,
   height: f32,
   transform: Affine,
 ) {
+  if end_x <= start_x {
+    return;
+  }
+
+  let x = start_x.floor();
+  let width = (end_x.ceil() - x) as u32;
+
   let tile = ColorTile {
     color: color.into(),
-    width: width.ceil() as u32,
-    height: height.ceil() as u32,
+    width,
+    height: height as u32,
   };
 
   if tile.width == 0 || tile.height == 0 {
@@ -124,14 +126,6 @@ fn compute_skip_padding(size: f32) -> f32 {
   (size * SKIP_PADDING_RATIO).clamp(SKIP_PADDING_MIN, SKIP_PADDING_MAX)
 }
 
-fn compute_smooth_gap(size: f32) -> f32 {
-  (size * SMOOTH_GAP_RATIO).clamp(SMOOTH_GAP_MIN, SMOOTH_GAP_MAX)
-}
-
-fn compute_min_visible_segment(size: f32) -> f32 {
-  (size * MIN_VISIBLE_SEGMENT_RATIO).max(MIN_VISIBLE_SEGMENT_MIN)
-}
-
 #[allow(clippy::too_many_arguments)]
 fn draw_underline_with_skip_ink(
   canvas: &mut Canvas,
@@ -148,8 +142,6 @@ fn draw_underline_with_skip_ink(
   let line_top = layout.border.top + layout.padding.top + offset;
   let line_bottom = line_top + size;
   let skip_padding = compute_skip_padding(size);
-  let smooth_gap = compute_smooth_gap(size);
-  let min_visible_segment = compute_min_visible_segment(size);
 
   let mut skip_ranges = Vec::new();
 
@@ -240,7 +232,7 @@ fn draw_underline_with_skip_ink(
       continue;
     };
 
-    if start <= last.1 + smooth_gap {
+    if start <= last.1 {
       last.1 = last.1.max(end);
     } else {
       merged_ranges.push((start, end));
@@ -249,29 +241,17 @@ fn draw_underline_with_skip_ink(
 
   let mut current_x = run_start_x;
   for (skip_start, skip_end) in merged_ranges {
-    if skip_start - current_x >= min_visible_segment {
+    if skip_start > current_x {
       draw_decoration_segment(
-        canvas,
-        color,
-        current_x,
-        line_top,
-        skip_start - current_x,
-        size,
-        transform,
+        canvas, color, current_x, skip_start, line_top, size, transform,
       );
     }
     current_x = current_x.max(skip_end);
   }
 
-  if run_end_x - current_x >= min_visible_segment {
+  if run_end_x > current_x {
     draw_decoration_segment(
-      canvas,
-      color,
-      current_x,
-      line_top,
-      run_end_x - current_x,
-      size,
-      transform,
+      canvas, color, current_x, run_end_x, line_top, size, transform,
     );
   }
 }
