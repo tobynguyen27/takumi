@@ -34,7 +34,6 @@ export default function OgImage() {
         fontFamily: "Plus Jakarta Sans",
         display: "grid",
         gridTemplateColumns: "3fr 5fr",
-        borderColor,
       }}
     >
       <div
@@ -44,6 +43,7 @@ export default function OgImage() {
           flexDirection: "column",
           borderRightWidth: 1,
           borderColor,
+          borderStyle: "solid",
           justifyContent: "center",
           color: primaryForeground,
           gap: "2rem",
@@ -77,6 +77,7 @@ export default function OgImage() {
             padding: "1rem",
             borderBottomWidth: 1,
             borderColor,
+            borderStyle: "solid",
           }}
         >
           <span
@@ -173,6 +174,7 @@ function Feature({
         borderBottomWidth: Number(borderBottom),
         borderRightWidth: Number(borderRight),
         borderColor,
+        borderStyle: "solid",
         padding: "2rem",
         gap: "1rem",
         justifyContent: "center",

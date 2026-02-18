@@ -109,8 +109,7 @@ export default function XPostImage() {
           style={{
             width: "100%",
             borderRadius: "2rem",
-            borderWidth: 2,
-            borderColor: "dimgray",
+            border: "2px solid dimgray",
           }}
           alt="content"
         />
