@@ -2291,6 +2291,7 @@ dependencies = [
 name = "takumi"
 version = "0.68.5"
 dependencies = [
+ "bitflags",
  "color",
  "cssparser",
  "dashmap",

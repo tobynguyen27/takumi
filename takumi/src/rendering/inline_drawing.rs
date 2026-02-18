@@ -12,7 +12,7 @@ use crate::{
     node::Node,
     style::{
       Affine, BackgroundClip, BlendMode, Color, ImageScalingAlgorithm, SizedFontStyle,
-      TextDecorationLine, TextDecorationSkipInk,
+      TextDecorationLines, TextDecorationSkipInk,
     },
   },
   rendering::{
@@ -293,7 +293,7 @@ fn draw_glyph_run_under_overline(
   let run = glyph_run.run();
   let metrics = run.metrics();
 
-  if decoration_line.contains(&TextDecorationLine::Underline) {
+  if decoration_line.contains(TextDecorationLines::UNDERLINE) {
     let offset = glyph_run.baseline() - metrics.underline_offset;
     let size = glyph_run.run().font_size() / 18.0;
 
@@ -325,7 +325,7 @@ fn draw_glyph_run_under_overline(
     }
   }
 
-  if decoration_line.contains(&TextDecorationLine::Overline) {
+  if decoration_line.contains(TextDecorationLines::OVERLINE) {
     draw_decoration(
       canvas,
       glyph_run,
@@ -353,7 +353,7 @@ fn draw_glyph_run_line_through(
     .as_ref()
     .unwrap_or(&style.parent.text_decoration.line);
 
-  if !decoration_line.contains(&TextDecorationLine::LineThrough) {
+  if !decoration_line.contains(TextDecorationLines::LINE_THROUGH) {
     return;
   }
 

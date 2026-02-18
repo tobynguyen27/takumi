@@ -11,6 +11,7 @@ readme = "README.md"
 rust-version = "1.89"
 
 [dependencies]
+bitflags = "2.11"
 cssparser = "0.36"
 derive_builder = "0.20"
 image-webp = "0.2"

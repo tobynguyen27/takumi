@@ -17,12 +17,7 @@ fn test_style_text_decoration() {
         .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
         .font_size(Some(Px(72.0)))
         .text_decoration(TextDecoration {
-          line: [
-            TextDecorationLine::Underline,
-            TextDecorationLine::LineThrough,
-            TextDecorationLine::Overline,
-          ]
-          .into(),
+          line: TextDecorationLines::all(),
           style: None,
           color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
         })
@@ -47,7 +42,7 @@ fn text_decoration_skip_ink_parapsychologists() {
           .text_align(TextAlign::Center)
           .font_size(Some(Px(96.0)))
           .text_decoration(TextDecoration {
-            line: [TextDecorationLine::Underline].into(),
+            line: TextDecorationLines::UNDERLINE,
             style: None,
             color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
           })

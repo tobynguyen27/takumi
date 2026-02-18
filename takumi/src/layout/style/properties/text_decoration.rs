@@ -1,50 +1,68 @@
+use bitflags::bitflags;
 use cssparser::{Parser, Token};
 
 use crate::{
-  layout::style::{
-    CssToken, FromCss, MakeComputed, ParseResult, declare_enum_from_css_impl,
-    properties::ColorInput,
-  },
+  layout::style::{CssToken, FromCss, MakeComputed, ParseResult, properties::ColorInput},
   rendering::Sizing,
 };
 
-/// Represents text decoration line options.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum TextDecorationLine {
-  /// Underline text decoration.
-  Underline,
-  /// Line-through text decoration.
-  LineThrough,
-  /// Overline text decoration.
-  Overline,
+bitflags! {
+  /// Represents a collection of text decoration lines.
+  #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+  pub struct TextDecorationLines: u8 {
+    /// Underline text decoration.
+    const UNDERLINE = 0b001;
+    /// Line-through text decoration.
+    const LINE_THROUGH = 0b010;
+    /// Overline text decoration.
+    const OVERLINE = 0b100;
+  }
 }
 
-declare_enum_from_css_impl!(
-  TextDecorationLine,
-  "underline" => TextDecorationLine::Underline,
-  "line-through" => TextDecorationLine::LineThrough,
-  "overline" => TextDecorationLine::Overline,
-);
+fn parse_text_decoration_line<'i>(
+  input: &mut Parser<'i, '_>,
+) -> ParseResult<'i, TextDecorationLines> {
+  let location = input.current_source_location();
+  let token = input.next()?;
 
-/// Represents a collection of text decoration lines.
-pub type TextDecorationLines = Box<[TextDecorationLine]>;
+  if let Token::Ident(ident) = token {
+    if ident.eq_ignore_ascii_case("underline") {
+      return Ok(TextDecorationLines::UNDERLINE);
+    }
+
+    if ident.eq_ignore_ascii_case("line-through") {
+      return Ok(TextDecorationLines::LINE_THROUGH);
+    }
+
+    if ident.eq_ignore_ascii_case("overline") {
+      return Ok(TextDecorationLines::OVERLINE);
+    }
+  }
+
+  Err(TextDecorationLines::unexpected_token_error(location, token))
+}
 
 impl<'i> FromCss<'i> for TextDecorationLines {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut lines = Vec::new();
+    let mut lines = TextDecorationLines::empty();
 
     while !input.is_exhausted() {
-      let line = TextDecorationLine::from_css(input)?;
-      lines.push(line);
+      lines |= parse_text_decoration_line(input)?;
     }
 
-    Ok(lines.into_boxed_slice())
+    Ok(lines)
   }
 
   fn valid_tokens() -> &'static [CssToken] {
-    TextDecorationLine::valid_tokens()
+    &[
+      CssToken::Keyword("underline"),
+      CssToken::Keyword("line-through"),
+      CssToken::Keyword("overline"),
+    ]
   }
 }
+
+impl MakeComputed for TextDecorationLines {}
 
 /// Represents text decoration style options (currently only solid is supported).
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -74,13 +92,13 @@ impl MakeComputed for TextDecoration {
 
 impl<'i> FromCss<'i> for TextDecoration {
   fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
-    let mut line = Vec::new();
+    let mut line = TextDecorationLines::empty();
     let mut style = None;
     let mut color = None;
 
     loop {
-      if let Ok(value) = input.try_parse(TextDecorationLine::from_css) {
-        line.push(value);
+      if let Ok(value) = input.try_parse(parse_text_decoration_line) {
+        line |= value;
         continue;
       }
 
@@ -104,11 +122,7 @@ impl<'i> FromCss<'i> for TextDecoration {
       ));
     }
 
-    Ok(TextDecoration {
-      line: line.into_boxed_slice(),
-      style,
-      color,
-    })
+    Ok(TextDecoration { line, style, color })
   }
 
   fn valid_tokens() -> &'static [CssToken] {
@@ -151,7 +165,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("underline"),
       Ok(TextDecoration {
-        line: [TextDecorationLine::Underline].into(),
+        line: TextDecorationLines::UNDERLINE,
         style: None,
         color: None,
       })
@@ -163,7 +177,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("line-through"),
       Ok(TextDecoration {
-        line: [TextDecorationLine::LineThrough].into(),
+        line: TextDecorationLines::LINE_THROUGH,
         style: None,
         color: None,
       })
@@ -175,7 +189,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("underline solid"),
       Ok(TextDecoration {
-        line: [TextDecorationLine::Underline].into(),
+        line: TextDecorationLines::UNDERLINE,
         style: Some(TextDecorationStyle::Solid),
         color: None,
       })
@@ -187,7 +201,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("line-through solid red"),
       Ok(TextDecoration {
-        line: [TextDecorationLine::LineThrough].into(),
+        line: TextDecorationLines::LINE_THROUGH,
         style: Some(TextDecorationStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
       })
@@ -199,11 +213,7 @@ mod tests {
     assert_eq!(
       TextDecoration::from_str("underline line-through solid red"),
       Ok(TextDecoration {
-        line: [
-          TextDecorationLine::Underline,
-          TextDecorationLine::LineThrough
-        ]
-        .into(),
+        line: TextDecorationLines::UNDERLINE | TextDecorationLines::LINE_THROUGH,
         style: Some(TextDecorationStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
       })

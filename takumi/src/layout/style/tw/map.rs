@@ -290,6 +290,26 @@ pub static FIXED_PROPERTIES: phf::Map<&str, TailwindProperty> = phf_map! {
   "lowercase" => TailwindProperty::TextTransform(TextTransform::Lowercase),
   "capitalize" => TailwindProperty::TextTransform(TextTransform::Capitalize),
   "normal-case" => TailwindProperty::TextTransform(TextTransform::None),
+  "underline" => TailwindProperty::TextDecoration(TextDecoration {
+    line: TextDecorationLines::UNDERLINE,
+    style: None,
+    color: None,
+  }),
+  "overline" => TailwindProperty::TextDecoration(TextDecoration {
+    line: TextDecorationLines::OVERLINE,
+    style: None,
+    color: None,
+  }),
+  "line-through" => TailwindProperty::TextDecoration(TextDecoration {
+    line: TextDecorationLines::LINE_THROUGH,
+    style: None,
+    color: None,
+  }),
+  "no-underline" => TailwindProperty::TextDecoration(TextDecoration {
+    line: TextDecorationLines::empty(),
+    style: None,
+    color: None,
+  }),
   "italic" => TailwindProperty::FontStyle(FontStyle::italic()),
   "not-italic" => TailwindProperty::FontStyle(FontStyle::normal()),
   "w-screen" => TailwindProperty::Width(Length::Vw(100.0)),

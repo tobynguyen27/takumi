@@ -1144,6 +1144,26 @@ mod tests {
   }
 
   #[test]
+  fn test_parse_text_decoration_lines() {
+    assert_eq!(
+      TailwindProperty::parse("underline"),
+      Some(TailwindProperty::TextDecoration(TextDecoration {
+        line: TextDecorationLines::UNDERLINE,
+        style: None,
+        color: None,
+      }))
+    );
+    assert_eq!(
+      TailwindProperty::parse("no-underline"),
+      Some(TailwindProperty::TextDecoration(TextDecoration {
+        line: TextDecorationLines::empty(),
+        style: None,
+        color: None,
+      }))
+    );
+  }
+
+  #[test]
   fn test_parse_arbitrary_color() {
     assert_eq!(
       TailwindProperty::parse("text-[rgb(0, 191, 255)]"),
