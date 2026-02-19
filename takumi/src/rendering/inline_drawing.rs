@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 use image::{GenericImageView, Rgba};
-use parley::{GlyphRun, LineMetrics, PositionedInlineBox, PositionedLayoutItem};
+use parley::{GlyphRun, PositionedInlineBox, PositionedLayoutItem};
 use swash::FontRef;
 use taffy::{Layout, Point};
 
 use crate::{
   Result,
   layout::{
-    inline::{InlineBoxItem, InlineBrush, InlineLayout},
+    inline::{InlineBoxItem, InlineBrush, InlineLayout, ProcessedInlineSpan},
     node::Node,
     style::{
       Affine, BackgroundClip, BlendMode, Color, ImageScalingAlgorithm, SizedFontStyle,
@@ -481,6 +481,30 @@ fn resolve_inline_layout_glyphs(
     .collect()
 }
 
+pub(crate) fn get_parent_x_height(
+  context: &RenderContext,
+  font_style: &SizedFontStyle,
+) -> Option<f32> {
+  let (layout, _) = context
+    .global
+    .font_context
+    .tree_builder(font_style.into(), |builder| {
+      builder.push_text("x");
+    });
+
+  let run = layout.lines().next()?.runs().next()?;
+  let font = run.font();
+  let font_ref = FontRef::from_index(font.data.as_ref(), font.index as usize)?;
+
+  let metrics = font_ref.metrics(run.normalized_coords());
+  let units_per_em = metrics.units_per_em as f32;
+  if units_per_em == 0.0 {
+    return None;
+  }
+  let scale = run.font_size() / units_per_em;
+  Some(metrics.x_height * scale)
+}
+
 pub(crate) fn draw_inline_box<N: Node<N>>(
   inline_box: &PositionedInlineBox,
   item: &InlineBoxItem<'_, '_, N>,
@@ -541,12 +565,13 @@ pub(crate) fn draw_inline_box<N: Node<N>>(
   Ok(())
 }
 
-pub(crate) fn draw_inline_layout(
+pub(crate) fn draw_inline_layout<N: Node<N>>(
   context: &RenderContext,
   canvas: &mut Canvas,
   layout: Layout,
   inline_layout: InlineLayout,
   font_style: &SizedFontStyle,
+  spans: &[ProcessedInlineSpan<'_, '_, N>],
 ) -> Result<Vec<PositionedInlineBox>> {
   let resolved_glyph_runs = resolve_inline_layout_glyphs(context, &inline_layout)?;
   let clip_image = if context.style.background_clip == BackgroundClip::Text {
@@ -591,6 +616,7 @@ pub(crate) fn draw_inline_layout(
     )?;
   }
 
+  let parent_x_height = get_parent_x_height(context, font_style);
   let mut glyph_runs_with_resolved = glyph_runs_with_resolved(&inline_layout, &resolved_glyph_runs);
   for line in inline_layout.lines() {
     for item in line.items() {
@@ -610,7 +636,17 @@ pub(crate) fn draw_inline_layout(
           )?;
         }
         PositionedLayoutItem::InlineBox(mut inline_box) => {
-          fix_inline_box_y(&mut inline_box.y, line.metrics());
+          let item_index = inline_box.id as usize;
+
+          if let Some(ProcessedInlineSpan::Box(item)) = spans.get(item_index) {
+            let vertical_align = item.render_node.context.style.vertical_align;
+            vertical_align.apply(
+              &mut inline_box.y,
+              line.metrics(),
+              inline_box.height,
+              parent_x_height,
+            );
+          }
           positioned_inline_boxes.push(inline_box)
         }
       }
@@ -622,8 +658,4 @@ pub(crate) fn draw_inline_layout(
   }
 
   Ok(positioned_inline_boxes)
-}
-
-pub(crate) fn fix_inline_box_y(y: &mut f32, metrics: &LineMetrics) {
-  *y += metrics.line_height - metrics.baseline;
 }

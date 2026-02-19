@@ -1,3 +1,4 @@
+use serde_json::{from_value, json};
 use takumi::layout::{
   node::{ContainerNode, ImageNode, TextNode},
   style::{Length::*, *},
@@ -417,4 +418,224 @@ fn inline_atomic_containers() {
   };
 
   run_fixture_test(container.into(), "inline_atomic_containers");
+}
+#[test]
+fn inline_nested_flex_block() {
+  let children = [
+    TextNode {
+      preset: None,
+      tw: None,
+      style: Some(
+        StyleBuilder::default()
+          .display(Display::Inline)
+          .build()
+          .unwrap(),
+      ),
+      text: "This is some preceding text that is long enough to wrap eventually. ".to_string(),
+    }
+    .into(),
+    ContainerNode {
+      preset: None,
+      tw: None,
+      style: Some(
+        StyleBuilder::default()
+          .display(Display::InlineFlex)
+          .background_color(ColorInput::Value(Color([200, 255, 200, 255])))
+          .padding(Sides([Px(5.0); 4]))
+          .align_items(AlignItems::Center)
+          .vertical_align(VerticalAlign::Middle)
+          .build()
+          .unwrap(),
+      ),
+      children: Some(
+        [
+          TextNode {
+            preset: None,
+            tw: None,
+            style: Some(
+              StyleBuilder::default()
+                .display(Display::Inline)
+                .build()
+                .unwrap(),
+            ),
+            text: "Flex Start ".to_string(),
+          }
+          .into(),
+          ContainerNode {
+            preset: None,
+            tw: None,
+            style: Some(
+              StyleBuilder::default()
+                .display(Display::InlineBlock)
+                .padding(Sides([Px(4.0); 4]))
+                .margin(Sides([Px(0.0), Px(10.0), Px(0.0), Px(10.0)]))
+                .background_color(ColorInput::Value(Color([255, 200, 200, 255])))
+                .build()
+                .unwrap(),
+            ),
+            children: Some(
+              [TextNode {
+                preset: None,
+                tw: None,
+                style: None,
+                text: "Inner".to_string(),
+              }
+              .into()]
+              .into(),
+            ),
+          }
+          .into(),
+          TextNode {
+            preset: None,
+            tw: None,
+            style: Some(
+              StyleBuilder::default()
+                .display(Display::Inline)
+                .build()
+                .unwrap(),
+            ),
+            text: " Flex End".to_string(),
+          }
+          .into(),
+        ]
+        .into(),
+      ),
+    }
+    .into(),
+    TextNode {
+      preset: None,
+      tw: None,
+      style: Some(
+        StyleBuilder::default()
+          .display(Display::Inline)
+          .build()
+          .unwrap(),
+      ),
+      text: " followed by more text that should definitely wrap and show how the inline-flex container behaves when it is part of a wrapped line. We want to make sure the nested boxes are drawn in the correct positions even after wrapping.".to_string(),
+    }
+    .into(),
+  ];
+
+  let container = ContainerNode {
+    preset: None,
+    tw: None,
+    style: Some(
+      StyleBuilder::default()
+        .width(Px(800.0))
+        .display(Display::Block)
+        .padding(Sides([Px(20.0); 4]))
+        .background_color(ColorInput::Value(Color::white()))
+        .font_size(Some(Px(20.0)))
+        .line_height(LineHeight::Length(Px(40.0)))
+        .build()
+        .unwrap(),
+    ),
+    children: Some(children.into()),
+  };
+
+  run_fixture_test(container.into(), "inline_nested_flex_block");
+}
+
+#[test]
+fn inline_complex_nested_fixture() {
+  let json_data = json!({
+    "type": "container",
+    "style": {
+      "display": "block",
+      "fontFamily": "Inter, sans-serif",
+      "fontSize": "16px",
+      "lineHeight": "1.5",
+      "color": "#333",
+      "backgroundColor": "white",
+      "width": "600px",
+      "padding": "20px"
+    },
+    "children": [
+      {
+        "type": "text",
+        "text": "Start with some basic inline text. ",
+        "style": { "display": "inline" }
+      },
+      {
+        "type": "container",
+        "style": {
+          "display": "inline-flex",
+          "verticalAlign": "middle",
+          "backgroundColor": "#f0f4f8",
+          "borderWidth": "1px",
+          "borderStyle": "solid",
+          "borderColor": "#d9e2ec",
+          "borderRadius": "4px",
+          "padding": "8px 12px",
+          "margin": "0 8px"
+        },
+        "children": [
+          {
+            "type": "text",
+            "text": "Metadata: ",
+            "style": {
+              "display": "inline",
+              "fontWeight": "bold",
+              "color": "#102a43",
+              "textTransform": "uppercase",
+              "fontSize": "12px"
+            }
+          },
+          {
+            "type": "container",
+            "style": {
+              "display": "inline-flex",
+              "alignItems": "center",
+              "gap": "4px",
+              "backgroundColor": "#bcccdc",
+              "borderRadius": "999px",
+              "padding": "2px 8px",
+              "verticalAlign": "baseline"
+            },
+            "children": [
+              {
+                "type": "text",
+                "text": "Tag",
+                "style": { "display": "inline", "color": "white", "fontSize": "10px", "fontWeight": "600" }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "text": "Followed by a longer sentence that demonstrates how text wraps around inline-block elements. ",
+        "style": { "display": "inline" }
+      },
+      {
+        "type": "container",
+        "style": {
+          "display": "inline-block",
+          "verticalAlign": "bottom",
+          "width": "120px",
+          "backgroundColor": "#ffeedb",
+          "borderWidth": "1px",
+          "borderStyle": "solid",
+          "borderColor": "#ff9c38",
+          "padding": "10px",
+          "margin": "0 5px"
+        },
+        "children": [
+           {
+             "type": "text",
+             "text": "A fixed-width block that sits on the bottom of the line box.",
+             "style": { "display": "block", "fontSize": "12px", "lineHeight": "1.2" }
+           }
+        ]
+      },
+      {
+        "type": "text",
+        "text": " And finally some more text to close things out.",
+        "style": { "display": "inline"}
+      }
+    ]
+  });
+
+  let node = from_value(json_data).expect("Failed to parse JSON fixture");
+  run_fixture_test(node, "inline_complex_nested_fixture");
 }

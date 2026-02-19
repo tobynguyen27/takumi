@@ -11,7 +11,8 @@ use crate::{
   layout::{
     Viewport,
     inline::{
-      InlineLayoutStage, collect_inline_items, create_inline_constraint, create_inline_layout,
+      InlineLayoutStage, ProcessedInlineSpan, collect_inline_items, create_inline_constraint,
+      create_inline_layout,
     },
     node::Node,
     style::{
@@ -22,7 +23,7 @@ use crate::{
   },
   rendering::{
     BorderProperties, Canvas, CanvasConstrain, CanvasConstrainResult, RenderContext, Sizing,
-    draw_debug_border, inline_drawing::fix_inline_box_y, overlay_image,
+    draw_debug_border, inline_drawing::get_parent_x_height, overlay_image,
   },
   resources::image::ImageSource,
 };
@@ -121,6 +122,7 @@ fn collect_measure_result<'g, Nodes: Node<Nodes>>(
   // Handle inline layout
   if node.should_create_inline_layout() {
     let font_style = node.context.style.to_sized_font_style(&node.context);
+    let parent_x_height = get_parent_x_height(&node.context, &font_style);
     let (max_width, max_height) = create_inline_constraint(
       &node.context,
       Size {
@@ -130,7 +132,7 @@ fn collect_measure_result<'g, Nodes: Node<Nodes>>(
       Size::NONE,
     );
 
-    let (inline_layout, text, _) = create_inline_layout(
+    let (inline_layout, text, spans) = create_inline_layout(
       collect_inline_items(node).into_iter(),
       Size {
         width: AvailableSpace::Definite(layout.content_box_width()),
@@ -162,7 +164,16 @@ fn collect_measure_result<'g, Nodes: Node<Nodes>>(
             });
           }
           PositionedLayoutItem::InlineBox(mut positioned_box) => {
-            fix_inline_box_y(&mut positioned_box.y, line.metrics());
+            let item_index = positioned_box.id as usize;
+            if let Some(ProcessedInlineSpan::Box(item)) = spans.get(item_index) {
+              let vertical_align = item.render_node.context.style.vertical_align;
+              vertical_align.apply(
+                &mut positioned_box.y,
+                line.metrics(),
+                positioned_box.height,
+                parent_x_height,
+              );
+            }
 
             let inline_transform =
               Affine::translation(positioned_box.x, positioned_box.y) * local_transform;
