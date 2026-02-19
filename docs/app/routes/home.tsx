@@ -1,24 +1,88 @@
 import { HomeLayout } from "fumadocs-ui/layouts/home";
-import { Link } from "react-router";
-import { Button } from "~/components/ui/button";
+import { useTheme } from "next-themes";
+import { createHighlighterCore } from "shiki/core";
+import { createOnigurumaEngine } from "shiki/engine-oniguruma.mjs";
+import sh from "shiki/langs/sh.mjs";
+import tsx from "shiki/langs/tsx.mjs";
+import githubDarkDefault from "shiki/themes/github-dark-default.mjs";
+import githubLightDefault from "shiki/themes/github-light-default.mjs";
+import { CodeDemo } from "~/components/home/code-demo";
+import { CTA } from "~/components/home/cta";
+import { Features } from "~/components/home/features";
+import { Hero } from "~/components/home/hero";
+import { Showcase } from "~/components/home/showcase";
 import { baseOptions } from "~/layout-config";
-import { showcaseFeatures } from "../data/showcase";
+
+const CODE_SNIPPET = `import { ImageResponse } from "@takumi-rs/image-response";
+
+export async function GET() {
+  return new ImageResponse(
+    <div
+      style={{
+        display: "flex",
+        background: "linear-gradient(135deg, #0a0a0a, #1a0a0a)",
+        color: "white",
+        padding: 48,
+        width: "100%",
+        height: "100%",
+        fontFamily: "Geist",
+      }}
+    >
+      <h1 style={{ fontSize: 64 }}>
+        Hello, Takumi ✌️
+      </h1>
+    </div>,
+  );
+}`;
+
+const CTA_COMMAND = "bun install @takumi-rs/image-response";
+
+const highlighter = await createHighlighterCore({
+  themes: [githubDarkDefault, githubLightDefault],
+  langs: [tsx, sh],
+  engine: createOnigurumaEngine(import("shiki/wasm")),
+});
+
+const highlightedCodeDemo = {
+  dark: highlighter.codeToHtml(CODE_SNIPPET, {
+    lang: "tsx",
+    theme: "github-dark-default",
+  }),
+  light: highlighter.codeToHtml(CODE_SNIPPET, {
+    lang: "tsx",
+    theme: "github-light-default",
+  }),
+};
+
+const highlightedCta = {
+  dark: highlighter.codeToHtml(CTA_COMMAND, {
+    lang: "sh",
+    theme: "github-dark-default",
+  }),
+  light: highlighter.codeToHtml(CTA_COMMAND, {
+    lang: "sh",
+    theme: "github-light-default",
+  }),
+};
 
 export default function Home() {
+  const { resolvedTheme } = useTheme();
+  const isLight = resolvedTheme === "light";
+
   return (
-    <HomeLayout className="text-center" {...baseOptions}>
-      <title>Takumi makes dynamic image rendering simple.</title>
+    <HomeLayout className="overflow-x-hidden" {...baseOptions}>
+      <title>Takumi — Render your React components to images.</title>
       <meta
         name="description"
-        content="Production-ready library to make rendering performant, portable and scalable."
+        content="Rust-powered image rendering engine. Write JSX, get pixels. 2–10× faster than next/og. Runs everywhere."
       />
       <meta
         name="og:title"
-        content="Takumi makes dynamic image rendering simple"
+        content="Takumi — Render your React components to images."
       />
       <meta
         name="og:description"
-        content="Production-ready library to make rendering performant, portable and scalable."
+        content="Rust-powered image rendering engine. Write JSX, get pixels. 2–10× faster than next/og. Runs everywhere."
       />
       <meta
         name="og:image"
@@ -28,69 +92,36 @@ export default function Home() {
         name="twitter:image"
         content="https://raw.githubusercontent.com/kane50613/takumi/master/example/twitter-images/output/og-image.png"
       />
-      <div className="max-w-7xl w-full mx-auto px-4">
-        <div className="flex flex-col py-24 items-center justify-center">
-          <img src="/logo.svg" alt="Takumi Logo" width={64} height={64} />
-          <h1 className="py-6 text-3xl sm:text-5xl font-semibold max-w-4xl text-balance">
-            <span className="text-primary">Takumi</span> makes dynamic image
-            rendering simple.
-          </h1>
-          <p className="text-muted-foreground text-base sm:text-lg max-w-md mb-8">
-            Production-ready library to make rendering performant, portable and
-            scalable.
-          </p>
-          <div className="flex gap-2.5 mb-24">
-            <Button asChild className="rounded-full" size="lg">
-              <Link to="/docs">Open Docs</Link>
-            </Button>
-            <Button
-              asChild
-              className="rounded-full"
-              variant="outline"
-              size="lg"
-            >
-              <Link to="/playground">Try in Playground</Link>
-            </Button>
-          </div>
-        </div>
 
-        <section className="mb-24 text-left">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Unmatched Features</h2>
-              <div className="space-y-6">
-                {showcaseFeatures.map((feature) => (
-                  <div key={feature.title} className="flex gap-4">
-                    <div className="mt-1 p-2 rounded-lg bg-primary/10 text-primary shrink-0 h-fit">
-                      <feature.icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold mb-1 border-b inline-block border-primary/20">
-                        {feature.title}
-                      </h4>
-                      <p className="text-muted-foreground text-sm">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="relative group">
-              <div className="absolute -inset-4 bg-linear-to-r from-primary/20 to-blue-500/20 blur-3xl opacity-50 group-hover:opacity-75 transition-opacity" />
-              <div className="relative rounded-3xl border bg-card/50 backdrop-blur-sm p-2 shadow-2xl overflow-hidden">
-                <img
-                  src="https://raw.githubusercontent.com/kane50613/takumi/refs/heads/master/example/twitter-images/output/x-post-image.png"
-                  alt="X.com Post opengraph"
-                  className="rounded-2xl"
-                  width={1200}
-                  height={630}
-                />
-              </div>
-            </div>
+      <Hero />
+
+      <section className="px-6 py-24 max-sm:py-12">
+        <div className="max-w-[1100px] mx-auto">
+          <div className="mb-14">
+            <span className="inline-block text-xs font-semibold uppercase tracking-[0.12em] text-primary mb-3 px-3 py-1 rounded-full bg-primary/20">
+              Bring Existing Code
+            </span>
+            <h2 className="font-display text-[clamp(2rem,4vw,3.2rem)] font-[750] tracking-tighter leading-tight mt-3">
+              JSX in. Image out.
+            </h2>
+            <p className="text-[1.05rem] leading-relaxed text-muted-foreground max-w-[520px] mt-4">
+              Write standard React components with CSS styling. Takumi renders
+              them into production-quality images at blazing speed.
+            </p>
           </div>
-        </section>
-      </div>
+          <CodeDemo
+            highlightedHtml={
+              isLight ? highlightedCodeDemo.light : highlightedCodeDemo.dark
+            }
+          />
+        </div>
+      </section>
+
+      <Features />
+      <Showcase />
+      <CTA
+        highlightedHtml={isLight ? highlightedCta.light : highlightedCta.dark}
+      />
     </HomeLayout>
   );
 }

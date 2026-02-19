@@ -22,12 +22,18 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  --primary: #ff3535;
+  --background: #fafafa;
+  --foreground: #111111;
+  --primary: #e11d48;
   --primary-foreground: white;
-  --border: hsla(0, 0%, 80%, 50%);
-  --ring: hsla(0, 0%, 80%, 50%);
+  --border: rgba(0, 0, 0, 0.08);
+  --ring: rgba(225, 29, 72, 0.3);
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
 
   --color-fd-primary: var(--primary);
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
 
   --font-sans:
     "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
@@ -54,31 +60,35 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 
-  --primary: #ff3535;
+  --background: #050505;
+  --foreground: #ffffff;
+  --primary: #ff4d4d;
   --primary-foreground: white;
-  --border: oklch(1 0 0 / 10%);
-  --ring: oklch(0.556 0 0);
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: rgba(255, 77, 77, 0.3);
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
 }
 
 @theme inline {
-  --color-background: var(--color-fd-background);
-  --color-foreground: var(--color-fd-foreground);
-  --color-card: var(--color-fd-card);
-  --color-card-foreground: var(--color-fd-card-foreground);
-  --color-popover: var(--color-fd-popover);
-  --color-popover-foreground: var(--color-fd-popover-foreground);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--muted);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--background);
+  --color-popover-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--color-fd-secondary);
-  --color-secondary-foreground: var(--color-fd-secondary-foreground);
-  --color-muted: var(--color-fd-muted);
-  --color-muted-foreground: var(--color-fd-muted-foreground);
-  --color-accent: var(--color-fd-accent);
-  --color-accent-foreground: var(--color-fd-accent-foreground);
+  --color-secondary: var(--muted);
+  --color-secondary-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--muted);
+  --color-accent-foreground: var(--foreground);
   --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-foreground: var(--primary-foreground);
   --color-border: var(--border);
-  --color-input: var(--input);
+  --color-input: var(--border);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -105,5 +115,72 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* ─── Home page theme extensions ─── */
+@theme inline {
+  --font-display: "Bricolage Grotesque", sans-serif;
+
+  --animate-reveal-up: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-orb-float: orb-float 12s ease-in-out infinite;
+  --animate-orb-float-alt: orb-float-alt 16s ease-in-out infinite;
+  --animate-marquee: marquee-scroll 40s linear infinite;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes orb-float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    border-radius: 40% 60% 55% 45% / 55% 40% 60% 45%;
+  }
+  33% {
+    transform: translate(-50%, -50%) scale(1.05);
+    border-radius: 55% 45% 40% 60% / 45% 55% 45% 55%;
+  }
+  66% {
+    transform: translate(-50%, -50%) scale(0.97);
+    border-radius: 45% 55% 60% 40% / 60% 45% 55% 45%;
+  }
+}
+
+@keyframes orb-float-alt {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.9) rotate(0deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(45deg);
+  }
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
   }
 }
