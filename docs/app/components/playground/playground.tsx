@@ -66,19 +66,25 @@ export default function Playground() {
     if (!code) return;
 
     if (code === defaultTemplate) {
-      return setSearchParams((prev) => {
-        prev.delete("code");
+      return setSearchParams(
+        (prev) => {
+          prev.delete("code");
 
-        return prev;
-      });
+          return prev;
+        },
+        { replace: true },
+      );
     }
 
     compressCode(code).then((base64) => {
-      setSearchParams((prev) => {
-        prev.set("code", base64);
+      setSearchParams(
+        (prev) => {
+          prev.set("code", base64);
 
-        return prev;
-      });
+          return prev;
+        },
+        { replace: true },
+      );
     });
   }, [code, setSearchParams]);
 
