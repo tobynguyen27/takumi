@@ -7,7 +7,7 @@ use crate::{
     Axis, BorderStyle, Color, CssToken, FromCss, ImageScalingAlgorithm, Length, MakeComputed,
     ParseResult, Sides, SpacePair,
   },
-  rendering::{BorderProperties, MaskMemory, RenderContext, Sizing},
+  rendering::{BorderProperties, BufferPool, MaskMemory, RenderContext, Sizing},
 };
 
 /// Represents the fill rule used for determining the interior of shapes.
@@ -175,12 +175,13 @@ impl BasicShape {
     }
   }
 
-  pub(crate) fn render_mask<'m>(
+  pub(crate) fn render_mask(
     &self,
     context: &RenderContext,
     size: Size<f32>,
-    mask_memory: &'m mut MaskMemory,
-  ) -> (&'m [u8], Placement) {
+    mask_memory: &mut MaskMemory,
+    buffer_pool: &mut BufferPool,
+  ) -> (Vec<u8>, Placement) {
     let mut paths = Vec::new();
 
     match self {
@@ -268,6 +269,7 @@ impl BasicShape {
       &paths,
       Some(context.transform),
       Some(Fill::from(self.fill_rule().unwrap_or(context.style.clip_rule)).into()),
+      buffer_pool,
     )
   }
 }

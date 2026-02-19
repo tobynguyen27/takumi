@@ -45,7 +45,7 @@ pub(crate) struct ConicGradientTile {
   pub start_rad: f32,
   /// Pre-computed color lookup table for fast gradient sampling.
   /// Maps normalized angle [0.0, 1.0] (fraction of full turn) to color.
-  pub color_lut: Box<[Rgba<u8>]>,
+  pub color_lut: Vec<u8>,
 }
 
 impl GenericImageView for ConicGradientTile {
@@ -60,14 +60,24 @@ impl GenericImageView for ConicGradientTile {
     if self.color_lut.is_empty() {
       return Rgba([0, 0, 0, 0]);
     }
-    if self.color_lut.len() == 1 {
-      return self.color_lut[0];
+    if self.color_lut.len() == 4 {
+      return Rgba([
+        self.color_lut[0],
+        self.color_lut[1],
+        self.color_lut[2],
+        self.color_lut[3],
+      ]);
     }
 
     let dx = x as f32 - self.cx;
     let dy = y as f32 - self.cy;
     if dx.abs() <= f32::EPSILON && dy.abs() <= f32::EPSILON {
-      return self.color_lut[0];
+      return Rgba([
+        self.color_lut[0],
+        self.color_lut[1],
+        self.color_lut[2],
+        self.color_lut[3],
+      ]);
     }
 
     // atan2 gives angle from positive X axis, counter-clockwise.
@@ -79,16 +89,28 @@ impl GenericImageView for ConicGradientTile {
     let adjusted = (angle_from_top - self.start_rad).rem_euclid(TAU);
 
     let normalized = adjusted / TAU;
-    let lut_idx =
-      ((normalized * self.color_lut.len() as f32).floor() as usize).min(self.color_lut.len() - 1);
+    let lut_idx = ((normalized * (self.color_lut.len() as f32 / 4.0)).floor() as usize)
+      .min(self.color_lut.len() / 4 - 1);
 
-    self.color_lut[lut_idx]
+    let offset = lut_idx * 4;
+    Rgba([
+      self.color_lut[offset],
+      self.color_lut[offset + 1],
+      self.color_lut[offset + 2],
+      self.color_lut[offset + 3],
+    ])
   }
 }
 
 impl ConicGradientTile {
   /// Builds a drawing context from a conic gradient and a target viewport.
-  pub fn new(gradient: &ConicGradient, width: u32, height: u32, context: &RenderContext) -> Self {
+  pub fn new(
+    gradient: &ConicGradient,
+    width: u32,
+    height: u32,
+    context: &RenderContext,
+    buffer_pool: &mut crate::rendering::BufferPool,
+  ) -> Self {
     let cx = Length::from(gradient.center.0.x).to_px(&context.sizing, width as f32);
     let cy = Length::from(gradient.center.0.y).to_px(&context.sizing, height as f32);
 
@@ -101,7 +123,7 @@ impl ConicGradientTile {
     // 8 samples per pixel of the larger dimension provides enough angular density for conic edges.
     let angular_axis = width.max(height).max(1) as f32 * 8.0;
     let lut_size = adaptive_lut_size(angular_axis);
-    let color_lut = build_color_lut(&resolved_stops, 360.0, lut_size);
+    let color_lut = build_color_lut(&resolved_stops, 360.0, lut_size, buffer_pool);
 
     ConicGradientTile {
       width,
@@ -259,7 +281,8 @@ mod tests {
 
     let context = GlobalContext::default();
     let render_context = RenderContext::new(&context, (100, 100).into(), Default::default());
-    let tile = ConicGradientTile::new(&gradient, 100, 100, &render_context);
+    let mut buffer_pool = crate::rendering::BufferPool::default();
+    let tile = ConicGradientTile::new(&gradient, 100, 100, &render_context, &mut buffer_pool);
 
     // Top center (50, 0) should be red (start of gradient)
     let color_top = tile.get_pixel(50, 0);
@@ -303,7 +326,8 @@ mod tests {
 
     let context = GlobalContext::default();
     let render_context = RenderContext::new(&context, (100, 100).into(), Default::default());
-    let tile = ConicGradientTile::new(&gradient, 100, 100, &render_context);
+    let mut buffer_pool = crate::rendering::BufferPool::default();
+    let tile = ConicGradientTile::new(&gradient, 100, 100, &render_context, &mut buffer_pool);
 
     // Top-center should be red
     let top = tile.get_pixel(50, 0);

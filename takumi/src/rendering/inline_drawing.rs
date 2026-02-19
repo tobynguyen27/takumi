@@ -64,13 +64,16 @@ fn build_glyph_bounds_cache(
       },
       ResolvedGlyph::Outline(outline) => {
         let paths = collect_outline_paths(outline);
-        let (mask, placement) = canvas.mask_memory.render(&paths, None, None);
+        let (mask, placement) =
+          canvas
+            .mask_memory
+            .render(&paths, None, None, &mut canvas.buffer_pool);
 
         if placement.width == 0 || placement.height == 0 {
           continue;
         }
 
-        GlyphSkipInkData {
+        let data = GlyphSkipInkData {
           bounds: GlyphLocalBounds {
             left: placement.left as f32,
             top: placement.top as f32,
@@ -79,7 +82,9 @@ fn build_glyph_bounds_cache(
           width: placement.width,
           height: placement.height,
           alpha: mask.to_vec().into_boxed_slice(),
-        }
+        };
+        canvas.buffer_pool.release(mask);
+        data
       }
     };
 
@@ -583,7 +588,7 @@ pub(crate) fn draw_inline_layout<N: Node<N>>(
 ) -> Result<Vec<PositionedInlineBox>> {
   let resolved_glyph_runs = resolve_inline_layout_glyphs(context, &inline_layout)?;
   let clip_image = if context.style.background_clip == BackgroundClip::Text {
-    let layers = collect_background_layers(context, layout.size)?;
+    let layers = collect_background_layers(context, layout.size, &mut canvas.buffer_pool)?;
 
     rasterize_layers(
       layers,

@@ -46,6 +46,7 @@ pub(crate) fn rasterize_layers(
           layer.blend_mode,
           &[],
           mask_memory,
+          buffer_pool,
         );
       }
     }
@@ -233,17 +234,30 @@ pub(crate) fn render_tile(
   tile_w: u32,
   tile_h: u32,
   context: &RenderContext,
+  buffer_pool: &mut BufferPool,
 ) -> Result<Option<BackgroundTile>> {
   Ok(match image {
     BackgroundImage::None => None,
     BackgroundImage::Linear(gradient) => Some(BackgroundTile::Linear(LinearGradientTile::new(
-      gradient, tile_w, tile_h, context,
+      gradient,
+      tile_w,
+      tile_h,
+      context,
+      buffer_pool,
     ))),
     BackgroundImage::Radial(gradient) => Some(BackgroundTile::Radial(RadialGradientTile::new(
-      gradient, tile_w, tile_h, context,
+      gradient,
+      tile_w,
+      tile_h,
+      context,
+      buffer_pool,
     ))),
     BackgroundImage::Conic(gradient) => Some(BackgroundTile::Conic(ConicGradientTile::new(
-      gradient, tile_w, tile_h, context,
+      gradient,
+      tile_w,
+      tile_h,
+      context,
+      buffer_pool,
     ))),
     BackgroundImage::Noise(noise) => Some(BackgroundTile::Noise(NoiseV1Tile::new(
       *noise, tile_w, tile_h,
@@ -263,6 +277,7 @@ pub(crate) fn render_tile(
 }
 
 /// Resolve tile image, positions along X and Y for a background-like layer.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn resolve_layer_tiles(
   image: &BackgroundImage,
   pos: BackgroundPosition,
@@ -271,6 +286,7 @@ pub(crate) fn resolve_layer_tiles(
   blend_mode: BlendMode,
   area: Size<u32>,
   context: &RenderContext,
+  buffer_pool: &mut BufferPool,
 ) -> Result<Option<TileLayer>> {
   let (initial_w, initial_h) = resolve_background_size(size, area, image, context);
 
@@ -320,7 +336,7 @@ pub(crate) fn resolve_layer_tiles(
     return Ok(None);
   }
 
-  let Some(tile) = render_tile(image, tile_w, tile_h, context)? else {
+  let Some(tile) = render_tile(image, tile_w, tile_h, context, buffer_pool)? else {
     return Ok(None);
   };
 
@@ -402,6 +418,7 @@ pub(crate) fn collect_stretched_tile_positions(
   (positions, new_tile_size)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn resolve_tile_layers(
   images: &[BackgroundImage],
   positions: &[BackgroundPosition],
@@ -410,46 +427,33 @@ pub(crate) fn resolve_tile_layers(
   blend_modes: &[BlendMode],
   context: &RenderContext,
   border_box: Size<u32>,
+  buffer_pool: &mut BufferPool,
 ) -> Result<TileLayers> {
   let last_position = positions.last().copied().unwrap_or_default();
   let last_size = sizes.last().copied().unwrap_or_default();
   let last_repeat = repeats.last().copied().unwrap_or_default();
   let last_blend_mode = blend_modes.last().copied().unwrap_or_default();
 
-  let map_fn = |(i, image)| {
+  let mut results = Vec::new();
+  for (i, image) in images.iter().enumerate() {
     let pos = positions.get(i).copied().unwrap_or(last_position);
     let size = sizes.get(i).copied().unwrap_or(last_size);
     let repeat = repeats.get(i).copied().unwrap_or(last_repeat);
     let blend_mode = blend_modes.get(i).copied().unwrap_or(last_blend_mode);
 
-    resolve_layer_tiles(image, pos, size, repeat, blend_mode, border_box, context)
-  };
-
-  // Paint each background layer in order
-  #[cfg(feature = "rayon")]
-  {
-    use rayon::prelude::*;
-
-    let results = images
-      .par_iter()
-      .with_min_len(2)
-      .enumerate()
-      .map(map_fn)
-      .collect::<Result<Vec<Option<TileLayer>>>>()?;
-
-    Ok(results.into_iter().flatten().collect())
+    results.push(resolve_layer_tiles(
+      image,
+      pos,
+      size,
+      repeat,
+      blend_mode,
+      border_box,
+      context,
+      buffer_pool,
+    )?);
   }
 
-  #[cfg(not(feature = "rayon"))]
-  {
-    let results = images
-      .iter()
-      .enumerate()
-      .map(map_fn)
-      .collect::<Result<Vec<Option<TileLayer>>>>()?;
-
-    Ok(results.into_iter().flatten().collect())
-  }
+  Ok(results.into_iter().flatten().collect())
 }
 
 pub(crate) fn create_mask(
@@ -524,6 +528,7 @@ pub(crate) fn create_mask(
     &[], // no blending mode for mask
     context,
     border_box.map(|x| x as u32),
+    buffer_pool,
   )?;
 
   if layers.is_empty() {
@@ -541,10 +546,19 @@ pub(crate) fn create_mask(
       buffer_pool,
     )?
     .map(|tile| {
-      let alpha: Vec<u8> = tile.pixels().map(|(_, _, pixel)| pixel.0[3]).collect();
+      let (w, h) = tile.dimensions();
+      let mut alpha = buffer_pool.acquire((w * h) as usize);
+
+      for (i, (_, _, pixel)) in tile.pixels().enumerate() {
+        if i < alpha.len() {
+          alpha[i] = pixel.0[3];
+        }
+      }
+
       if let BackgroundTile::Image(image) = tile {
         buffer_pool.release_image(image);
       }
+
       alpha
     }),
   )
@@ -553,6 +567,7 @@ pub(crate) fn create_mask(
 pub(crate) fn collect_background_layers(
   context: &RenderContext,
   border_box: Size<f32>,
+  buffer_pool: &mut BufferPool,
 ) -> Result<TileLayers> {
   let background_image = context
     .style
@@ -634,6 +649,7 @@ pub(crate) fn collect_background_layers(
       }),
     context,
     border_box.map(|x| x as u32),
+    buffer_pool,
   )?;
 
   let background_color = context

@@ -328,7 +328,10 @@ pub(crate) fn apply_backdrop_filter(
   // Render the mask — this borrows mask_memory only for the duration of the
   // composite loop below. apply_filters borrows buffer_pool separately, so
   // there is no conflict and no clone is needed.
-  let (mask_data, placement) = canvas.mask_memory.render(&paths, Some(transform), None);
+  let (mask_data, placement) =
+    canvas
+      .mask_memory
+      .render(&paths, Some(transform), None, &mut canvas.buffer_pool);
 
   if placement.width == 0 || placement.height == 0 {
     return Ok(());

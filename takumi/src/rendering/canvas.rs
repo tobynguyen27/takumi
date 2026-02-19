@@ -121,14 +121,14 @@ pub(crate) enum CanvasConstrain {
     from: Point<u32>,
     to: Point<u32>,
     inverse_transform: Affine,
-    border_radius_mask: Option<(Box<[u8]>, u32)>,
+    border_radius_mask: Option<(Vec<u8>, u32)>,
   },
   ClipPath {
-    mask: Box<[u8]>,
+    mask: Vec<u8>,
     placement: Placement,
   },
   MaskImage {
-    mask: Box<[u8]>,
+    mask: Vec<u8>,
     from: Point<u32>,
     to: Point<u32>,
     inverse_transform: Affine,
@@ -146,17 +146,18 @@ impl CanvasConstrain {
   ) -> Result<CanvasConstrainResult> {
     // Clip path would just clip everything, and behaves like overflow: hidden.
     if let Some(clip_path) = &style.clip_path {
-      let (mask, placement) = clip_path.render_mask(context, layout.size, mask_memory);
+      let (mask, placement) = clip_path.render_mask(context, layout.size, mask_memory, buffer_pool);
 
       let end_x = placement.left + placement.width as i32;
       let end_y = placement.top + placement.height as i32;
 
       if end_x < 0 || end_y < 0 {
+        buffer_pool.release(mask);
         return Ok(CanvasConstrainResult::SkipRendering);
       }
 
       return Ok(CanvasConstrainResult::Some(CanvasConstrain::ClipPath {
-        mask: mask.into(),
+        mask,
         placement,
       }));
     }
@@ -167,7 +168,7 @@ impl CanvasConstrain {
 
     if let Some(mask) = create_mask(context, layout.size, mask_memory, buffer_pool)? {
       return Ok(CanvasConstrainResult::Some(CanvasConstrain::MaskImage {
-        mask: mask.into_boxed_slice(),
+        mask,
         from: Point { x: 0, y: 0 },
         to: Point {
           x: layout.size.width as u32,
@@ -215,9 +216,10 @@ impl CanvasConstrain {
       };
       inner_props.append_mask_commands(&mut paths, padding_box, padding_origin);
 
-      let (mask_data, placement) = mask_memory.render(&paths, None, None);
+      let (mask_data, placement) = mask_memory.render(&paths, None, None, buffer_pool);
 
       if placement.width == 0 || placement.height == 0 {
+        buffer_pool.release(mask_data);
         return Ok(CanvasConstrainResult::SkipRendering);
       }
 
@@ -233,7 +235,7 @@ impl CanvasConstrain {
           y: from.y + placement.height,
         },
         inverse_transform,
-        border_radius_mask: Some((Box::from(mask_data), placement.width)),
+        border_radius_mask: Some((mask_data, placement.width)),
       }));
     }
 
@@ -360,7 +362,6 @@ impl CanvasConstrain {
 #[derive(Default)]
 pub(crate) struct MaskMemory {
   scratch: Scratch,
-  buffer: Vec<u8>,
 }
 
 impl MaskMemory {
@@ -369,7 +370,8 @@ impl MaskMemory {
     paths: D,
     transform: Option<Affine>,
     style: Option<zeno::Style>,
-  ) -> (&[u8], Placement) {
+    buffer_pool: &mut BufferPool,
+  ) -> (Vec<u8>, Placement) {
     let style = style.unwrap_or_default();
     let mut bounds = self
       .scratch
@@ -378,21 +380,18 @@ impl MaskMemory {
     bounds.min = bounds.min.floor();
     bounds.max = bounds.max.ceil();
 
-    // Make sure the buffer is the correct size AND its initialized with zeros.
-    self.buffer.clear();
-    self
-      .buffer
-      .resize((bounds.width() as usize) * (bounds.height() as usize), 0);
+    let expected_len = (bounds.width() as usize) * (bounds.height() as usize);
+    let mut buffer = buffer_pool.acquire(expected_len);
 
     let placement = Mask::with_scratch(paths, &mut self.scratch)
       .transform(transform.map(Into::into))
       .style(style)
-      .render_into(&mut self.buffer, None);
+      .render_into(&mut buffer, None);
 
     assert_eq!(bounds.width() as u32, placement.width);
     assert_eq!(bounds.height() as u32, placement.height);
 
-    (self.buffer.as_slice(), placement)
+    (buffer, placement)
   }
 }
 
@@ -514,7 +513,23 @@ impl Canvas {
   }
 
   pub(crate) fn pop_constrain(&mut self) {
-    self.constrains.pop();
+    if let Some(constrain) = self.constrains.pop() {
+      match constrain {
+        CanvasConstrain::Overflow {
+          border_radius_mask: Some((mask, _)),
+          ..
+        } => {
+          self.buffer_pool.release(mask);
+        }
+        CanvasConstrain::ClipPath { mask, .. } => {
+          self.buffer_pool.release(mask);
+        }
+        CanvasConstrain::MaskImage { mask, .. } => {
+          self.buffer_pool.release(mask);
+        }
+        _ => {}
+      }
+    }
   }
 
   pub(crate) fn into_inner(self) -> RgbaImage {
@@ -546,6 +561,7 @@ impl Canvas {
       mode,
       &self.constrains,
       &mut self.mask_memory,
+      &mut self.buffer_pool,
     );
   }
 }
@@ -682,6 +698,7 @@ pub(crate) fn overlay_image<I: GenericImageView<Pixel = Rgba<u8>>>(
   mode: BlendMode,
   constrains: &[CanvasConstrain],
   mask_memory: &mut MaskMemory,
+  buffer_pool: &mut BufferPool,
 ) {
   let (width, height) = image.dimensions();
   let size = Size { width, height };
@@ -699,7 +716,7 @@ pub(crate) fn overlay_image<I: GenericImageView<Pixel = Rgba<u8>>>(
 
   border.append_mask_commands(&mut paths, size.map(|size| size as f32), Point::ZERO);
 
-  let (mask, placement) = mask_memory.render(&paths, Some(transform), None);
+  let (mask, placement) = mask_memory.render(&paths, Some(transform), None, buffer_pool);
 
   let inverse = transform.invert();
 
@@ -751,6 +768,8 @@ pub(crate) fn overlay_image<I: GenericImageView<Pixel = Rgba<u8>>>(
     constrains,
     get_original_pixel,
   );
+
+  buffer_pool.release(mask);
 }
 
 #[inline(always)]

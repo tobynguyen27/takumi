@@ -17,8 +17,9 @@ use crate::{
     },
   },
   rendering::{
-    BorderProperties, Canvas, CanvasConstrain, ColorTile, MaskMemory, apply_mask_alpha_to_pixel,
-    blend_pixel, draw_mask, mask_index_from_coord, overlay_area, sample_transformed_pixel,
+    BorderProperties, BufferPool, Canvas, CanvasConstrain, ColorTile, MaskMemory,
+    apply_mask_alpha_to_pixel, blend_pixel, draw_mask, mask_index_from_coord, overlay_area,
+    sample_transformed_pixel,
   },
   resources::font::ResolvedGlyph,
 };
@@ -106,13 +107,13 @@ pub(crate) fn draw_glyph_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
     ResolvedGlyph::Image(bitmap) => {
       transform *= Affine::translation(bitmap.placement.left as f32, -bitmap.placement.top as f32);
 
-      let mask = bitmap
-        .data
-        .iter()
-        .skip(3)
-        .step_by(4)
-        .copied()
-        .collect::<Vec<_>>();
+      let mask_capacity = (bitmap.placement.width * bitmap.placement.height) as usize;
+      let mut mask = canvas.buffer_pool.acquire(mask_capacity);
+      for (i, alpha) in bitmap.data.iter().skip(3).step_by(4).copied().enumerate() {
+        if i < mask.len() {
+          mask[i] = alpha;
+        }
+      }
 
       let mut bottom = canvas
         .buffer_pool
@@ -156,6 +157,7 @@ pub(crate) fn draw_glyph_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
       );
 
       canvas.buffer_pool.release_image(bottom);
+      canvas.buffer_pool.release(mask);
     }
     ResolvedGlyph::Outline(outline) => {
       // If the transform is not invertible, we can't draw the glyph
@@ -165,7 +167,10 @@ pub(crate) fn draw_glyph_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
 
       let paths = collect_outline_paths(outline);
 
-      let (mask, placement) = canvas.mask_memory.render(&paths, Some(transform), None);
+      let (mask, placement) =
+        canvas
+          .mask_memory
+          .render(&paths, Some(transform), None, &mut canvas.buffer_pool);
 
       overlay_area(
         &mut canvas.image,
@@ -204,6 +209,8 @@ pub(crate) fn draw_glyph_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
           pixel
         },
       );
+
+      canvas.buffer_pool.release(mask);
 
       draw_text_stroke_clip_image(canvas, style, transform, &paths, clip_image, inline_offset);
     }
@@ -247,6 +254,7 @@ pub(crate) fn draw_glyph(
         draw_color_outline_image(
           &mut canvas.image,
           &mut canvas.mask_memory,
+          &mut canvas.buffer_pool,
           outline,
           palette,
           transform,
@@ -254,16 +262,21 @@ pub(crate) fn draw_glyph(
           color.0[3],
         );
       } else {
-        let (mask, placement) = canvas.mask_memory.render(&paths, Some(transform), None);
+        let (mask, placement) =
+          canvas
+            .mask_memory
+            .render(&paths, Some(transform), None, &mut canvas.buffer_pool);
 
         draw_mask(
           &mut canvas.image,
-          mask,
+          &mask,
           placement,
           color,
           BlendMode::Normal,
           &canvas.constrains,
         );
+
+        canvas.buffer_pool.release(mask);
       }
 
       draw_text_stroke(canvas, style, transform, &paths);
@@ -292,10 +305,12 @@ fn draw_text_stroke_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
   let mut stroke = Stroke::new(style.stroke_width);
   stroke.join = style.parent.stroke_linejoin.into();
 
-  let (stroke_mask, stroke_placement) =
-    canvas
-      .mask_memory
-      .render(paths, Some(transform), Some(stroke.into()));
+  let (stroke_mask, stroke_placement) = canvas.mask_memory.render(
+    paths,
+    Some(transform),
+    Some(stroke.into()),
+    &mut canvas.buffer_pool,
+  );
 
   overlay_area(
     &mut canvas.image,
@@ -342,6 +357,8 @@ fn draw_text_stroke_clip_image<I: GenericImageView<Pixel = Rgba<u8>>>(
       pixel
     },
   );
+
+  canvas.buffer_pool.release(stroke_mask);
 }
 
 fn draw_text_stroke(
@@ -357,19 +374,23 @@ fn draw_text_stroke(
   let mut stroke = Stroke::new(style.stroke_width);
   stroke.join = style.parent.stroke_linejoin.into();
 
-  let (stroke_mask, stroke_placement) =
-    canvas
-      .mask_memory
-      .render(paths, Some(transform), Some(stroke.into()));
+  let (stroke_mask, stroke_placement) = canvas.mask_memory.render(
+    paths,
+    Some(transform),
+    Some(stroke.into()),
+    &mut canvas.buffer_pool,
+  );
 
   draw_mask(
     &mut canvas.image,
-    stroke_mask,
+    &stroke_mask,
     stroke_placement,
     style.text_stroke_color,
     BlendMode::Normal,
     &canvas.constrains,
   );
+
+  canvas.buffer_pool.release(stroke_mask);
 }
 
 fn draw_text_shadow(
@@ -419,6 +440,7 @@ pub(crate) fn collect_outline_paths(outline: &Outline) -> Vec<Command> {
 fn draw_color_outline_image(
   canvas: &mut RgbaImage,
   mask_memory: &mut MaskMemory,
+  buffer_pool: &mut BufferPool,
   outline: &Outline,
   palette: ColorPalette,
   transform: Affine,
@@ -446,16 +468,17 @@ fn draw_color_outline_image(
       .map(invert_y_coordinate)
       .collect::<Vec<_>>();
 
-    let (mask, placement) = mask_memory.render(&paths, Some(transform), None);
+    let (mask, placement) = mask_memory.render(&paths, Some(transform), None, buffer_pool);
 
     draw_mask(
       canvas,
-      mask,
+      &mask,
       placement,
       color,
       BlendMode::Normal,
       constrains,
     );
+    buffer_pool.release(mask);
   }
 }
 

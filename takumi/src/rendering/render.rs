@@ -432,6 +432,7 @@ pub(crate) fn render_node<'g, Nodes: Node<Nodes>>(
       node.context.style.mix_blend_mode,
       &[],
       &mut canvas.mask_memory,
+      &mut canvas.buffer_pool,
     );
 
     let isolated_image = replace(&mut canvas.image, original_canvas_image);

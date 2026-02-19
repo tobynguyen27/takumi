@@ -1,4 +1,3 @@
-use image::Rgba;
 use smallvec::SmallVec;
 use wide::f32x4;
 
@@ -83,42 +82,31 @@ pub(crate) fn build_color_lut(
   resolved_stops: &[ResolvedGradientStop],
   axis_length: f32,
   lut_size: usize,
-) -> Box<[Rgba<u8>]> {
+  buffer_pool: &mut crate::rendering::BufferPool,
+) -> Vec<u8> {
   // Fast path: if only one color, fill entire LUT with it
   if resolved_stops.len() <= 1 {
     let color = resolved_stops
       .first()
-      .map(|s| s.color.into())
-      .unwrap_or(Rgba([0, 0, 0, 0]));
+      .map(|s| s.color)
+      .unwrap_or(crate::layout::style::Color::transparent());
 
-    let mut lut = Vec::with_capacity(lut_size);
-    lut.resize(lut_size, color);
-    return lut.into_boxed_slice();
-  }
-
-  #[cfg(feature = "rayon")]
-  {
-    use rayon::prelude::*;
-
-    Box::from_par_iter((0..lut_size).into_par_iter().map(|i| {
-      let t = i as f32 / (lut_size - 1) as f32;
-      let position_px = t * axis_length;
-      color_from_stops(position_px, resolved_stops).into()
-    }))
-  }
-
-  #[cfg(not(feature = "rayon"))]
-  {
-    let mut lut = Vec::with_capacity(lut_size);
-    // Generate LUT entries by sampling the gradient uniformly
-    for i in 0..lut_size {
-      let t = i as f32 / (lut_size - 1) as f32;
-      let position_px = t * axis_length;
-      lut.push(color_from_stops(position_px, resolved_stops).into());
+    let mut lut = buffer_pool.acquire(lut_size * 4);
+    for chunk in lut.chunks_exact_mut(4) {
+      chunk.copy_from_slice(&color.0);
     }
-
-    lut.into_boxed_slice()
+    return lut;
   }
+
+  let mut lut = buffer_pool.acquire(lut_size * 4);
+  for (i, chunk) in lut.chunks_exact_mut(4).enumerate() {
+    let t = i as f32 / (lut_size - 1) as f32;
+    let position_px = t * axis_length;
+    let color = color_from_stops(position_px, resolved_stops);
+    chunk.copy_from_slice(&color.0);
+  }
+
+  lut
 }
 
 /// Calculates an adaptive LUT size based on the gradient axis length.

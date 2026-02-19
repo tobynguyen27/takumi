@@ -36,8 +36,13 @@ impl GenericImageView for LinearGradientTile {
     if self.color_lut.is_empty() {
       return Rgba([0, 0, 0, 0]);
     }
-    if self.color_lut.len() == 1 {
-      return self.color_lut[0];
+    if self.color_lut.len() == 4 {
+      return Rgba([
+        self.color_lut[0],
+        self.color_lut[1],
+        self.color_lut[2],
+        self.color_lut[3],
+      ]);
     }
 
     // Calculate position along gradient axis
@@ -47,12 +52,16 @@ impl GenericImageView for LinearGradientTile {
     let position_px = (projection + self.max_extent).clamp(0.0, self.axis_length);
 
     // Map position to LUT index using rounding (nearest neighbor).
-    // This is fast and, with a high-resolution LUT (>=1025 entries), provides good precision
-    // and preserves sharp transitions (hard stops).
     let normalized = (position_px / self.axis_length).clamp(0.0, 1.0);
-    let lut_idx = (normalized * (self.color_lut.len() - 1) as f32).round() as usize;
+    let lut_idx = (normalized * ((self.color_lut.len() / 4) - 1) as f32).round() as usize;
 
-    self.color_lut[lut_idx]
+    let offset = lut_idx * 4;
+    Rgba([
+      self.color_lut[offset],
+      self.color_lut[offset + 1],
+      self.color_lut[offset + 2],
+      self.color_lut[offset + 3],
+    ])
   }
 }
 
@@ -77,12 +86,18 @@ pub(crate) struct LinearGradientTile {
   pub axis_length: f32,
   /// Pre-computed color lookup table for fast gradient sampling.
   /// Maps normalized position [0.0, 1.0] to color.
-  pub color_lut: Box<[Rgba<u8>]>,
+  pub color_lut: Vec<u8>,
 }
 
 impl LinearGradientTile {
   /// Builds a drawing context from a gradient and a target viewport.
-  pub fn new(gradient: &LinearGradient, width: u32, height: u32, context: &RenderContext) -> Self {
+  pub fn new(
+    gradient: &LinearGradient,
+    width: u32,
+    height: u32,
+    context: &RenderContext,
+    buffer_pool: &mut crate::rendering::BufferPool,
+  ) -> Self {
     let rad = gradient.angle.0.to_radians();
     let (dir_x, dir_y) = (rad.sin(), -rad.cos());
 
@@ -95,7 +110,7 @@ impl LinearGradientTile {
 
     // Pre-compute color lookup table with adaptive size.
     let lut_size = adaptive_lut_size(axis_length);
-    let color_lut = build_color_lut(&resolved_stops, axis_length, lut_size);
+    let color_lut = build_color_lut(&resolved_stops, axis_length, lut_size, buffer_pool);
 
     LinearGradientTile {
       width,
@@ -740,7 +755,8 @@ mod tests {
     // Test at the top (should be red)
     let context = GlobalContext::default();
     let dummy_context = RenderContext::new(&context, (100, 100).into(), Default::default());
-    let tile = LinearGradientTile::new(&gradient, 100, 100, &dummy_context);
+    let mut buffer_pool = crate::rendering::BufferPool::default();
+    let tile = LinearGradientTile::new(&gradient, 100, 100, &dummy_context, &mut buffer_pool);
 
     let color_top = tile.get_pixel(50, 0);
     assert_eq!(color_top, Rgba([255, 0, 0, 255]));
@@ -776,7 +792,8 @@ mod tests {
     let context = GlobalContext::default();
     let dummy_context = RenderContext::new(&context, (100, 100).into(), Default::default());
 
-    let tile = LinearGradientTile::new(&gradient, 100, 100, &dummy_context);
+    let mut buffer_pool = crate::rendering::BufferPool::default();
+    let tile = LinearGradientTile::new(&gradient, 100, 100, &dummy_context, &mut buffer_pool);
     let color_left = tile.get_pixel(0, 50);
     assert_eq!(color_left, Rgba([255, 0, 0, 255]));
 
@@ -799,7 +816,8 @@ mod tests {
     // Should always return the same color
     let context = GlobalContext::default();
     let dummy_context = RenderContext::new(&context, (100, 100).into(), Default::default());
-    let tile = LinearGradientTile::new(&gradient, 100, 100, &dummy_context);
+    let mut buffer_pool = crate::rendering::BufferPool::default();
+    let tile = LinearGradientTile::new(&gradient, 100, 100, &dummy_context, &mut buffer_pool);
     let color = tile.get_pixel(50, 50);
     assert_eq!(color, Rgba([255, 0, 0, 255]));
   }
@@ -814,7 +832,8 @@ mod tests {
     // Should return transparent
     let context = GlobalContext::default();
     let dummy_context = RenderContext::new(&context, (100, 100).into(), Default::default());
-    let tile = LinearGradientTile::new(&gradient, 100, 100, &dummy_context);
+    let mut buffer_pool = crate::rendering::BufferPool::default();
+    let tile = LinearGradientTile::new(&gradient, 100, 100, &dummy_context, &mut buffer_pool);
     let color = tile.get_pixel(50, 50);
     assert_eq!(color, Rgba([0, 0, 0, 0]));
   }
@@ -826,7 +845,8 @@ mod tests {
 
     let context = GlobalContext::default();
     let dummy_context = RenderContext::new(&context, (40, 40).into(), Default::default());
-    let tile = LinearGradientTile::new(&gradient, 40, 40, &dummy_context);
+    let mut buffer_pool = crate::rendering::BufferPool::default();
+    let tile = LinearGradientTile::new(&gradient, 40, 40, &dummy_context, &mut buffer_pool);
 
     // grey at 0,0
     let c0 = tile.get_pixel(0, 0);
@@ -850,7 +870,8 @@ mod tests {
 
     let context = GlobalContext::default();
     let dummy_context = RenderContext::new(&context, (40, 40).into(), Default::default());
-    let tile = LinearGradientTile::new(&gradient, 40, 40, &dummy_context);
+    let mut buffer_pool = crate::rendering::BufferPool::default();
+    let tile = LinearGradientTile::new(&gradient, 40, 40, &dummy_context, &mut buffer_pool);
 
     // color at top-left (0, 0) should be grey (1px hard stop)
     assert_eq!(tile.get_pixel(0, 0), Rgba([128, 128, 128, 255]));

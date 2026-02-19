@@ -294,10 +294,12 @@ impl BorderProperties {
       },
     );
 
-    let (mask, placement) =
-      canvas
-        .mask_memory
-        .render(&paths, Some(transform), Some(Fill::EvenOdd.into()));
+    let (mask, placement) = canvas.mask_memory.render(
+      &paths,
+      Some(transform),
+      Some(Fill::EvenOdd.into()),
+      &mut canvas.buffer_pool,
+    );
 
     let Some(inverse) = transform.invert() else {
       return;

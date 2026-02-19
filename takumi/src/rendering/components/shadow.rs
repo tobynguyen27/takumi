@@ -70,9 +70,12 @@ impl SizedShadow {
     style: zeno::Style,
     cutout_paths: Option<&[Command]>,
   ) -> Result<()> {
-    let (mask, mut placement) = canvas
-      .mask_memory
-      .render(&paths, Some(transform), Some(style));
+    let (mask, mut placement) = canvas.mask_memory.render(
+      &paths,
+      Some(transform),
+      Some(style),
+      &mut canvas.buffer_pool,
+    );
 
     placement.left += self.offset_x as i32;
     placement.top += self.offset_y as i32;
@@ -80,12 +83,13 @@ impl SizedShadow {
     if self.blur_radius <= 0.0 && cutout_paths.is_none() {
       draw_mask(
         &mut canvas.image,
-        mask,
+        &mask,
         placement,
         self.color,
         BlendMode::Normal,
         &canvas.constrains,
       );
+      canvas.buffer_pool.release(mask);
       return Ok(());
     }
 
@@ -102,7 +106,7 @@ impl SizedShadow {
 
     draw_mask(
       &mut image,
-      mask,
+      &mask,
       Placement {
         left: blur_padding as i32,
         top: blur_padding as i32,
@@ -113,6 +117,7 @@ impl SizedShadow {
       BlendMode::Normal,
       &[],
     );
+    canvas.buffer_pool.release(mask);
 
     apply_blur(
       &mut image,
@@ -125,10 +130,12 @@ impl SizedShadow {
     let img_origin_y = placement.top as f32 - blur_padding;
 
     if let Some(cutout_paths) = cutout_paths {
-      let (erase_mask, erase_placement) =
-        canvas
-          .mask_memory
-          .render(cutout_paths, Some(transform), Some(Fill::NonZero.into()));
+      let (erase_mask, erase_placement) = canvas.mask_memory.render(
+        cutout_paths,
+        Some(transform),
+        Some(Fill::NonZero.into()),
+        &mut canvas.buffer_pool,
+      );
 
       let img_w = image.width() as i32;
       let img_h = image.height() as i32;
@@ -151,6 +158,7 @@ impl SizedShadow {
             }
           }
         }
+        canvas.buffer_pool.release(erase_mask);
       }
     }
 
@@ -163,6 +171,7 @@ impl SizedShadow {
       BlendMode::Normal,
       &canvas.constrains,
       &mut canvas.mask_memory,
+      &mut canvas.buffer_pool,
     );
 
     canvas.buffer_pool.release_image(image);
@@ -236,7 +245,7 @@ pub(crate) fn draw_inset_shadow(
       },
   );
 
-  let (mask, placement) = mask_memory.render(&paths, None, Some(Fill::NonZero.into()));
+  let (mask, placement) = mask_memory.render(&paths, None, Some(Fill::NonZero.into()), buffer_pool);
 
   if !mask.is_empty() {
     let img_w = shadow_image.width() as i32;
@@ -256,6 +265,7 @@ pub(crate) fn draw_inset_shadow(
         }
       }
     }
+    buffer_pool.release(mask);
   }
 
   apply_blur(

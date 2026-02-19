@@ -335,7 +335,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
 
     match context.style.background_clip {
       BackgroundClip::BorderBox => {
-        let tiles = collect_background_layers(context, layout.size)?;
+        let tiles = collect_background_layers(context, layout.size, &mut canvas.buffer_pool)?;
 
         for tile in tiles {
           for y in &tile.ys {
@@ -354,7 +354,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
       BackgroundClip::PaddingBox => {
         border_radius.inset_by_border_width();
 
-        let layers = collect_background_layers(context, layout.size)?;
+        let layers = collect_background_layers(context, layout.size, &mut canvas.buffer_pool)?;
 
         if let Some(tile) = rasterize_layers(
           layers,
@@ -385,7 +385,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
         border_radius.inset_by_border_width();
         border_radius.expand_by(layout.padding.map(|size| -size));
 
-        let layers = collect_background_layers(context, layout.size)?;
+        let layers = collect_background_layers(context, layout.size, &mut canvas.buffer_pool)?;
 
         if let Some(tile) = rasterize_layers(
           layers,
@@ -442,7 +442,7 @@ pub trait Node<N: Node<N>>: Send + Sync + Clone {
   ) -> Result<()> {
     let clip_image = if context.style.background_clip == BackgroundClip::BorderArea {
       rasterize_layers(
-        collect_background_layers(context, layout.size)?,
+        collect_background_layers(context, layout.size, &mut canvas.buffer_pool)?,
         layout.size.map(|x| x as u32),
         context,
         BorderProperties::default(),
