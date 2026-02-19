@@ -2,7 +2,7 @@ use bitflags::bitflags;
 use cssparser::{Parser, Token, match_ignore_ascii_case};
 
 use crate::{
-  layout::style::{CssToken, FromCss, MakeComputed, ParseResult, properties::ColorInput},
+  layout::style::{CssToken, FromCss, Length, MakeComputed, ParseResult, properties::ColorInput},
   rendering::Sizing,
 };
 
@@ -81,6 +81,8 @@ pub struct TextDecoration {
   pub style: Option<TextDecorationStyle>,
   /// Optional text decoration color.
   pub color: Option<ColorInput>,
+  /// Optional text decoration thickness.
+  pub thickness: Option<Length>,
 }
 
 impl MakeComputed for TextDecorationStyle {}
@@ -96,6 +98,7 @@ impl<'i> FromCss<'i> for TextDecoration {
     let mut line = TextDecorationLines::empty();
     let mut style = None;
     let mut color = None;
+    let mut thickness = None;
 
     loop {
       if let Ok(value) = input.try_parse(TextDecorationLines::from_css) {
@@ -113,6 +116,11 @@ impl<'i> FromCss<'i> for TextDecoration {
         continue;
       }
 
+      if let Ok(value) = input.try_parse(Length::from_css) {
+        thickness = Some(value);
+        continue;
+      }
+
       if input.is_exhausted() {
         break;
       }
@@ -123,7 +131,12 @@ impl<'i> FromCss<'i> for TextDecoration {
       ));
     }
 
-    Ok(TextDecoration { line, style, color })
+    Ok(TextDecoration {
+      line,
+      style,
+      color,
+      thickness,
+    })
   }
 
   fn valid_tokens() -> &'static [CssToken] {
@@ -169,6 +182,7 @@ mod tests {
         line: TextDecorationLines::UNDERLINE,
         style: None,
         color: None,
+        thickness: None,
       })
     );
   }
@@ -181,6 +195,7 @@ mod tests {
         line: TextDecorationLines::LINE_THROUGH,
         style: None,
         color: None,
+        thickness: None,
       })
     );
   }
@@ -193,6 +208,7 @@ mod tests {
         line: TextDecorationLines::UNDERLINE,
         style: Some(TextDecorationStyle::Solid),
         color: None,
+        thickness: None,
       })
     );
   }
@@ -205,6 +221,7 @@ mod tests {
         line: TextDecorationLines::LINE_THROUGH,
         style: Some(TextDecorationStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
+        thickness: None,
       })
     );
   }
@@ -217,6 +234,7 @@ mod tests {
         line: TextDecorationLines::UNDERLINE | TextDecorationLines::LINE_THROUGH,
         style: Some(TextDecorationStyle::Solid),
         color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
+        thickness: None,
       })
     );
   }

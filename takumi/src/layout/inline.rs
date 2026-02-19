@@ -7,7 +7,10 @@ use crate::{
   GlobalContext,
   layout::{
     node::Node,
-    style::{Color, FontSynthesis, SizedFontStyle, TextOverflow, TextWrapStyle, VerticalAlign},
+    style::{
+      Color, FontSynthesis, SizedFontStyle, TextDecorationLines, TextDecorationSkipInk,
+      TextOverflow, TextWrapStyle, VerticalAlign,
+    },
     tree::RenderNode,
   },
   rendering::{
@@ -109,6 +112,9 @@ pub type InlineLayout = parley::Layout<InlineBrush>;
 pub struct InlineBrush {
   pub color: Color,
   pub decoration_color: Color,
+  pub decoration_thickness: f32,
+  pub decoration_line: TextDecorationLines,
+  pub decoration_skip_ink: TextDecorationSkipInk,
   pub stroke_color: Color,
   pub font_synthesis: FontSynthesis,
   pub vertical_align: VerticalAlign,
@@ -119,6 +125,9 @@ impl Default for InlineBrush {
     Self {
       color: Color::black(),
       decoration_color: Color::black(),
+      decoration_thickness: 0.0,
+      decoration_line: TextDecorationLines::empty(),
+      decoration_skip_ink: TextDecorationSkipInk::default(),
       stroke_color: Color::black(),
       font_synthesis: FontSynthesis::default(),
       vertical_align: VerticalAlign::default(),

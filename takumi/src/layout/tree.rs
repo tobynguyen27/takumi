@@ -634,7 +634,29 @@ impl<'g, N: Node<N>> RenderNode<'g, N> {
       // width = min(max-content, max(min-content, available)).
       // Reference: https://www.w3.org/TR/CSS22/visudet.html#float-width
       let min_content = measure_with(AvailableSpace::MinContent);
-      let max_content = measure_with(AvailableSpace::MaxContent);
+      let max_content = {
+        let mut tree = LayoutTree::from_render_node(self);
+        // Hack: Use Flexbox to avoid Block's "expand to fill" behavior when calculating max-content.
+        // We want the content's preferred width, not the container's available width.
+        if let Some(node) = tree.get_layout_node_mut_ref(tree.root_node_id())
+          && node.style.display == TaffyDisplay::Block
+        {
+          node.style.display = TaffyDisplay::Flex;
+          node.style.flex_direction = taffy::FlexDirection::Row;
+          node.style.justify_content = Some(taffy::JustifyContent::Start);
+        }
+
+        tree.compute_layout(Size {
+          width: AvailableSpace::MaxContent,
+          height: available_space.height,
+        });
+
+        let results = tree.into_results();
+        results
+          .layout(results.root_node_id())
+          .map_or(Size::zero(), |layout| layout.size)
+      };
+
       let used_width = match available_space.width {
         AvailableSpace::Definite(available) => {
           max_content.width.min(min_content.width.max(available))

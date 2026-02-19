@@ -639,3 +639,77 @@ fn inline_complex_nested_fixture() {
   let node = from_value(json_data).expect("Failed to parse JSON fixture");
   run_fixture_test(node, "inline_complex_nested_fixture");
 }
+
+#[test]
+fn inline_text_decorations() {
+  let json_data = json!({
+    "type": "container",
+    "style": {
+      "display": "block",
+      "width": "100%",
+      "height": "100%",
+      "backgroundColor": "white",
+      "padding": "40px",
+      "fontSize": "48px",
+    },
+    "children": [
+      {
+        "type": "text",
+        "text": "Hello World",
+        "style": {
+          "display": "inline",
+          "textDecoration": "4px underline line-through blue",
+        }
+      },
+      {
+        "type": "text",
+        "text": "Woah",
+        "style": {
+          "display": "inline-block",
+          "backgroundColor": "rgb(255 0 0 / 0.5)",
+          "verticalAlign": "text-bottom",
+        }
+      },
+      {
+        "type": "container",
+        "style": {
+          "display": "inline-block",
+          "backgroundColor": "rgb(0 0 255 / 0.5)",
+          "fontStyle": "italic",
+          "verticalAlign": "middle",
+          "padding": "10px",
+        },
+        "children": [
+          {
+            "type": "text",
+            "text": "It works right",
+            "style": {
+              "display": "inline-block",
+              "background": "yellow",
+            }
+          },
+          {
+            "type": "text",
+            "text": "A flexbox!",
+            "style": {
+              "display": "inline-flex",
+              "background": "green",
+            }
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "text": " Red Underline",
+        "style": {
+          "display": "inline",
+          "color": "red",
+          "textDecoration": "underline",
+        }
+      },
+    ]
+  });
+
+  let node = from_value(json_data).expect("Failed to parse JSON fixture");
+  run_fixture_test(node, "inline_text_decorations");
+}

@@ -265,9 +265,10 @@ define_style!(
   webkit_text_fill_color: Option<ColorInput> where inherit = true,
   stroke_linejoin: LineJoin where inherit = true,
   text_shadow: Option<TextShadows> where inherit = true,
-  text_decoration: TextDecoration => [text_decoration_line, text_decoration_color],
-  text_decoration_line: Option<TextDecorationLines> where inherit = true,
-  text_decoration_color: Option<ColorInput> where inherit = true,
+  text_decoration: TextDecoration => [text_decoration_line, text_decoration_color, text_decoration_thickness],
+  text_decoration_line: Option<TextDecorationLines>,
+  text_decoration_color: Option<ColorInput>,
+  text_decoration_thickness: Option<Length>,
   text_decoration_skip_ink: TextDecorationSkipInk where inherit = true,
   letter_spacing: Option<Length> where inherit = true,
   word_spacing: Option<Length> where inherit = true,
@@ -299,6 +300,7 @@ pub(crate) struct SizedFontStyle<'s> {
   pub color: Color,
   pub text_stroke_color: Color,
   pub text_decoration_color: Color,
+  pub text_decoration_thickness: f32,
   pub sizing: Sizing,
 }
 
@@ -338,6 +340,12 @@ impl<'s> From<&'s SizedFontStyle<'s>> for TextStyle<'s, InlineBrush> {
       brush: InlineBrush {
         color: style.color,
         decoration_color: style.text_decoration_color,
+        decoration_thickness: style.text_decoration_thickness,
+        decoration_line: style
+          .parent
+          .text_decoration_line
+          .unwrap_or(style.parent.text_decoration.line),
+        decoration_skip_ink: style.parent.text_decoration_skip_ink,
         stroke_color: style.text_stroke_color,
         font_synthesis: FontSynthesis {
           weight: style
@@ -751,6 +759,13 @@ impl InheritedStyle {
         .or(self.text_decoration.color)
         .unwrap_or(ColorInput::CurrentColor)
         .resolve(context.current_color),
+      text_decoration_thickness: match self
+        .text_decoration_thickness
+        .or(self.text_decoration.thickness)
+      {
+        Some(Length::Auto) | None => context.sizing.font_size / 18.0,
+        Some(thickness) => thickness.to_px(&context.sizing, context.sizing.font_size),
+      },
     }
   }
 
@@ -960,6 +975,7 @@ mod tests {
         line: TextDecorationLines::UNDERLINE,
         style: None,
         color: None,
+        thickness: None,
       }
       .into(),
       ..Default::default()

@@ -21,10 +21,6 @@ fn inline_vertical_align_types() {
           .border_width(Some(Sides([Px(1.0); 4])))
           .border_style(Some(BorderStyle::Solid))
           .border_color(ColorInput::Value(Color::black()))
-          .text_decoration(TextDecoration {
-            line: TextDecorationLines::UNDERLINE | TextDecorationLines::OVERLINE,
-            ..Default::default()
-          })
           .build()
           .unwrap(),
       ),
@@ -36,6 +32,9 @@ fn inline_vertical_align_types() {
             style: Some(
               StyleBuilder::default()
                 .display(Display::Inline)
+                .text_decoration_line(
+                  TextDecorationLines::UNDERLINE | TextDecorationLines::OVERLINE,
+                )
                 .build()
                 .unwrap(),
             ),
@@ -64,6 +63,9 @@ fn inline_vertical_align_types() {
             style: Some(
               StyleBuilder::default()
                 .display(Display::Inline)
+                .text_decoration_line(
+                  TextDecorationLines::UNDERLINE | TextDecorationLines::OVERLINE,
+                )
                 .build()
                 .unwrap(),
             ),
@@ -125,6 +127,7 @@ fn inline_vertical_align_multiline() {
       style: Some(
         StyleBuilder::default()
           .display(Display::Inline)
+          .text_decoration_line(TextDecorationLines::UNDERLINE | TextDecorationLines::OVERLINE)
           .build()
           .unwrap(),
       ),
@@ -154,6 +157,7 @@ fn inline_vertical_align_multiline() {
       style: Some(
         StyleBuilder::default()
           .display(Display::Inline)
+          .text_decoration_line(TextDecorationLines::UNDERLINE | TextDecorationLines::OVERLINE)
           .build()
           .unwrap(),
       ),
@@ -182,6 +186,7 @@ fn inline_vertical_align_multiline() {
       style: Some(
         StyleBuilder::default()
           .display(Display::Inline)
+          .text_decoration_line(TextDecorationLines::UNDERLINE | TextDecorationLines::OVERLINE)
           .build()
           .unwrap(),
       ),
@@ -201,10 +206,6 @@ fn inline_vertical_align_multiline() {
         .background_color(ColorInput::Value(Color::white()))
         .font_size(Some(Px(24.0)))
         .line_height(LineHeight::Length(Px(60.0)))
-        .text_decoration(TextDecoration {
-          line: TextDecorationLines::UNDERLINE | TextDecorationLines::OVERLINE,
-          ..Default::default()
-        })
         .build()
         .unwrap(),
     ),

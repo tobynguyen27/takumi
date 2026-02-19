@@ -20,6 +20,7 @@ fn test_style_text_decoration() {
           line: TextDecorationLines::all(),
           style: None,
           color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
+          thickness: None,
         })
         .build()
         .unwrap(),
@@ -45,6 +46,7 @@ fn text_decoration_skip_ink_parapsychologists() {
             line: TextDecorationLines::UNDERLINE,
             style: None,
             color: Some(ColorInput::Value(Color([255, 0, 0, 255]))),
+            thickness: None,
           })
           .text_decoration_skip_ink(skip_ink)
           .build()

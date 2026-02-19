@@ -50,6 +50,7 @@ pub enum PropertyParser {
   BlendMode(fn(BlendMode) -> TailwindProperty),
   FontStretch(fn(FontStretch) -> TailwindProperty),
   VerticalAlign(fn(VerticalAlign) -> TailwindProperty),
+  Decoration(fn(TwDecoration) -> TailwindProperty),
 }
 
 impl PropertyParser {
@@ -97,6 +98,7 @@ impl PropertyParser {
       Self::BlendMode(f) => BlendMode::parse_tw_with_arbitrary(suffix).map(f),
       Self::FontStretch(f) => FontStretch::parse_tw_with_arbitrary(suffix).map(f),
       Self::VerticalAlign(f) => VerticalAlign::parse_tw_with_arbitrary(suffix).map(f),
+      Self::Decoration(f) => TwDecoration::parse_tw_with_arbitrary(suffix).map(f),
     }
   }
 }
@@ -166,7 +168,10 @@ pub static PREFIX_PARSERS: phf::Map<&str, &[PropertyParser]> = phf_map! {
     PropertyParser::TextAlign(TailwindProperty::TextAlign),
     PropertyParser::TextWrap(TailwindProperty::TextWrap),
   ],
-  "decoration" => &[PropertyParser::ColorCurrent(TailwindProperty::TextDecorationColor)],
+  "decoration" => &[
+    PropertyParser::ColorCurrent(TailwindProperty::TextDecorationColor),
+    PropertyParser::Decoration(TailwindProperty::TextDecorationThickness),
+  ],
   "leading" => &[PropertyParser::LineHeight(TailwindProperty::LineHeight)],
   "opacity" => &[PropertyParser::Percentage(TailwindProperty::Opacity)],
   "line-clamp" => &[PropertyParser::LineClamp(TailwindProperty::LineClamp)],

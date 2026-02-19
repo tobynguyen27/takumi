@@ -212,6 +212,32 @@ impl TailwindPropertyParser for TwRounded {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TwDecoration(pub Length);
+
+impl<'i> FromCss<'i> for TwDecoration {
+  fn from_css(input: &mut Parser<'i, '_>) -> ParseResult<'i, Self> {
+    Ok(Self(Length::from_css(input)?))
+  }
+
+  fn valid_tokens() -> &'static [CssToken] {
+    Length::<true>::valid_tokens()
+  }
+}
+
+impl TailwindPropertyParser for TwDecoration {
+  fn parse_tw(token: &str) -> Option<Self> {
+    if let Ok(value) = token.parse::<f32>() {
+      return Some(TwDecoration(Length::Px(value)));
+    }
+
+    match_ignore_ascii_case! {token,
+      "auto" => Some(TwDecoration(Length::Auto)),
+      _ => None,
+    }
+  }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TwBlur(pub(crate) Length);
 
 impl<'i> FromCss<'i> for TwBlur {

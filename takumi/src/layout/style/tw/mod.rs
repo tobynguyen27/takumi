@@ -238,6 +238,8 @@ pub enum TailwindProperty {
   TextDecorationLine(TextDecorationLines),
   /// `text-decoration-color` property.
   TextDecorationColor(ColorInput),
+  /// `text-decoration-thickness` property.
+  TextDecorationThickness(TwDecoration),
   /// `text-transform` property.
   TextTransform(TextTransform),
   /// `width` and `height` property.
@@ -677,6 +679,9 @@ impl TailwindProperty {
       }
       TailwindProperty::TextDecorationColor(color_input) => {
         style.text_decoration_color = Some(color_input).into();
+      }
+      TailwindProperty::TextDecorationThickness(tw_decoration) => {
+        style.text_decoration_thickness = Some(tw_decoration.0).into();
       }
       TailwindProperty::TextTransform(text_transform) => {
         style.text_transform = text_transform.into();
@@ -1540,6 +1545,28 @@ mod tests {
     assert_eq!(
       TailwindProperty::parse("align-super"),
       Some(TailwindProperty::VerticalAlign(VerticalAlign::Super))
+    );
+  }
+
+  #[test]
+  fn test_parse_decoration_thickness() {
+    assert_eq!(
+      TailwindProperty::parse("decoration-4"),
+      Some(TailwindProperty::TextDecorationThickness(TwDecoration(
+        Length::Px(4.0)
+      )))
+    );
+    assert_eq!(
+      TailwindProperty::parse("decoration-auto"),
+      Some(TailwindProperty::TextDecorationThickness(TwDecoration(
+        Length::Auto
+      )))
+    );
+    assert_eq!(
+      TailwindProperty::parse("decoration-[3px]"),
+      Some(TailwindProperty::TextDecorationThickness(TwDecoration(
+        Length::Px(3.0)
+      )))
     );
   }
 }

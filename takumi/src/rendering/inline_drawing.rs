@@ -259,28 +259,26 @@ fn draw_underline_with_skip_ink(
 }
 
 fn draw_glyph_run_under_overline(
-  style: &SizedFontStyle,
   glyph_run: &GlyphRun<'_, InlineBrush>,
   resolved_glyphs: &HashMap<u32, ResolvedGlyph>,
   canvas: &mut Canvas,
   layout: Layout,
   context: &RenderContext,
 ) -> Result<()> {
-  let decoration_line = style
-    .parent
-    .text_decoration_line
-    .as_ref()
-    .unwrap_or(&style.parent.text_decoration.line);
+  let brush = &glyph_run.style().brush;
 
   let run = glyph_run.run();
   let metrics = run.metrics();
 
-  if decoration_line.contains(TextDecorationLines::UNDERLINE) {
+  if brush
+    .decoration_line
+    .contains(TextDecorationLines::UNDERLINE)
+  {
     let offset = glyph_run.baseline() - metrics.underline_offset;
-    let size = glyph_run.run().font_size() / 18.0;
+    let size = glyph_run.style().brush.decoration_thickness;
 
     if context.transform.only_translation()
-      && style.parent.text_decoration_skip_ink != TextDecorationSkipInk::None
+      && brush.decoration_skip_ink != TextDecorationSkipInk::None
     {
       let glyph_bounds_cache = build_glyph_bounds_cache(canvas, resolved_glyphs);
 
@@ -288,7 +286,7 @@ fn draw_glyph_run_under_overline(
         canvas,
         glyph_run,
         &glyph_bounds_cache,
-        glyph_run.style().brush.decoration_color,
+        brush.decoration_color,
         offset,
         size,
         layout,
@@ -298,7 +296,7 @@ fn draw_glyph_run_under_overline(
       draw_decoration(
         canvas,
         glyph_run,
-        glyph_run.style().brush.decoration_color,
+        brush.decoration_color,
         offset,
         size,
         layout,
@@ -307,13 +305,16 @@ fn draw_glyph_run_under_overline(
     }
   }
 
-  if decoration_line.contains(TextDecorationLines::OVERLINE) {
+  if brush
+    .decoration_line
+    .contains(TextDecorationLines::OVERLINE)
+  {
     draw_decoration(
       canvas,
       glyph_run,
       glyph_run.style().brush.decoration_color,
       glyph_run.baseline() - metrics.ascent - metrics.underline_offset,
-      glyph_run.run().font_size() / 18.0,
+      glyph_run.style().brush.decoration_thickness,
       layout,
       context.transform,
     );
@@ -323,24 +324,20 @@ fn draw_glyph_run_under_overline(
 }
 
 fn draw_glyph_run_line_through(
-  style: &SizedFontStyle,
   glyph_run: &GlyphRun<'_, InlineBrush>,
   canvas: &mut Canvas,
   layout: Layout,
   context: &RenderContext,
 ) {
-  let decoration_line = style
-    .parent
-    .text_decoration_line
-    .as_ref()
-    .unwrap_or(&style.parent.text_decoration.line);
+  let brush = &glyph_run.style().brush;
+  let decoration_line = brush.decoration_line;
 
   if !decoration_line.contains(TextDecorationLines::LINE_THROUGH) {
     return;
   }
 
   let metrics = glyph_run.run().metrics();
-  let size = glyph_run.run().font_size() / 18.0;
+  let size = glyph_run.style().brush.decoration_thickness;
   let offset = glyph_run.baseline() - metrics.strikethrough_offset;
 
   draw_decoration(
@@ -606,14 +603,7 @@ pub(crate) fn draw_inline_layout<N: Node<N>>(
 
   for (glyph_run, resolved_glyphs) in glyph_runs_with_resolved(&inline_layout, &resolved_glyph_runs)
   {
-    draw_glyph_run_under_overline(
-      font_style,
-      &glyph_run,
-      resolved_glyphs,
-      canvas,
-      layout,
-      context,
-    )?;
+    draw_glyph_run_under_overline(&glyph_run, resolved_glyphs, canvas, layout, context)?;
   }
 
   let parent_x_height = get_parent_x_height(context, font_style);
@@ -654,7 +644,7 @@ pub(crate) fn draw_inline_layout<N: Node<N>>(
   }
 
   for glyph_run in glyph_runs(&inline_layout) {
-    draw_glyph_run_line_through(font_style, &glyph_run, canvas, layout, context);
+    draw_glyph_run_line_through(&glyph_run, canvas, layout, context);
   }
 
   Ok(positioned_inline_boxes)
