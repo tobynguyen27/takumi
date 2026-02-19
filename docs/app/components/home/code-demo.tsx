@@ -18,7 +18,7 @@ export function CodeDemo({ highlightedHtml }: CodeDemoProps) {
         </div>
         <div
           suppressHydrationWarning
-          className="py-4 text-[0.8rem] leading-relaxed overflow-x-auto [&_pre]:bg-transparent! [&_pre]:m-0! [&_pre]:p-0! [&_code]:bg-transparent!"
+          className="py-4 text-[0.8rem] leading-relaxed overflow-x-auto sm:overflow-x-hidden [&_pre]:bg-transparent! [&_pre]:m-0! [&_pre]:p-0! [&_code]:bg-transparent!"
           dangerouslySetInnerHTML={{ __html: highlightedHtml }}
         />
       </div>
