@@ -32,6 +32,7 @@
     "js-confetti": "^0.13.1",
     "lucide-react": "catalog:",
     "next-themes": "^0.4.6",
+    "radix-ui": "^1.4.3",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-resizable-panels": "^4.6.4",

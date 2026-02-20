@@ -1,7 +1,8 @@
 import {
+  ChevronDownIcon,
   Code2Icon,
   DownloadIcon,
-  EyeIcon,
+  ImageIcon,
   Loader2Icon,
   RotateCcwIcon,
   Wand2Icon,
@@ -9,6 +10,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import type { z } from "zod/mini";
+import { cn } from "~/lib/utils";
 import {
   messageSchema,
   type RenderMessageInput,
@@ -19,28 +21,17 @@ import { templates } from "~/playground/templates";
 import TakumiWorker from "~/playground/worker?worker";
 import { Button } from "../ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "../ui/resizable";
 import { ComponentEditor } from "./component-editor";
-
-const mobileViewportWidth = 768;
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const resize = () => {
-      setIsMobile(window.innerWidth < mobileViewportWidth);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
-  }, []);
-
-  return isMobile;
-}
 
 export default function Playground() {
   const [code, setCode] = useState<string>();
@@ -51,7 +42,6 @@ export default function Playground() {
   const currentRequestIdRef = useRef(0);
 
   const workerRef = useRef<Worker | undefined>(undefined);
-  const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"code" | "preview">("code");
 
@@ -166,23 +156,124 @@ export default function Playground() {
     }
   };
 
+  const mobileHeader = (
+    <div className="flex md:hidden shrink-0 items-center justify-between border-b border-zinc-800/80 bg-background px-3 py-2">
+      <div className="flex bg-zinc-900/40 rounded-lg p-0.5 gap-0.5 border border-zinc-800/50">
+        <Button
+          variant={activeTab === "code" ? "secondary" : "ghost"}
+          size="sm"
+          className={cn(
+            "h-7 px-2.5 rounded-md text-[11px] font-bold transition-all",
+            activeTab === "code" &&
+              "bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50",
+          )}
+          onClick={() => setActiveTab("code")}
+        >
+          <Code2Icon className="mr-1.5 h-3 w-3" />
+          Code
+        </Button>
+        <Button
+          variant={activeTab === "preview" ? "secondary" : "ghost"}
+          size="sm"
+          className={cn(
+            "h-7 px-2.5 rounded-md text-[11px] font-bold transition-all",
+            activeTab === "preview" &&
+              "bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50",
+          )}
+          onClick={() => setActiveTab("preview")}
+        >
+          <ImageIcon />
+          Preview
+        </Button>
+      </div>
+
+      {activeTab === "code" && (
+        <div className="flex items-center gap-1.5">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2.5 text-[11px] font-bold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+              >
+                {templates.find((t) => t.code === code)?.name ?? "Templates"}
+                <ChevronDownIcon className="ml-1 h-3 w-3 text-zinc-500" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-[180px] bg-zinc-950 border-zinc-800 text-zinc-300"
+            >
+              {templates.map((t) => (
+                <DropdownMenuItem
+                  key={t.name}
+                  onClick={() => loadTemplate(t.code)}
+                  className="text-xs focus:bg-zinc-900 focus:text-zinc-100 cursor-pointer"
+                >
+                  {t.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <div className="flex items-center border-l border-zinc-800 ml-0.5 pl-1.5 gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-7 w-7 text-zinc-500 hover:text-zinc-200"
+              onClick={formatCode}
+              disabled={isFormatting}
+              title="Format Code"
+            >
+              {isFormatting ? (
+                <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Wand2Icon className="h-3.5 w-3.5" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-7 w-7 text-zinc-500 hover:text-red-400"
+              onClick={() => setCode(templates[0].code)}
+              title="Reset Code"
+            >
+              <RotateCcwIcon className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col bg-[#09090b]">
-      {isMobile ? (
-        <MobileView
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          loadTemplate={loadTemplate}
-          formatCode={formatCode}
-          isFormatting={isFormatting}
-          code={code}
-          setCode={setCode}
-          rendered={rendered}
-          isMobile={isMobile}
-        />
-      ) : (
-        <ResizablePanelGroup orientation="horizontal">
-          <ResizablePanel defaultSize={60} minSize={30}>
+      {mobileHeader}
+
+      <div className="flex-1 min-h-0">
+        <div className="hidden md:block h-full">
+          <ResizablePanelGroup orientation="horizontal">
+            <ResizablePanel defaultSize={55} minSize={30}>
+              <CodePanel
+                code={code}
+                setCode={setCode}
+                formatCode={formatCode}
+                isFormatting={isFormatting}
+                loadTemplate={loadTemplate}
+              />
+            </ResizablePanel>
+            <ResizableHandle
+              withHandle
+              className="bg-zinc-800/50 hover:bg-zinc-700 transition-colors"
+            />
+            <ResizablePanel defaultSize={45} minSize={30}>
+              <PreviewPanel rendered={rendered} />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+
+        <div className="md:hidden h-full">
+          {activeTab === "code" ? (
             <CodePanel
               code={code}
               setCode={setCode}
@@ -190,116 +281,12 @@ export default function Playground() {
               isFormatting={isFormatting}
               loadTemplate={loadTemplate}
             />
-          </ResizablePanel>
-          <ResizableHandle
-            withHandle
-            className="bg-zinc-800/50 hover:bg-zinc-700 transition-colors"
-          />
-          <ResizablePanel defaultSize={40} minSize={30}>
-            <PreviewPanel isMobile={isMobile} rendered={rendered} />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      )}
-    </div>
-  );
-}
-
-function MobileView({
-  activeTab,
-  setActiveTab,
-  loadTemplate,
-  formatCode,
-  isFormatting,
-  code,
-  setCode,
-  rendered,
-  isMobile,
-}: {
-  activeTab: "code" | "preview";
-  setActiveTab: React.Dispatch<React.SetStateAction<"code" | "preview">>;
-  loadTemplate: (templateCode: string) => void;
-  formatCode: () => void;
-  isFormatting: boolean;
-  code: string | undefined;
-  setCode: React.Dispatch<React.SetStateAction<string | undefined>>;
-  rendered: z.infer<typeof renderResultSchema>["result"] | undefined;
-  isMobile: boolean;
-}) {
-  return (
-    <>
-      <div className="flex shrink-0 gap-2 overflow-x-auto border-b border-zinc-800/80 bg-background p-2">
-        <Button
-          variant={activeTab === "code" ? "default" : "secondary"}
-          className="flex-1 h-9 rounded-full text-xs font-semibold"
-          onClick={() => setActiveTab("code")}
-        >
-          <Code2Icon className="mr-2 h-4 w-4" />
-          Code
-        </Button>
-        <Button
-          variant={activeTab === "preview" ? "default" : "secondary"}
-          className="flex-1 h-9 rounded-full text-xs font-semibold"
-          onClick={() => setActiveTab("preview")}
-        >
-          <EyeIcon className="mr-2 h-4 w-4" />
-          Preview
-        </Button>
-      </div>
-      {activeTab === "code" && (
-        <div className="scrollbar-hide flex shrink-0 items-center overflow-x-auto border-b border-zinc-800/80 bg-zinc-950/40 px-3 py-2 shadow-sm gap-2">
-          <span className="mr-1 whitespace-nowrap text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-            Templates
-          </span>
-          {templates?.map((t) => (
-            <Button
-              key={t.name}
-              variant="outline"
-              size="sm"
-              className="h-7 whitespace-nowrap rounded-full border-zinc-700/80 bg-[#121214] text-xs font-medium hover:bg-zinc-800 hover:text-white"
-              onClick={() => loadTemplate(t.code)}
-            >
-              {t.name}
-            </Button>
-          ))}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto h-7 whitespace-nowrap text-xs text-zinc-400 hover:text-zinc-200 font-medium"
-            onClick={formatCode}
-            disabled={isFormatting}
-          >
-            {isFormatting ? (
-              <Loader2Icon className="mr-1.5 h-3 w-3 animate-spin" />
-            ) : (
-              <Wand2Icon className="mr-1.5 h-3 w-3" />
-            )}
-            {isFormatting ? "Formatting..." : "Format"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 whitespace-nowrap text-xs text-red-500 hover:bg-red-500/10 hover:text-red-400 font-medium"
-            onClick={() => loadTemplate(templates[0].code)}
-          >
-            <RotateCcwIcon className="mr-1.5 h-3 w-3" />
-            Reset
-          </Button>
+          ) : (
+            <PreviewPanel rendered={rendered} />
+          )}
         </div>
-      )}
-      <div className="relative min-h-0 flex-1">
-        {activeTab === "code" ? (
-          <CodePanel
-            code={code}
-            setCode={setCode}
-            formatCode={formatCode}
-            isFormatting={isFormatting}
-            loadTemplate={loadTemplate}
-          />
-        ) : (
-          <PreviewPanel isMobile={isMobile} rendered={rendered} />
-        )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -318,47 +305,66 @@ function CodePanel({
 }) {
   return (
     <div className="flex h-full flex-col bg-zinc-950/50">
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950/40 px-4">
-        <p className="text-sm font-medium text-zinc-300">Editor</p>
-        <div className="flex gap-2 items-center">
-          <div className="hidden sm:flex gap-2 items-center mr-2 border-r border-zinc-800 pr-4">
+      <div className="hidden md:flex h-10 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950/40 px-4">
+        <p className="flex items-center text-xs font-bold uppercase tracking-widest text-zinc-500">
+          <Code2Icon className="mr-1.5 h-4 w-4" />
+          Editor
+        </p>
+        <div className="flex gap-1.5 items-center">
+          <div className="hidden sm:flex items-center gap-2 mr-2 border-r border-zinc-800 pr-4">
             <span className="text-[10px] uppercase font-bold text-zinc-600 tracking-wider">
-              Examples:
+              Templates:
             </span>
-            {templates?.map((t) => (
-              <Button
-                key={t.name}
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs border-zinc-800 hover:bg-zinc-800"
-                onClick={() => loadTemplate(t.code)}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50 border border-zinc-800 bg-zinc-950/50 min-w-[120px] justify-between"
+                >
+                  {templates.find((t) => t.code === code)?.name ??
+                    "Select Template"}
+                  <ChevronDownIcon className="ml-1 h-3 w-3 text-zinc-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="w-[180px] bg-zinc-950 border-zinc-800 text-zinc-300"
               >
-                {t.name}
-              </Button>
-            ))}
+                {templates.map((t) => (
+                  <DropdownMenuItem
+                    key={t.name}
+                    onClick={() => loadTemplate(t.code)}
+                    className="text-xs focus:bg-zinc-900 focus:text-zinc-100 cursor-pointer"
+                  >
+                    {t.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Button
             variant="ghost"
-            size="sm"
-            className="h-7 text-xs text-zinc-400 hover:text-zinc-200"
+            size="icon-sm"
+            className="h-7 w-7 text-zinc-400 hover:text-zinc-200"
             onClick={formatCode}
             disabled={isFormatting}
+            title="Format"
           >
             {isFormatting ? (
-              <Loader2Icon className="mr-1 h-3 w-3 animate-spin" />
+              <Loader2Icon className="h-4 w-4 animate-spin" />
             ) : (
-              <Wand2Icon className="mr-1 h-3 w-3" />
+              <Wand2Icon className="h-4 w-4" />
             )}
-            {isFormatting ? "Formatting..." : "Format"}
           </Button>
           <Button
             variant="ghost"
-            size="sm"
-            className="h-7 text-xs text-zinc-400 hover:text-zinc-200"
+            size="icon-sm"
+            className="h-7 w-7 text-zinc-400 hover:text-red-400"
             onClick={() => setCode(templates[0].code)}
+            title="Reset"
           >
-            <RotateCcwIcon className="mr-1 h-3 w-3" />
-            Reset
+            <RotateCcwIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -370,19 +376,18 @@ function CodePanel({
 }
 
 function PreviewPanel({
-  isMobile,
   rendered,
 }: {
-  isMobile: boolean;
   rendered: z.infer<typeof renderResultSchema>["result"] | undefined;
 }) {
   return (
     <div className="flex h-full flex-col bg-[#09090b]">
-      {!isMobile && (
-        <div className="flex h-11 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950/40 px-4">
-          <p className="text-sm font-medium text-zinc-300">Preview</p>
-        </div>
-      )}
+      <div className="hidden md:flex h-10 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950/40 px-4">
+        <p className="flex items-center text-xs font-bold uppercase tracking-widest text-zinc-500">
+          <ImageIcon className="mr-1.5 h-4 w-4" />
+          Preview
+        </p>
+      </div>
       <div className="flex-1 w-full overflow-y-auto">
         {rendered && <RenderPreview result={rendered} />}
       </div>
