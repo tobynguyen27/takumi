@@ -1,6 +1,7 @@
 import { Editor } from "@monaco-editor/react";
 import { shikiToMonaco } from "@shikijs/monaco";
 import { useTheme } from "next-themes";
+import { useRef } from "react";
 import { createHighlighterCore } from "shiki/core";
 import { createOnigurumaEngine } from "shiki/engine-oniguruma.mjs";
 import takumiTypings from "../../../node_modules/@takumi-rs/wasm/pkg/takumi_wasm.d.ts?raw";
@@ -49,6 +50,8 @@ export function ComponentEditor({
   const { resolvedTheme } = useTheme();
   const theme =
     resolvedTheme === "dark" ? "github-dark-default" : "github-light-default";
+
+  const lastCodeRef = useRef(code);
 
   return (
     <Editor
@@ -119,8 +122,13 @@ export function ComponentEditor({
         scrollBeyondLastLine: false,
       }}
       loading="Launching editor..."
-      value={code}
-      onChange={(value) => setCode(value ?? "")}
+      defaultValue={code}
+      onChange={(value) => {
+        if (value !== undefined && value !== lastCodeRef.current) {
+          lastCodeRef.current = value;
+          setCode(value);
+        }
+      }}
     />
   );
 }

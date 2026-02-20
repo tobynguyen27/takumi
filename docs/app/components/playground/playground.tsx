@@ -48,7 +48,7 @@ export default function Playground() {
   const codeQuery = searchParams.get("code");
 
   useEffect(() => {
-    if (code) return;
+    if (code !== undefined) return;
 
     if (codeQuery) decompressCode(codeQuery).then(setCode);
     else setCode(templates[0].code);
@@ -80,7 +80,7 @@ export default function Playground() {
           { replace: true },
         );
       });
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [code, setSearchParams]);
@@ -121,7 +121,7 @@ export default function Playground() {
   }, []);
 
   useEffect(() => {
-    if (isReady && code) {
+    if (isReady && code !== undefined) {
       const timer = setTimeout(() => {
         const requestId = currentRequestIdRef.current + 1;
         currentRequestIdRef.current = requestId;
@@ -191,7 +191,7 @@ export default function Playground() {
           )}
           onClick={() => setActiveTab("preview")}
         >
-          <ImageIcon />
+          <ImageIcon className="mr-1.5 h-3 w-3" />
           Preview
         </Button>
       </div>
