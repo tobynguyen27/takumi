@@ -50,19 +50,30 @@ async function getRenderer(options?: ImageResponseOptions) {
     return renderer;
   }
 
-  if (options?.fonts) {
-    for (const font of options.fonts) {
-      await renderer.loadFont(font);
-    }
+  const tasks: Promise<unknown>[] = [];
+
+  const currentRenderer = renderer;
+  if (!currentRenderer) {
+    return renderer;
+  }
+
+  if (options?.fonts && options.fonts.length > 0) {
+    tasks.push(currentRenderer.loadFonts(options.fonts));
   }
 
   if (options?.persistentImages) {
-    for (const image of options.persistentImages) {
-      await renderer.putPersistentImage(image.src, image.data);
-    }
+    tasks.push(
+      ...options.persistentImages.map((image) =>
+        currentRenderer.putPersistentImage(image.src, image.data),
+      ),
+    );
   }
 
-  return renderer;
+  if (tasks.length > 0) {
+    await Promise.all(tasks);
+  }
+
+  return currentRenderer;
 }
 
 function extractFetchedResources(
@@ -83,10 +94,20 @@ function createStream(component: ReactNode, options?: ImageResponseOptions) {
     type: "bytes",
     async start(controller) {
       try {
-        const renderer = await getRenderer(options);
+        const nodePromise = fromJsx(component, options?.jsx).then(
+          async (node) => {
+            const fetchedResources = await extractFetchedResources(
+              node,
+              options,
+            );
+            return { node, fetchedResources };
+          },
+        );
 
-        const node = await fromJsx(component, options?.jsx);
-        const fetchedResources = await extractFetchedResources(node, options);
+        const [renderer, { node, fetchedResources }] = await Promise.all([
+          getRenderer(options),
+          nodePromise,
+        ]);
 
         const image = await renderer.render(
           node,
