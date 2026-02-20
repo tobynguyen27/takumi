@@ -1006,3 +1006,28 @@ fn text_font_synthesis_weight_emoji() {
 
   run_fixture_test(container.into(), "text_font_synthesis_weight_emoji");
 }
+
+#[test]
+fn text_chinese_ellipsis() {
+  let text = "日本利用壓電磁磚將腳步轉化為電能。這些瓷磚捕捉來自你腳步的動能。當你行走時，你的重量和動作會對瓷磚產生壓力。磁磚會輕微彎曲，從而產生機械應力。磁磚內部的壓電材料將這種應力轉化為電能。每一步都會產生少量電荷，而數百萬步結合在一起就能產生足夠的電力來驅動 LED燈、數位顯示器和感測器。在像澀谷車站這樣繁忙的地方，每天大約有240萬個腳步為此系統作出貢獻。這些電能可以被儲存或立即使用，從而減少對傳統電賴，並支持永續的城市基礎設施。這種方法將日常運動轉化為實用的再生能源。";
+
+  let node = TextNode {
+    preset: None,
+    tw: None,
+    style: Some(
+      StyleBuilder::default()
+        .width(Percentage(100.0))
+        .height(Percentage(100.0))
+        .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
+        .font_size(Some(Px(64.0)))
+        .padding(Sides::from(Px(24.0)))
+        .font_family(FontFamily::from_str("Noto Sans TC").ok())
+        .text_overflow(TextOverflow::Ellipsis)
+        .build()
+        .unwrap(),
+    ),
+    text: text.to_string(),
+  };
+
+  run_fixture_test(node.into(), "text_chinese_ellipsis");
+}

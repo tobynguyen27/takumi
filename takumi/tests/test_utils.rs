@@ -51,6 +51,11 @@ const TEST_FONTS: &[(&str, &str, GenericFamily)] = &[
     "Scheherazade New Test",
     GenericFamily::Serif,
   ),
+  (
+    "fonts/noto-sans/NotoSansTC-VariableFont_wght.woff2",
+    "Noto Sans TC",
+    GenericFamily::SansSerif,
+  ),
 ];
 
 fn create_test_context() -> GlobalContext {
