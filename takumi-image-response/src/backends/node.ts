@@ -80,6 +80,7 @@ function extractFetchedResources(
 
 function createStream(component: ReactNode, options?: ImageResponseOptions) {
   return new ReadableStream({
+    type: "bytes",
     async start(controller) {
       try {
         const renderer = await getRenderer(options);
@@ -96,7 +97,7 @@ function createStream(component: ReactNode, options?: ImageResponseOptions) {
           options?.signal,
         );
 
-        controller.enqueue(image);
+        controller.enqueue(image as ArrayBufferView<ArrayBuffer>);
         controller.close();
       } catch (error) {
         controller.error(error);

@@ -96,6 +96,7 @@ let initPromise: Promise<void> | null = null;
 
 function createStream(component: ReactNode, options: ImageResponseOptions) {
   return new ReadableStream({
+    type: "bytes",
     async start(controller) {
       try {
         if ("module" in options && !renderer) {
