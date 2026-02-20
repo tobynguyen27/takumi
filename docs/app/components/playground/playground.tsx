@@ -58,7 +58,7 @@ export default function Playground() {
     if (!code) return;
 
     if (code === templates[0].code) {
-      return setSearchParams(
+      setSearchParams(
         (prev) => {
           prev.delete("code");
 
@@ -66,18 +66,23 @@ export default function Playground() {
         },
         { replace: true },
       );
+      return;
     }
 
-    compressCode(code).then((base64) => {
-      setSearchParams(
-        (prev) => {
-          prev.set("code", base64);
+    const timer = setTimeout(() => {
+      compressCode(code).then((base64) => {
+        setSearchParams(
+          (prev) => {
+            prev.set("code", base64);
 
-          return prev;
-        },
-        { replace: true },
-      );
-    });
+            return prev;
+          },
+          { replace: true },
+        );
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [code, setSearchParams]);
 
   useEffect(() => {
@@ -117,13 +122,17 @@ export default function Playground() {
 
   useEffect(() => {
     if (isReady && code) {
-      const requestId = currentRequestIdRef.current + 1;
-      currentRequestIdRef.current = requestId;
-      workerRef.current?.postMessage({
-        type: "render-request",
-        id: requestId,
-        code,
-      } satisfies RenderMessageInput);
+      const timer = setTimeout(() => {
+        const requestId = currentRequestIdRef.current + 1;
+        currentRequestIdRef.current = requestId;
+        workerRef.current?.postMessage({
+          type: "render-request",
+          id: requestId,
+          code,
+        } satisfies RenderMessageInput);
+      }, 300);
+
+      return () => clearTimeout(timer);
     }
   }, [isReady, code]);
 

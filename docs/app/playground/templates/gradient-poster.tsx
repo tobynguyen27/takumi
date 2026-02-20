@@ -22,5 +22,5 @@ export default function Poster() {
 export const options = {
   width: 1080,
   height: 1080,
-  format: "jpeg",
+  format: "png",
 };
