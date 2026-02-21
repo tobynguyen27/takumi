@@ -7,33 +7,7 @@ use crate::rendering::RenderContext;
 /// Interpolates between two colors in RGBA space, if t is 0.0 or 1.0, returns the first or second color.
 /// Uses SIMD to process all 4 color channels in parallel.
 pub(crate) fn interpolate_rgba(c1: Color, c2: Color, t: f32) -> Color {
-  if t <= f32::EPSILON {
-    return c1;
-  }
-  if t >= 1.0 - f32::EPSILON {
-    return c2;
-  }
-
-  // Convert u8 arrays to f32x4
-  let c1_f32 = f32x4::from([
-    c1.0[0] as f32,
-    c1.0[1] as f32,
-    c1.0[2] as f32,
-    c1.0[3] as f32,
-  ]);
-
-  let c2_f32 = f32x4::from([
-    c2.0[0] as f32,
-    c2.0[1] as f32,
-    c2.0[2] as f32,
-    c2.0[3] as f32,
-  ]);
-
-  // Interpolate: c1 * (1 - t) + c2 * t
-  let one_minus_t = 1.0 - t;
-  let result_f32 = c1_f32 * one_minus_t + c2_f32 * t;
-
-  // Round and convert back to u8
+  let result_f32 = interpolate_rgba_impl(c1, c2, t);
   let result = result_f32.to_array();
   Color([
     result[0].round() as u8,
@@ -43,8 +17,34 @@ pub(crate) fn interpolate_rgba(c1: Color, c2: Color, t: f32) -> Color {
   ])
 }
 
-/// Returns the color for a pixel-space position along the resolved stops.
-pub(crate) fn color_from_stops(position: f32, resolved_stops: &[ResolvedGradientStop]) -> Color {
+/// Interpolates between two colors in RGBA space, if t is 0.0 or 1.0, returns the first or second color as f32x4.
+fn interpolate_rgba_impl(c1: Color, c2: Color, t: f32) -> f32x4 {
+  let c1_f32 = f32x4::from([
+    c1.0[0] as f32,
+    c1.0[1] as f32,
+    c1.0[2] as f32,
+    c1.0[3] as f32,
+  ]);
+
+  if t <= f32::EPSILON {
+    return c1_f32;
+  }
+
+  let c2_f32 = f32x4::from([
+    c2.0[0] as f32,
+    c2.0[1] as f32,
+    c2.0[2] as f32,
+    c2.0[3] as f32,
+  ]);
+
+  if t >= 1.0 - f32::EPSILON {
+    return c2_f32;
+  }
+
+  c1_f32 * (1.0 - t) + c2_f32 * t
+}
+
+pub(crate) fn color_from_stops(position: f32, resolved_stops: &[ResolvedGradientStop]) -> f32x4 {
   // Find the two stops that bracket the current position.
   // We want the last stop with position <= current position.
   let left_index = resolved_stops
@@ -60,7 +60,13 @@ pub(crate) fn color_from_stops(position: f32, resolved_stops: &[ResolvedGradient
 
   if left_index == right_index {
     // if the left and right indices are the same, we should return a hard stop
-    resolved_stops[left_index].color
+    let color = resolved_stops[left_index].color;
+    f32x4::from([
+      color.0[0] as f32,
+      color.0[1] as f32,
+      color.0[2] as f32,
+      color.0[3] as f32,
+    ])
   } else {
     let left_stop = &resolved_stops[left_index];
     let right_stop = &resolved_stops[right_index];
@@ -72,11 +78,50 @@ pub(crate) fn color_from_stops(position: f32, resolved_stops: &[ResolvedGradient
       ((position - left_stop.position) / denom).clamp(0.0, 1.0)
     };
 
-    interpolate_rgba(left_stop.color, right_stop.color, interpolation_position)
+    interpolate_rgba_impl(left_stop.color, right_stop.color, interpolation_position)
   }
 }
 
-/// Builds a pre-computed color lookup table for a gradient.
+pub(crate) const BAYER_MATRIX_8X8: [[f32; 8]; 8] = [
+  [
+    -0.5, 0.0, -0.375, 0.125, -0.46875, 0.03125, -0.34375, 0.15625,
+  ],
+  [
+    0.25, -0.25, 0.375, -0.125, 0.28125, -0.21875, 0.40625, -0.09375,
+  ],
+  [
+    -0.3125, 0.1875, -0.4375, 0.0625, -0.28125, 0.21875, -0.40625, 0.09375,
+  ],
+  [
+    0.4375, -0.0625, 0.3125, -0.1875, 0.46875, -0.03125, 0.34375, -0.15625,
+  ],
+  [
+    -0.453125, 0.046875, -0.328125, 0.171875, -0.484375, 0.015625, -0.359375, 0.140625,
+  ],
+  [
+    0.296875, -0.203125, 0.421875, -0.078125, 0.265625, -0.234375, 0.390625, -0.109375,
+  ],
+  [
+    -0.265625, 0.234375, -0.390625, 0.109375, -0.296875, 0.203125, -0.421875, 0.078125,
+  ],
+  [
+    0.484375, -0.015625, 0.359375, -0.140625, 0.453125, -0.046875, 0.328125, -0.171875,
+  ],
+];
+
+/// Applies Bayer matrix dithering to a high-precision color and returns an 8-bit RGBA color.
+#[inline(always)]
+pub(crate) fn apply_dither(color: &[f32], x: u32, y: u32) -> [u8; 4] {
+  let dither = BAYER_MATRIX_8X8[(y % 8) as usize][(x % 8) as usize];
+  [
+    (color[0] + dither).clamp(0.0, 255.0).round() as u8,
+    (color[1] + dither).clamp(0.0, 255.0).round() as u8,
+    (color[2] + dither).clamp(0.0, 255.0).round() as u8,
+    (color[3] + dither).clamp(0.0, 255.0).round() as u8,
+  ]
+}
+
+/// Builds a pre-computed high-precision color lookup table for a gradient.
 /// This allows O(1) color sampling instead of O(n) search + interpolation per pixel.
 pub(crate) fn build_color_lut(
   resolved_stops: &[ResolvedGradientStop],
@@ -84,26 +129,32 @@ pub(crate) fn build_color_lut(
   lut_size: usize,
   buffer_pool: &mut crate::rendering::BufferPool,
 ) -> Vec<u8> {
-  // Fast path: if only one color, fill entire LUT with it
+  // Fast path: if only one color, fill just 16 bytes
   if resolved_stops.len() <= 1 {
     let color = resolved_stops
       .first()
       .map(|s| s.color)
       .unwrap_or(crate::layout::style::Color::transparent());
 
-    let mut lut = buffer_pool.acquire_dirty(lut_size * 4);
-    for chunk in lut.chunks_exact_mut(4) {
-      chunk.copy_from_slice(&color.0);
-    }
+    let mut lut = buffer_pool.acquire_dirty(16);
+    let c = [
+      color.0[0] as f32,
+      color.0[1] as f32,
+      color.0[2] as f32,
+      color.0[3] as f32,
+    ];
+    let f32_lut = bytemuck::cast_slice_mut::<u8, [f32; 4]>(&mut lut);
+    f32_lut[0] = c;
     return lut;
   }
 
-  let mut lut = buffer_pool.acquire_dirty(lut_size * 4);
-  for (i, chunk) in lut.chunks_exact_mut(4).enumerate() {
+  let mut lut = buffer_pool.acquire_dirty(lut_size * 16);
+  let f32_lut = bytemuck::cast_slice_mut::<u8, [f32; 4]>(&mut lut);
+  for (i, chunk) in f32_lut.iter_mut().enumerate() {
     let t = i as f32 / (lut_size - 1) as f32;
     let position_px = t * axis_length;
     let color = color_from_stops(position_px, resolved_stops);
-    chunk.copy_from_slice(&color.0);
+    *chunk = color.to_array();
   }
 
   lut

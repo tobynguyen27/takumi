@@ -2,7 +2,9 @@ use cssparser::{Parser, Token};
 use image::{GenericImageView, Rgba};
 use std::ops::{Deref, Neg};
 
-use super::gradient_utils::{adaptive_lut_size, build_color_lut, resolve_stops_along_axis};
+use super::gradient_utils::{
+  adaptive_lut_size, apply_dither, build_color_lut, resolve_stops_along_axis,
+};
 use crate::layout::style::{
   Color, CssToken, FromCss, Length, MakeComputed, ParseResult, declare_enum_from_css_impl,
   properties::ColorInput, tw::TailwindPropertyParser,
@@ -36,13 +38,11 @@ impl GenericImageView for LinearGradientTile {
     if self.color_lut.is_empty() {
       return Rgba([0, 0, 0, 0]);
     }
-    if self.color_lut.len() == 4 {
-      return Rgba([
-        self.color_lut[0],
-        self.color_lut[1],
-        self.color_lut[2],
-        self.color_lut[3],
-      ]);
+
+    let lut_f32 = bytemuck::cast_slice::<u8, [f32; 4]>(&self.color_lut);
+
+    if lut_f32.len() == 1 {
+      return Rgba(apply_dither(&lut_f32[0], x, y));
     }
 
     // Calculate position along gradient axis
@@ -53,15 +53,9 @@ impl GenericImageView for LinearGradientTile {
 
     // Map position to LUT index using rounding (nearest neighbor).
     let normalized = (position_px / self.axis_length).clamp(0.0, 1.0);
-    let lut_idx = (normalized * ((self.color_lut.len() / 4) - 1) as f32).round() as usize;
+    let lut_idx = (normalized * (lut_f32.len() - 1) as f32).round() as usize;
 
-    let offset = lut_idx * 4;
-    Rgba([
-      self.color_lut[offset],
-      self.color_lut[offset + 1],
-      self.color_lut[offset + 2],
-      self.color_lut[offset + 3],
-    ])
+    Rgba(apply_dither(&lut_f32[lut_idx], x, y))
   }
 }
 
@@ -777,7 +771,7 @@ mod tests {
     // Test in the middle (should be purple)
     let color_middle = tile.get_pixel(50, 50);
     // Middle should be roughly purple (red + blue)
-    assert_eq!(color_middle, Rgba([128, 0, 128, 255]));
+    assert_eq!(color_middle, Rgba([127, 0, 127, 255]));
   }
 
   #[test]

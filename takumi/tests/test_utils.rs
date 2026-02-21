@@ -5,7 +5,7 @@ use std::{
   sync::{Arc, LazyLock},
 };
 
-use image::load_from_memory;
+use image::{RgbaImage, load_from_memory};
 use parley::{GenericFamily, fontique::FontInfoOverride};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use takumi::{
@@ -145,12 +145,19 @@ pub fn run_fixture_test(node: NodeKind, fixture_name: &str) {
   )
   .unwrap();
 
-  let fixture_path = format!("tests/fixtures-generated/{}.webp", fixture_name);
-  let path = Path::new(&fixture_path);
+  save_image(
+    &image,
+    format!("tests/fixtures-generated/{}.webp", fixture_name),
+    ImageOutputFormat::WebP,
+  );
+}
+
+fn save_image<P: AsRef<Path>>(image: &RgbaImage, path: P, format: ImageOutputFormat) {
+  let path = path.as_ref();
 
   let mut file = File::create(path).unwrap();
 
-  write_image(&image, &mut file, ImageOutputFormat::WebP, None).unwrap();
+  write_image(image, &mut file, format, None).unwrap();
 }
 
 #[allow(dead_code)]

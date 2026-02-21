@@ -223,8 +223,8 @@ pub(crate) fn draw_inset_shadow(
   // Fill with shadow color (BufferPool returns zeroed/dirty buffers)
   let shadow_raw = shadow_image.as_mut();
   let color_rgba: [u8; 4] = shadow.color.0;
-  for pixel in shadow_raw.chunks_exact_mut(4) {
-    pixel.copy_from_slice(&color_rgba);
+  for pixel in bytemuck::cast_slice_mut::<u8, [u8; 4]>(shadow_raw) {
+    *pixel = color_rgba;
   }
 
   let offset = Point {

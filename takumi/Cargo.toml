@@ -24,6 +24,10 @@ wide = "1.1"
 unicode-linebreak = "0.1"
 libm = "0.2"
 
+[dependencies.bytemuck]
+version = "1.25"
+features = ["wasm_simd", "aarch64_simd", "avx512_simd"]
+
 [dependencies.zeno]
 version = "0.3"
 default-features = false

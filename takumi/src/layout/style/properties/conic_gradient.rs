@@ -3,7 +3,9 @@ use std::f32::consts::TAU;
 use cssparser::Parser;
 use image::{GenericImageView, Rgba};
 
-use super::gradient_utils::{adaptive_lut_size, build_color_lut, resolve_stops_along_axis};
+use super::gradient_utils::{
+  adaptive_lut_size, apply_dither, build_color_lut, resolve_stops_along_axis,
+};
 use crate::{
   layout::style::{
     Angle, BackgroundPosition, CssToken, FromCss, GradientStop, GradientStops, Length,
@@ -60,24 +62,17 @@ impl GenericImageView for ConicGradientTile {
     if self.color_lut.is_empty() {
       return Rgba([0, 0, 0, 0]);
     }
-    if self.color_lut.len() == 4 {
-      return Rgba([
-        self.color_lut[0],
-        self.color_lut[1],
-        self.color_lut[2],
-        self.color_lut[3],
-      ]);
+
+    let lut_f32 = bytemuck::cast_slice::<u8, [f32; 4]>(&self.color_lut);
+
+    if lut_f32.len() == 1 {
+      return Rgba(apply_dither(&lut_f32[0], x, y));
     }
 
     let dx = x as f32 - self.cx;
     let dy = y as f32 - self.cy;
     if dx.abs() <= f32::EPSILON && dy.abs() <= f32::EPSILON {
-      return Rgba([
-        self.color_lut[0],
-        self.color_lut[1],
-        self.color_lut[2],
-        self.color_lut[3],
-      ]);
+      return Rgba(apply_dither(&lut_f32[0], x, y));
     }
 
     // atan2 gives angle from positive X axis, counter-clockwise.
@@ -89,16 +84,9 @@ impl GenericImageView for ConicGradientTile {
     let adjusted = (angle_from_top - self.start_rad).rem_euclid(TAU);
 
     let normalized = adjusted / TAU;
-    let lut_idx = ((normalized * (self.color_lut.len() as f32 / 4.0)).floor() as usize)
-      .min(self.color_lut.len() / 4 - 1);
+    let lut_idx = ((normalized * (lut_f32.len() as f32)).floor() as usize).min(lut_f32.len() - 1);
 
-    let offset = lut_idx * 4;
-    Rgba([
-      self.color_lut[offset],
-      self.color_lut[offset + 1],
-      self.color_lut[offset + 2],
-      self.color_lut[offset + 3],
-    ])
+    Rgba(apply_dither(&lut_f32[lut_idx], x, y))
   }
 }
 

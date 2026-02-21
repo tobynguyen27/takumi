@@ -2457,6 +2457,7 @@ name = "takumi"
 version = "0.68.16"
 dependencies = [
  "bitflags",
+ "bytemuck",
  "color",
  "criterion",
  "cssparser",

@@ -216,7 +216,7 @@ fn apply_batched_pixel_filters(image: &mut RgbaImage, filters: &[&Filter]) {
     })
     .collect();
 
-  for pixel in image.chunks_exact_mut(4) {
+  for pixel in bytemuck::cast_slice_mut::<u8, [u8; 4]>(image.as_mut()) {
     if pixel[3] == 0 {
       continue;
     }

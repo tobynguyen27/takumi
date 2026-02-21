@@ -68,23 +68,20 @@ const U24_MAX: u32 = 0xffffff;
 
 // Strip alpha channel into a tightly packed RGB buffer
 fn strip_alpha_channel(image: &RgbaImage) -> Vec<u8> {
-  let raw = image.as_raw();
+  let pixels = bytemuck::cast_slice::<u8, [u8; 4]>(image.as_raw());
+  let mut rgb = Vec::with_capacity(pixels.len() * 3);
 
-  let pixel_count = raw.len() / 4 * 3;
-  let mut rgb = Vec::with_capacity(pixel_count);
-
-  for chunk in raw.chunks_exact(4) {
-    rgb.extend_from_slice(&chunk[..3]);
+  for [r, g, b, _] in pixels {
+    rgb.extend_from_slice(&[*r, *g, *b]);
   }
 
   rgb
 }
 
 fn has_any_alpha_pixel(image: &RgbaImage) -> bool {
-  image
-    .as_raw()
-    .chunks_exact(4)
-    .any(|chunk| chunk[3] != u8::MAX)
+  bytemuck::cast_slice::<u8, [u8; 4]>(image.as_raw())
+    .iter()
+    .any(|[_, _, _, a]| *a != u8::MAX)
 }
 
 /// Writes a single rendered image to `destination` using `format`.

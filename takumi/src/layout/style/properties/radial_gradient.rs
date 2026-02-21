@@ -1,7 +1,9 @@
 use cssparser::Parser;
 use image::{GenericImageView, Rgba};
 
-use super::gradient_utils::{adaptive_lut_size, build_color_lut, resolve_stops_along_axis};
+use super::gradient_utils::{
+  adaptive_lut_size, apply_dither, build_color_lut, resolve_stops_along_axis,
+};
 use crate::{
   layout::style::{
     BackgroundPosition, CssToken, FromCss, GradientStop, GradientStops, Length, MakeComputed,
@@ -100,13 +102,11 @@ impl GenericImageView for RadialGradientTile {
     if self.color_lut.is_empty() {
       return Rgba([0, 0, 0, 0]);
     }
-    if self.color_lut.len() == 4 {
-      return Rgba([
-        self.color_lut[0],
-        self.color_lut[1],
-        self.color_lut[2],
-        self.color_lut[3],
-      ]);
+
+    let lut_f32 = bytemuck::cast_slice::<u8, [f32; 4]>(&self.color_lut);
+
+    if lut_f32.len() == 1 {
+      return Rgba(apply_dither(&lut_f32[0], x, y));
     }
 
     let dx = (x as f32 - self.cx) / self.radius_x.max(1e-6);
@@ -117,15 +117,9 @@ impl GenericImageView for RadialGradientTile {
     let normalized = d.clamp(0.0, 1.0);
 
     // Map distance to LUT index using rounding (nearest neighbor).
-    let lut_idx = (normalized * ((self.color_lut.len() / 4) - 1) as f32).round() as usize;
+    let lut_idx = (normalized * (lut_f32.len() - 1) as f32).round() as usize;
 
-    let offset = lut_idx * 4;
-    Rgba([
-      self.color_lut[offset],
-      self.color_lut[offset + 1],
-      self.color_lut[offset + 2],
-      self.color_lut[offset + 3],
-    ])
+    Rgba(apply_dither(&lut_f32[lut_idx], x, y))
   }
 }
 

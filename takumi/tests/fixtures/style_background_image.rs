@@ -46,11 +46,18 @@ fn create_container_with(
 }
 
 #[test]
-fn test_style_background_image_gradient_basic() {
+fn test_style_background_image_gradient() {
   let background_images =
-    BackgroundImages::from_str("linear-gradient(45deg, #007aff, #34c759)").unwrap();
+    BackgroundImages::from_str("linear-gradient(45deg, rgba(255,150,255,0.3), transparent)")
+      .unwrap();
 
-  let container = create_container(background_images);
+  let mut container = create_container(background_images);
+
+  let Some(style) = container.style.as_mut() else {
+    unreachable!()
+  };
+
+  style.background_color = Some(ColorInput::Value(Color::black())).into();
 
   run_fixture_test(container.into(), "style_background_image_gradient");
 }

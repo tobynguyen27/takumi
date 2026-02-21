@@ -108,8 +108,8 @@ pub(crate) fn apply_blur(
 
   match format {
     BlurFormat::Rgba(image) => {
-      for chunk in image.chunks_exact_mut(4) {
-        premultiply_alpha(chunk);
+      for pixel in bytemuck::cast_slice_mut::<u8, [u8; 4]>(image.as_mut()) {
+        premultiply_alpha(pixel);
       }
 
       let mut temp_image = pool.acquire_image_dirty(width, height)?;
@@ -123,8 +123,8 @@ pub(crate) fn apply_blur(
 
       pool.release_image(temp_image);
 
-      for chunk in image.chunks_exact_mut(4) {
-        unpremultiply_alpha(chunk);
+      for pixel in bytemuck::cast_slice_mut::<u8, [u8; 4]>(image.as_mut()) {
+        unpremultiply_alpha(pixel);
       }
     }
     BlurFormat::Alpha { data, .. } => {
