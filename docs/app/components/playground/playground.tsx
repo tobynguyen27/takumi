@@ -33,6 +33,8 @@ import {
 } from "../ui/resizable";
 import { ComponentEditor } from "./component-editor";
 
+const DEFAULT_TEMPLATE = templates[0];
+
 export default function Playground() {
   const [code, setCode] = useState<string>();
   const [rendered, setRendered] =
@@ -46,23 +48,38 @@ export default function Playground() {
   const [activeTab, setActiveTab] = useState<"code" | "preview">("code");
 
   const codeQuery = searchParams.get("code");
+  const selectedTemplateName =
+    templates.find((template) => template.code === code)?.name ?? "Templates";
 
   useEffect(() => {
     if (code !== undefined) return;
 
-    if (codeQuery) decompressCode(codeQuery).then(setCode);
-    else setCode(templates[0].code);
+    let cancelled = false;
+
+    void (async () => {
+      const initialCode = codeQuery
+        ? await decompressCode(codeQuery)
+        : DEFAULT_TEMPLATE.code;
+
+      if (!cancelled) {
+        setCode(initialCode);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [codeQuery, code]);
 
   useEffect(() => {
     if (!code) return;
 
-    if (code === templates[0].code) {
+    if (code === DEFAULT_TEMPLATE.code) {
       setSearchParams(
         (prev) => {
-          prev.delete("code");
-
-          return prev;
+          const next = new URLSearchParams(prev);
+          next.delete("code");
+          return next;
         },
         { replace: true },
       );
@@ -73,9 +90,9 @@ export default function Playground() {
       compressCode(code).then((base64) => {
         setSearchParams(
           (prev) => {
-            prev.set("code", base64);
-
-            return prev;
+            const next = new URLSearchParams(prev);
+            next.set("code", base64);
+            return next;
           },
           { replace: true },
         );
@@ -140,6 +157,10 @@ export default function Playground() {
     setCode(templateCode);
     setActiveTab("code");
   };
+  const resetCode = () => {
+    setCode(DEFAULT_TEMPLATE.code);
+    setActiveTab("code");
+  };
 
   const formatCode = async () => {
     if (!code) return;
@@ -166,46 +187,52 @@ export default function Playground() {
   };
 
   const mobileHeader = (
-    <div className="flex md:hidden shrink-0 items-center justify-between border-b border-zinc-800/80 bg-background px-3 py-2">
-      <div className="flex bg-zinc-900/40 rounded-lg p-0.5 gap-0.5 border border-zinc-800/50">
+    <div className="flex md:hidden shrink-0 items-center gap-2 border-b border-zinc-800/80 bg-background px-3 py-2">
+      <div className="flex min-w-0 bg-zinc-900/40 rounded-lg p-0.5 gap-0.5 border border-zinc-800/50">
         <Button
           variant={activeTab === "code" ? "secondary" : "ghost"}
           size="sm"
           className={cn(
-            "h-7 px-2.5 rounded-md text-[11px] font-bold transition-all",
+            "h-7 rounded-md text-[11px] font-bold transition-all",
+            activeTab === "code" ? "px-2.5" : "px-2",
             activeTab === "code" &&
               "bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50",
           )}
           onClick={() => setActiveTab("code")}
         >
-          <Code2Icon className="mr-1.5 h-3 w-3" />
-          Code
+          <Code2Icon
+            className={cn("h-3 w-3", activeTab === "code" && "mr-1.5")}
+          />
+          {activeTab === "code" && "Code"}
         </Button>
         <Button
           variant={activeTab === "preview" ? "secondary" : "ghost"}
           size="sm"
           className={cn(
-            "h-7 px-2.5 rounded-md text-[11px] font-bold transition-all",
+            "h-7 rounded-md text-[11px] font-bold transition-all",
+            activeTab === "preview" ? "px-2.5" : "px-2",
             activeTab === "preview" &&
               "bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50",
           )}
           onClick={() => setActiveTab("preview")}
         >
-          <ImageIcon className="mr-1.5 h-3 w-3" />
-          Preview
+          <ImageIcon
+            className={cn("h-3 w-3", activeTab === "preview" && "mr-1.5")}
+          />
+          {activeTab === "preview" && "Preview"}
         </Button>
       </div>
 
       {activeTab === "code" && (
-        <div className="flex items-center gap-1.5">
+        <div className="ml-auto flex min-w-0 items-center gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2.5 text-[11px] font-bold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                className="h-7 min-w-0 max-w-40 px-2 text-[11px] font-bold text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
               >
-                {templates.find((t) => t.code === code)?.name ?? "Templates"}
+                <span className="truncate">{selectedTemplateName}</span>
                 <ChevronDownIcon className="ml-1 h-3 w-3 text-zinc-500" />
               </Button>
             </DropdownMenuTrigger>
@@ -225,7 +252,7 @@ export default function Playground() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="flex items-center border-l border-zinc-800 ml-0.5 pl-1.5 gap-0.5">
+          <div className="flex shrink-0 items-center border-l border-zinc-800 ml-0.5 pl-1 gap-0.5">
             <Button
               variant="ghost"
               size="icon-sm"
@@ -244,7 +271,7 @@ export default function Playground() {
               variant="ghost"
               size="icon-sm"
               className="h-7 w-7 text-zinc-500 hover:text-red-400"
-              onClick={() => setCode(templates[0].code)}
+              onClick={resetCode}
               title="Reset Code"
             >
               <RotateCcwIcon className="h-3.5 w-3.5" />
@@ -269,6 +296,8 @@ export default function Playground() {
                 formatCode={formatCode}
                 isFormatting={isFormatting}
                 loadTemplate={loadTemplate}
+                resetCode={resetCode}
+                selectedTemplateName={selectedTemplateName}
               />
             </ResizablePanel>
             <ResizableHandle
@@ -289,6 +318,8 @@ export default function Playground() {
               formatCode={formatCode}
               isFormatting={isFormatting}
               loadTemplate={loadTemplate}
+              resetCode={resetCode}
+              selectedTemplateName={selectedTemplateName}
             />
           ) : (
             <PreviewPanel rendered={rendered} />
@@ -305,15 +336,19 @@ function CodePanel({
   formatCode,
   isFormatting,
   loadTemplate,
+  resetCode,
+  selectedTemplateName,
 }: {
   code: string | undefined;
   setCode: React.Dispatch<React.SetStateAction<string | undefined>>;
   formatCode: () => void;
   isFormatting: boolean;
   loadTemplate: (templateCode: string) => void;
+  resetCode: () => void;
+  selectedTemplateName: string;
 }) {
   return (
-    <div className="flex h-full flex-col bg-zinc-950/50">
+    <div className="flex h-full min-w-0 flex-col overflow-hidden bg-zinc-950/50">
       <div className="hidden md:flex h-10 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950/40 px-4">
         <p className="flex items-center text-xs font-bold uppercase tracking-widest text-zinc-500">
           <Code2Icon className="mr-1.5 h-4 w-4" />
@@ -331,8 +366,7 @@ function CodePanel({
                   size="sm"
                   className="h-7 px-2.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50 border border-zinc-800 bg-zinc-950/50 min-w-[120px] justify-between"
                 >
-                  {templates.find((t) => t.code === code)?.name ??
-                    "Select Template"}
+                  {selectedTemplateName}
                   <ChevronDownIcon className="ml-1 h-3 w-3 text-zinc-500" />
                 </Button>
               </DropdownMenuTrigger>
@@ -370,14 +404,14 @@ function CodePanel({
             variant="ghost"
             size="icon-sm"
             className="h-7 w-7 text-zinc-400 hover:text-red-400"
-            onClick={() => setCode(templates[0].code)}
+            onClick={resetCode}
             title="Reset"
           >
             <RotateCcwIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
-      <div className="relative min-h-0 flex-1">
+      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
         {code && <ComponentEditor code={code} setCode={setCode} />}
       </div>
     </div>
@@ -390,7 +424,7 @@ function PreviewPanel({
   rendered: z.infer<typeof renderResultSchema>["result"] | undefined;
 }) {
   return (
-    <div className="flex h-full flex-col bg-[#09090b]">
+    <div className="flex h-full min-w-0 flex-col overflow-hidden bg-[#09090b]">
       <div className="hidden md:flex h-10 shrink-0 items-center justify-between border-b border-zinc-800 bg-zinc-950/40 px-4">
         <p className="flex items-center text-xs font-bold uppercase tracking-widest text-zinc-500">
           <ImageIcon className="mr-1.5 h-4 w-4" />

@@ -1,7 +1,7 @@
 import { Editor } from "@monaco-editor/react";
 import { shikiToMonaco } from "@shikijs/monaco";
 import { useTheme } from "next-themes";
-import { useRef } from "react";
+import { useEffect, useState } from "react";
 import { createHighlighterCore } from "shiki/core";
 import { createOnigurumaEngine } from "shiki/engine-oniguruma.mjs";
 import takumiTypings from "../../../node_modules/@takumi-rs/wasm/pkg/takumi_wasm.d.ts?raw";
@@ -48,10 +48,26 @@ export function ComponentEditor({
   setCode: (code: string) => void;
 }) {
   const { resolvedTheme } = useTheme();
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const theme =
     resolvedTheme === "dark" ? "github-dark-default" : "github-light-default";
 
-  const lastCodeRef = useRef(code);
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mobileMediaQuery = window.matchMedia("(max-width: 640px)");
+    const updateMobileViewport = () =>
+      setIsMobileViewport(mobileMediaQuery.matches);
+
+    updateMobileViewport();
+    mobileMediaQuery.addEventListener("change", updateMobileViewport);
+
+    return () => {
+      mobileMediaQuery.removeEventListener("change", updateMobileViewport);
+    };
+  }, []);
 
   return (
     <Editor
@@ -103,29 +119,37 @@ export function ComponentEditor({
       theme={theme}
       path="main.tsx"
       options={{
+        automaticLayout: true,
         wordWrap: "on",
         tabSize: 2,
         minimap: {
           enabled: false,
         },
+        glyphMargin: !isMobileViewport,
+        folding: !isMobileViewport,
         stickyScroll: {
           enabled: false,
         },
         scrollbar: {
           useShadows: false,
+          verticalScrollbarSize: isMobileViewport ? 8 : 10,
+          horizontalScrollbarSize: isMobileViewport ? 8 : 10,
         },
-        fontSize: 16,
+        lineNumbers: isMobileViewport ? "off" : "on",
+        lineDecorationsWidth: isMobileViewport ? 8 : 10,
+        lineNumbersMinChars: isMobileViewport ? 0 : 3,
+        overviewRulerLanes: isMobileViewport ? 0 : 2,
+        fontSize: isMobileViewport ? 13 : 16,
         padding: {
-          top: 8,
-          bottom: 8,
+          top: isMobileViewport ? 6 : 8,
+          bottom: isMobileViewport ? 6 : 8,
         },
         scrollBeyondLastLine: false,
       }}
       loading="Launching editor..."
-      defaultValue={code}
+      value={code}
       onChange={(value) => {
-        if (value !== undefined && value !== lastCodeRef.current) {
-          lastCodeRef.current = value;
+        if (value !== undefined) {
           setCode(value);
         }
       }}
