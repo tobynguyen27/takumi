@@ -1031,3 +1031,27 @@ fn text_chinese_ellipsis() {
 
   run_fixture_test(node.into(), "text_chinese_ellipsis");
 }
+
+#[test]
+fn text_devanagari_noto_sans() {
+  let text = "नमस्ते दुनिया, यह देवनागरी लिपि का एक परीक्षण है।";
+
+  let node = TextNode {
+    preset: None,
+    tw: None,
+    style: Some(
+      StyleBuilder::default()
+        .width(Percentage(100.0))
+        .height(Percentage(100.0))
+        .background_color(ColorInput::Value(Color([240, 240, 240, 255])))
+        .font_size(Some(Px(64.0)))
+        .padding(Sides::from(Px(24.0)))
+        .font_family(FontFamily::from_str("Noto Sans Devanagari").ok())
+        .build()
+        .unwrap(),
+    ),
+    text: text.to_string(),
+  };
+
+  run_fixture_test(node.into(), "text_devanagari_noto_sans");
+}

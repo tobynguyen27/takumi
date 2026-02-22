@@ -56,6 +56,11 @@ const TEST_FONTS: &[(&str, &str, GenericFamily)] = &[
     "Noto Sans TC",
     GenericFamily::SansSerif,
   ),
+  (
+    "fonts/noto-sans/noto-sans-devanagari-v30-devanagari-regular.woff2",
+    "Noto Sans Devanagari",
+    GenericFamily::Serif,
+  ),
 ];
 
 fn create_test_context() -> GlobalContext {
